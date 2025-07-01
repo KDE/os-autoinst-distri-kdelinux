@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "type": "match",
+      "width": 219,
+      "click_point": {
+        "xpos": 97.5,
+        "ypos": 27
+      },
+      "ypos": 190,
+      "xpos": 1,
+      "height": 46,
+      "match": 20
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "calamares_usersetting_username_input"
+  ]
+}

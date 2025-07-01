@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 2,
+      "ypos": 214,
+      "width": 30,
+      "height": 40,
+      "type": "match",
+      "match": 10,
+      "click_point": {
+        "xpos": 16,
+        "ypos": 23
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "installer_partition_screen_erasedisk_radio"
+  ]
+}

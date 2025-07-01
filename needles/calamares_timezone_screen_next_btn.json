@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 936,
+      "ypos": 647,
+      "width": 82,
+      "height": 39,
+      "type": "match",
+      "match": 50,
+      "click_point": {
+        "xpos": 41,
+        "ypos": 19.5
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "calamares_timezone_screen_next_btn"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 0,
+      "ypos": 87,
+      "width": 1022,
+      "height": 604,
+      "type": "match",
+      "match": 40
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "calamares_installing"
+  ]
+}

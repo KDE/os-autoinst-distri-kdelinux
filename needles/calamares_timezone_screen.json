@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 6,
+      "ypos": 93,
+      "width": 1013,
+      "height": 595,
+      "type": "match",
+      "match": 50
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "calamares_timezone_screen"
+  ]
+}

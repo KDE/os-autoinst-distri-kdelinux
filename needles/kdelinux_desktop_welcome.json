@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 200,
+      "ypos": 110,
+      "width": 607,
+      "height": 530,
+      "type": "match",
+      "match": 20
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "kdelinux_desktop_welcome"
+  ]
+}

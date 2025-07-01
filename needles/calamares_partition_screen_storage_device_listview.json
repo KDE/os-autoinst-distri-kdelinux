@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 222,
+      "ypos": 170,
+      "width": 226,
+      "height": 30,
+      "type": "match",
+      "match": 20,
+      "click_point": {
+        "xpos": 109,
+        "ypos": 16
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "installer_partition_screen_storage_device_listview"
+  ]
+}

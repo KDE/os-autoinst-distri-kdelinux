@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 1,
+      "ypos": 87,
+      "width": 1023,
+      "height": 604,
+      "type": "match",
+      "match": 30
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "calamares_usersetting_screen"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 938,
+      "ypos": 651,
+      "width": 82,
+      "height": 32,
+      "type": "match",
+      "match": 10,
+      "click_point": {
+        "xpos": 78,
+        "ypos": 14
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "installer_partition_screen_next_btn"
+  ]
+}
