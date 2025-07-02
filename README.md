@@ -306,75 +306,45 @@ If you are starting the backend-only job using `isotovideo`, then the vnc port i
 
 ## 3. Make Needles Locally
 
+* Create a virtual disk and allocate 50G space from host. The complete KDE Linux System will be installed on it later.
+
 ```
-cp /srv/kde-raw/kde.raw /srv/kde-raw/kde2.raw
 qemu-img create -f qcow2 /srv/kde-raw/install2.qcow2 50G
-sudo chown $(whoami):$(whoami) /srv/kde-raw/*
 ```
 
-```
-qemu-system-x86_64 \
-  -enable-kvm \
-  -m 4G \
-  -cpu host \
-  -device virtio-scsi-pci,id=scsi0 \
-  -blockdev driver=file,node-name=hd0-file,filename=/srv/kde-raw/kde2.raw,cache.no-flush=on \
-  -blockdev driver=raw,node-name=hd0,file=hd0-file,cache.no-flush=on \
-  -device virtio-blk,drive=hd0,bootindex=0,serial=HDD1 \
-  -blockdev driver=file,node-name=hd1-file,filename=/srv/kde-raw/install2.qcow2,cache.no-flush=on \
-  -blockdev driver=qcow2,node-name=hd1,file=hd1-file,cache.no-flush=on \
-  -device virtio-blk,drive=hd1,serial=HDD2 \
-  -bios /usr/share/OVMF/x64/OVMF.4m.fd \
-  -vga std \
-  -serial stdio
 
-```
 
-* Temporarily(I guess): Install the system
+* Boot up the live system
 
   ```
-  sudo pkexec calamares
+  qemu-system-x86_64 \
+    -enable-kvm \
+    -m 4G \
+    -cpu host \
+    -drive file=<path to raw>,format=raw \
+    -bios /usr/share/OVMF/x64/OVMF.4m.fd \
+    -device VGA,edid=on,xres=1024,yres=768 \
+    -serial stdio
   ```
 
-```
-qemu-system-x86_64 \
-  -enable-kvm \
-  -m 4G \
-  -cpu host \
-  -drive file=/srv/kde-raw/install2.qcow2,format=qcow2 \
-  -bios /usr/share/OVMF/x64/OVMF.4m.fd \
-  -vga std \
-  -serial stdio
-```
+  * Open Calamares(a.k.a System Installation Guide or something)
 
+    ```
+    sudo pkexec calamares
+    ```
 
+    
 
-```
-qemu-system-x86_64 \
-  -enable-kvm \
-  -m 4G \
-  -cpu host \
-  -device virtio-scsi-pci,id=scsi0 \
-  -blockdev driver=file,node-name=hd0-file,filename=/srv/kde-raw/kde.raw,cache.no-flush=on \
-  -blockdev driver=raw,node-name=hd0,file=hd0-file,cache.no-flush=on \
-  -device virtio-blk,drive=hd0,bootindex=0,serial=HDD1 \
-  -blockdev driver=file,node-name=hd1-file,filename=/srv/kde-raw/install.qcow2,cache.no-flush=on \
-  -blockdev driver=qcow2,node-name=hd1,file=hd1-file,cache.no-flush=on \
-  -device virtio-blk,drive=hd1,serial=HDD2 \
-  -bios /usr/share/OVMF/x64/OVMF.4m.fd \
-  -vga std \
-  -serial stdio
+* Boot up the installed system
 
-```
-
-```
-qemu-system-x86_64 \
-  -enable-kvm \
-  -m 4G \
-  -cpu host \
-  -drive file=/srv/kde-raw/install.qcow2,format=qcow2 \
-  -bios /usr/share/OVMF/x64/OVMF.4m.fd \
-  -vga std \
-  -serial stdio
-```
+  ```
+  qemu-system-x86_64 \
+    -enable-kvm \
+    -m 4G \
+    -cpu host \
+    -drive file=<path to qcow2>,format=qcow2 \
+    -bios /usr/share/OVMF/x64/OVMF.4m.fd \
+    -device VGA,edid=on,xres=1024,yres=768 \
+    -serial stdio
+  ```
 

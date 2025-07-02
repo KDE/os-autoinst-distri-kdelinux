@@ -19,12 +19,13 @@ sub test_live_image {
     loadtest 'kdelinux_live/install_system/calamares_partition.py';
     loadtest 'kdelinux_live/install_system/calamares_usersetting.py';
     loadtest 'kdelinux_live/install_system/calamares_install.py';
-    loadtest 'kdelinux_live/shutdown.py';
+    loadtest 'common/shutdown.py';
 }
 
 sub test_kdelinux {
     loadtest 'kdelinux/boot_to_desktop/pre_login.py';
     loadtest 'kdelinux/boot_to_desktop/sddm_password_login.py';
+    loadtest 'common/shutdown.py';
 }
 
 if (get_var('DO_INSTALL', 0)) {

@@ -9,10 +9,10 @@ class KonsoleSession(BaseSession):
         (
             KRunnerSession
                 .open()
-                .wait_ready()
-                .command('konsole')
+                .expect_ready()
+                .type_and_submit('konsole')
         )
         return cls()
 
-    def wait_ready(self):
+    def expect_ready(self, timeout=30):
         return self.expect("empty_konsole")

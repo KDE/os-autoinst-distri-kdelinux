@@ -10,18 +10,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from lib.sessions.konsole import KonsoleSession
 
 def run(self):
-    # It used be able to open calamares via clicking a icon, however right now opening it via pkexec is the only solution
-    # assert_and_click(
-    #     'installer_icon',
-    #     'dclick', True,
-    #     'timeout', 60,
-    #     'button', 'left'
-    # )
     (
         KonsoleSession
             .open_via_krunner()
-            .wait_ready()
-            .command('sudo pkexec calamares')
+            .expect_ready()
+            .type_and_submit('sudo pkexec calamares')
     )
 
     # Check if the calamares installer pop up

@@ -1,6 +1,5 @@
 from testapi import *
 
-
 def run(self):
     send_key('ret')
     # wait for bootloader to appear

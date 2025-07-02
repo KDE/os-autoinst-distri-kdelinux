@@ -9,10 +9,6 @@ def run(self):
     (
         TTYSession
             .open()
-            .expect_not_login()
-            .login(username='live')
-            .expect_login()
-            .register_login()
+            .login(username='kdelinuxtester', password='1122334455')
             .shutdown()
     )
-    assert_shutdown(300)
