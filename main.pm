@@ -12,7 +12,7 @@ sub loadtest {
 }
 
 sub test_live_image {
-    loadtest 'kdelinux_live/boot_to_desktop.py';
+    loadtest 'common/bootup.py';
     loadtest 'kdelinux_live/install_system/calamares_welcome.py';
     loadtest 'kdelinux_live/install_system/calamares_timezone.py';
     loadtest 'kdelinux_live/install_system/calamares_keyboard.py';
@@ -23,7 +23,7 @@ sub test_live_image {
 }
 
 sub test_kdelinux {
-    loadtest 'kdelinux/boot_to_desktop/pre_login.py';
+    loadtest 'common/bootup.py';
     loadtest 'kdelinux/boot_to_desktop/sddm_password_login.py';
     loadtest 'common/shutdown.py';
 }

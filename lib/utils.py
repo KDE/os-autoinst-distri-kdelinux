@@ -10,4 +10,7 @@ def switch_to_tty(login=True, user_role='root'):
         send_key('ret')
         assert_screen('tty-login-prompt', timeout=10)
         type_string('password')
-    
+
+def type_and_submit(text):
+    type_string(text)
+    send_key('ret')

@@ -1,26 +1,23 @@
 from testapi import *
 
-def run(self):
-    assert_screen(
-        'calamares_usersetting_screen',
-        'timeout', 60
-    )
-    
-    assert_and_click('calamares_usersetting_username_input')
-    type_string('kdelinuxtester')
-    
-    # enter password
-    assert_and_click('calamares_usersetting_password_input')
-    type_string('1122334455')
+import sys, os
 
-    # confirm password
-    assert_and_click('calamares_usersetting_password_repeat_input')
-    type_string('1122334455')
-    
-    # click next button
-    assert_and_click(
-        'calamares_usersetting_next_btn',
-        'timeout', 15,
-        'button', 'left'
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from lib.sessions.app.calamares import CalamaresSession
+
+def run(self):
+    (
+        CalamaresSession
+            .current()
+            .expect_calamares_usersetting_screen()
+            .click_calamares_usersetting_username_input()
+            .type_calamares_usersetting_username()
+            .click_calamares_usersetting_password_input()
+            .type_calamares_usersetting_password()
+            .click_calamares_usersetting_password_repeat_input()
+            .type_calamares_usersetting_password_repeat()
+            .click_calamares_usersetting_next_btn()
     )
+
+
     

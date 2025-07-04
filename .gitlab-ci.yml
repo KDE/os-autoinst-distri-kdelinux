@@ -1,0 +1,21 @@
+stages:
+- test
+
+test-latest-image-opensuse:
+  stage: test
+  tags:
+    - kde-linux-image+test-x86_64
+  allow_failure: false
+  when: manual
+  image:
+    name: opensuse/tumbleweed
+  before_script:
+    # Install dependencies
+    - zypper --non-interactive install openQA-bootstrap perl-Inline-Python python3-requests python3-beautifulsoup4
+    # Bootstrap OpenQA Environment
+    - /usr/share/openqa/script/openqa-bootstrap &
+    - ./utils/wait_openqa_ready.sh
+    # Download the latest image
+    - python3 utils/download_image.py
+  script:
+    - .gitlab/scripts/openqa_test.sh

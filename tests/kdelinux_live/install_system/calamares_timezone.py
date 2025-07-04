@@ -1,15 +1,15 @@
 from testapi import *
 
-def run(self):
-    # check if the timezone screen shows
-    assert_screen(
-        'calamares_timezone_screen',
-        'timeout', 30
-    )
+import sys, os
 
-    # click the button to go to the next page
-    assert_and_click(
-        'calamares_timezone_screen_next_btn',
-        'timeout', 60,
-        'button', 'left'
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+from lib.sessions.app.calamares import CalamaresSession
+
+
+def run(self):
+    (
+        CalamaresSession
+            .current()
+            .expect_timezone_screen()
+            .click_calamares_timezone_screen_next_button()
     )

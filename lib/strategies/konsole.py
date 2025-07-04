@@ -1,11 +1,12 @@
+from lib.sessions.konsole import KonsoleSession
 from lib.sessions.krunner import KRunnerSession
 from lib.strategies.base import OpenStrategy
 
 
-class KRunnerOpenStrategy(OpenStrategy):
+class KonsoleOpenStrategy(OpenStrategy):
     def open_app(self, app_name):
         (
-            KRunnerSession
+            KonsoleSession
                 .open()
                 .type_and_submit(app_name)
         )

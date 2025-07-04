@@ -348,3 +348,8 @@ qemu-img create -f qcow2 /srv/kde-raw/install2.qcow2 50G
     -serial stdio
   ```
 
+#### 
+
+
+
+https://github.com/os-autoinst/os-autoinst/blob/master/doc/backend_vars.asciidoc
