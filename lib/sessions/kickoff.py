@@ -7,7 +7,7 @@ class KickOffSession(BaseSession):
 
     @classmethod
     def open(cls, method=None):
-        send_key('meta')
+        send_key('super')
         instance = cls()
         instance.expect_ready()
         return instance
@@ -19,4 +19,4 @@ class KickOffSession(BaseSession):
         return self.click('kickoff_searchbar', timeout=timeout, button=button)
 
     def click_kickoff_icon_on_panel(self, timeout=30, button='left'):
-        return self.click('kickoff-icon-on-panel', timeout, button)
+        return self.click('kickoff_icon_on_panel', timeout, button)

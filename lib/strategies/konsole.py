@@ -7,6 +7,6 @@ class KonsoleOpenStrategy(OpenStrategy):
     def open_app(self, app_name):
         (
             KonsoleSession
-                .open()
-                .type_and_submit(app_name)
+            .open()
+            .type_and_submit(app_name)
         )

@@ -16,5 +16,8 @@ def run(self):
             .type_and_submit('reboot')
     )
 
-def post_run_hook(self):
-    assert_screen('bottom_panel_left_part', timeout, 30)
+    def teardown():
+        assert_screen('bottom_panel_left_part', "timeout", 30)
+
+    teardown()
+

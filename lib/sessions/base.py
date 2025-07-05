@@ -1,3 +1,5 @@
+from time import sleep
+
 from testapi import *
 
 """
@@ -16,7 +18,7 @@ class BaseSession:
     allowed_open_strategies = ['krunner', 'konsole']
 
     @classmethod
-    def open(cls, method='krunner'):
+    def open(cls, method='krunner', **kwargs):
         if not cls.default_app_name:
             raise ValueError(f'{cls.__name__} must define a default app name')
         if not cls.allowed_open_strategies:
@@ -24,7 +26,7 @@ class BaseSession:
         if method not in cls.allowed_open_strategies:
             raise ValueError(f'{cls.__name__} open method {method} is not allowed')
         strategy = get_open_strategy(method)
-        strategy.open_app(cls.default_app_name)
+        strategy.open_app(cls.default_app_name, **kwargs)
         instance = cls()
         cls._current_instance = instance
         instance.expect_ready()
@@ -52,16 +54,23 @@ class BaseSession:
     def expect_ready(self, timeout=30):
         raise NotImplementedError(f"{self.__class__.__name__} must implement expect_ready()")
 
-    def type_and_submit(self, text):
+    def type_and_submit(self, text, **kwargs):
+        needle = kwargs.get('needle')
+        timeout = kwargs.get('timeout', 30)
         type_string(text)
+        if needle:
+            self.expect(needle, timeout)
         send_key('ret')
         return self
+
+    def expect_gui_password_pop_up(self, timeout=30):
+        return self.expect('gui_password_pop_up', timeout)
 
     def submit_gui_password(self):
         return self.type_and_submit('1122334455')
 
     def close_window(self):
-        self.send_key('alt-f4')
+        send_key('alt-f4')
         return self
 
 

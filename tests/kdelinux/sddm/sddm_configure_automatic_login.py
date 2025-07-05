@@ -9,7 +9,7 @@ from lib.sessions.app.system_settings import SystemSettingsSession
 def run(self):
     (
         SystemSettingsSession
-            .open(method='kickoff')
+            .open(method='kickoff', needle='kickoff_system_settings_query_result', timeout=30)
             .click_system_settings_searchbar()
             .query('Login Screen ')  # Empty Space needed.
             .expect_system_settings_login_screen_sddm_page_query_result()
@@ -19,12 +19,15 @@ def run(self):
             .expect_system_settings_login_screen_sddm_page_initial_behavior_subpage()
             .click_system_settings_login_screen_sddm_page_automatically_login_checkbox()
             .click_system_settings_login_screen_sddm_page_apply_button()
+            .expect_gui_password_pop_up()
             .submit_gui_password()
     )
 
-def post_run_hook():
-    (
-        SystemSettingsSession
+    def teardown():
+        (
+            SystemSettingsSession
             .current()
             .close_window()
-    )
+        )
+
+    teardown()
