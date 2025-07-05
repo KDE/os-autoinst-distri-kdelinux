@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 52,
+      "ypos": 39,
+      "width": 261,
+      "height": 167,
+      "type": "match",
+      "match": 30
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_login_screen_sddm_page_query_result"
+  ]
+}

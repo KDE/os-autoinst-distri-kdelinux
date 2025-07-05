@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 51,
+      "ypos": 24,
+      "width": 909,
+      "height": 667,
+      "type": "match",
+      "match": 10
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_quick_settings_page"
+  ]
+}

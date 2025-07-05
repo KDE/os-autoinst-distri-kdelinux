@@ -1,3 +1,4 @@
+from lib.sessions.kickoff import KickOffSession
 from lib.strategies.konsole import KonsoleOpenStrategy
 from lib.strategies.krunner import KRunnerOpenStrategy
 from lib.strategies.tty import TTYOpenStrategy
@@ -5,5 +6,6 @@ from lib.strategies.tty import TTYOpenStrategy
 OPEN_STRATEGIES = {
     'krunner' : KRunnerOpenStrategy(),
     'tty' : TTYOpenStrategy(),
-    'konsole' : KonsoleOpenStrategy()
+    'konsole' : KonsoleOpenStrategy(),
+    'kickoff' : KickOffSession()
 }

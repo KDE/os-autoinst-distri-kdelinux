@@ -4,7 +4,7 @@ export CI_PROJECT_DIR=$(pwd)
 IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
 IMG=$(basename "$IMG_PATH")
 OUTPUT=${IMG%.raw}
-VERSION=${IMG##*_}
+VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 OPENQA_HOST_ADDR=localhost
 

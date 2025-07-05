@@ -24,8 +24,9 @@ sub test_live_image {
 
 sub test_kdelinux {
     loadtest 'common/bootup.py';
-    loadtest 'kdelinux/boot_to_desktop/sddm_password_login.py';
-    loadtest 'common/shutdown.py';
+    loadtest 'kdelinux/sddm/sddm_password_login.py';
+    loadtest 'kdelinux/sddm/sddm_configure_automatic_login.py';
+    loadtest 'common/reboot.py';
 }
 
 if (get_var('DO_INSTALL', 0)) {

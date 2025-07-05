@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 878,
+      "ypos": 657,
+      "width": 85,
+      "height": 35,
+      "type": "match",
+      "match": 40,
+      "click_point": {
+        "xpos": 45,
+        "ypos": 22
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_login_screen_sddm_page_apply_button"
+  ]
+}

@@ -348,7 +348,19 @@ qemu-img create -f qcow2 /srv/kde-raw/install2.qcow2 50G
     -serial stdio
   ```
 
-#### 
+```
+qemu-system-x86_64 \
+  -enable-kvm \
+  -m 4G \
+  -cpu host \
+  -drive file=/srv/kde-raw/kde-linux_202507020254.qcow2,format=qcow2 \
+  -bios /usr/share/OVMF/x64/OVMF.4m.fd \
+  -device VGA,edid=on,xres=1024,yres=768 \
+  -serial stdio \
+  -vnc :1 \
+  -display sdl 
+  -qmp unix:/tmp/qmp-kde.sock,server,nowait
+```
 
 
 

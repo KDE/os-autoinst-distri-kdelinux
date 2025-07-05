@@ -56,3 +56,15 @@ class BaseSession:
         type_string(text)
         send_key('ret')
         return self
+
+    def submit_gui_password(self):
+        return self.type_and_submit('1122334455')
+
+    def close_window(self):
+        self.send_key('alt-f4')
+        return self
+
+
+
+
+

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Only run this locally, for CI tests, we will only use its worker-only image(registry.opensuse.org/devel/openqa/containers15.6/openqa_worker:latest), no webui.
+# Only run this locally, for CI tests, we will use opensuse/tumbleweed + bootstrap scripts.
 #podman run --rm -it \
 #    -v "$PWD":/builds/1/project \
 #    -w /builds/1/project \
@@ -12,7 +12,6 @@
 # podman exec -it openqa-server bash
 # ./utils/mock.sh
 
-# Run the remaining scripts inside the container, using ./utils/mock.sh
 zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 dos2unix vim
 
 # Bootstrap OpenQA Environment
@@ -26,7 +25,7 @@ export CI_PROJECT_DIR=$(pwd)
 IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
 IMG=$(basename "$IMG_PATH")
 OUTPUT=${IMG%.raw}
-VERSION=${IMG##*_}
+VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 OPENQA_HOST_ADDR=localhost
 

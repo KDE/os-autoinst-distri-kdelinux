@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 62,
+      "ypos": 155,
+      "width": 222,
+      "height": 39,
+      "type": "match",
+      "match": 30,
+      "click_point": {
+        "xpos": 114,
+        "ypos": 26
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_login_screen_sddm_sidebar_item"
+  ]
+}
