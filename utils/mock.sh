@@ -100,7 +100,6 @@ UEFI_PFLASH_VARS=/usr/share/qemu/ovmf-x86_64-4m-vars.bin
 
 # Test Configuration
 TEST=install_full_system
-CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 NEEDLES_DIR=%%CASEDIR%%/needles
 DO_INSTALL=1
 HDDSIZEGB=50
