@@ -27,6 +27,7 @@ sub test_kdelinux {
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'kdelinux/sddm/sddm_configure_automatic_login.py';
     loadtest 'common/reboot.py';
+    loadtest 'kdelinux/panel/system_tray.py'
 }
 
 if (get_var('DO_INSTALL', 0)) {

@@ -358,7 +358,7 @@ qemu-system-x86_64 \
   -device VGA,edid=on,xres=1024,yres=768 \
   -serial stdio \
   -vnc :1 \
-  -display sdl 
+  -display sdl \
   -qmp unix:/tmp/qmp-kde.sock,server,nowait
 ```
 

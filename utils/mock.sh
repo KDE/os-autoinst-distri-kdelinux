@@ -10,7 +10,28 @@
 
 # Start Another terminal instance, and run
 # podman exec -it openqa-server bash
-# ./utils/mock.sh
+# ./utils/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git#refs/heads/issue178
+
+
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --CASEDIR=*)
+            CASEDIR="${arg#*=}"
+            shift
+            ;;
+        *)
+            echo "[ERROR] Unknown argument: $arg"
+            echo "[USAGE] $0 --CASEDIR=your_case_repo_url"
+            exit 1
+            ;;
+    esac
+done
+
+if [[ -z "$CASEDIR" ]]; then
+    echo "[ERROR] --CASEDIR not provided"
+    exit 1
+fi
 
 zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 dos2unix vim
 
@@ -79,7 +100,7 @@ UEFI_PFLASH_VARS=/usr/share/qemu/ovmf-x86_64-4m-vars.bin
 
 # Test Configuration
 TEST=install_full_system
-CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git#refs/heads/brute-force-debug
+CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 NEEDLES_DIR=%%CASEDIR%%/needles
 DO_INSTALL=1
 HDDSIZEGB=50

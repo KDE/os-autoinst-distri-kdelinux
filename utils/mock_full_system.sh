@@ -1,3 +1,22 @@
+for arg in "$@"; do
+    case $arg in
+        --CASEDIR=*)
+            CASEDIR="${arg#*=}"
+            shift
+            ;;
+        *)
+            echo "[ERROR] Unknown argument: $arg"
+            echo "[USAGE] $0 --CASEDIR=your_case_repo_url"
+            exit 1
+            ;;
+    esac
+done
+
+if [[ -z "$CASEDIR" ]]; then
+    echo "[ERROR] --CASEDIR not provided"
+    exit 1
+fi
+
 cd /var/lib/openqa/factory/hdd
 export CI_PROJECT_DIR=$(pwd)
 IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
@@ -54,7 +73,6 @@ UEFI_PFLASH_VARS=/usr/share/qemu/ovmf-x86_64-4m-vars.bin
 
 # Test Configuration
 TEST=install_full_system
-CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 NEEDLES_DIR=%%CASEDIR%%/needles
 DO_INSTALL=1
 HDDSIZEGB=50

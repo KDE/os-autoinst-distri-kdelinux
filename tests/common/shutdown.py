@@ -1,17 +1,13 @@
 from testapi import *
-
-import sys
-import os
+import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from lib.sessions.tty import TTYSession
+from lib.utils import get_username_and_password
 
 def run(self):
-    do_install = get_var('DO_INSTALL')
-    username = 'kdelinuxtester' if do_install == '0' else 'live'
-
+    username, password = get_username_and_password()
     (
         TTYSession
             .open(tty_number=3)
-            .login(username=username, password='1122334455' if do_install == '0' else None)
-            .shutdown()
+            .shutdown(username=username, password=password)
     )

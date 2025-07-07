@@ -11,6 +11,12 @@ def switch_to_tty(login=True, user_role='root'):
         assert_screen('tty-login-prompt', timeout=10)
         type_string('password')
 
+def get_username_and_password():
+    do_install = get_var('DO_INSTALL')
+    username = 'kdelinuxtester' if do_install == '0' else 'live'
+    password = '1122334455' if do_install == '0' else None
+    return username, password
+
 def type_and_submit(text):
     type_string(text)
     send_key('ret')
