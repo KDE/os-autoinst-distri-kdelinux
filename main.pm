@@ -30,6 +30,8 @@ sub test_kdelinux {
     loadtest 'kdelinux/panel/system_tray.py';
     loadtest 'kdelinux/panel/digital_clock.py';
     loadtest 'kdelinux/desktop/create_file.py';
+    loadtest 'kdelinux/desktop/switch_windows.py';
+    loadtest 'common/shutdown.py';
 }
 
 if (get_var('DO_INSTALL', 0)) {

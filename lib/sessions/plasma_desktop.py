@@ -60,3 +60,13 @@ class PlasmaDesktopSession(BaseSession):
 
     def expect_plasma_desktop_new_file_created(self, timeout=30):
         return self.expect('plasma_desktop_new_file_created', timeout=timeout)
+
+    def switch_windows(self, fast=True, timeout=30):
+        if fast:
+            send_key('alt-tab')
+        else:
+            hold_key('alt')
+            send_key('tab')
+            self.expect("windows_switcher_two_windows", timeout)
+            release_key('alt')
+        return self
