@@ -52,6 +52,9 @@
     <canvas id="overlay-canvas" style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
 </div>
 
+<div id="mouse-coords" style="margin-top: 0.5em; font-weight: bold;">Mouse: (x, y)</div>
+
+
 <div>
     <button id="add-click-point">Add click point to selected area</button>
     <button id="set-match">Set match level for selected area</button>
@@ -249,6 +252,23 @@
         redraw();
         renderJson();
     });
+
+    // For displaying the cursor's x|y coordinates on canvas.
+    overlayCanvas.addEventListener("mousemove", e => {
+        const r = overlayCanvas.getBoundingClientRect();
+        const x = Math.floor(e.clientX - r.left);
+        const y = Math.floor(e.clientY - r.top);
+
+        const coordsDisplay = document.getElementById("mouse-coords");
+        coordsDisplay.textContent = `Mouse: (${x}, ${y})`;
+    });
+
+    // when the cursor leaves canvas, unset the corrdinates.
+    overlayCanvas.addEventListener("mouseleave", () => {
+        const coordsDisplay = document.getElementById("mouse-coords");
+        coordsDisplay.textContent = "Mouse: (–, –)";
+    });
+
 
     overlayCanvas.addEventListener("mouseup", e => {
         // this should be placed and checked before isDrawing. Otherwise the clickpoint will stick with the cursor.

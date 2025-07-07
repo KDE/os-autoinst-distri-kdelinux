@@ -30,6 +30,7 @@ class TTYSession(BaseSession):
         if not self.is_logged_in(self.tty_number):
             self.expect_not_login()
             self.type_and_submit(username)
+            sleep(5)
             if password:
                 self.type_and_submit(password)
             self.expect_login()

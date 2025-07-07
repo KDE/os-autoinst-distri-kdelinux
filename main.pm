@@ -13,12 +13,12 @@ sub loadtest {
 
 sub test_live_image {
     loadtest 'common/bootup.py';
-    loadtest 'kdelinux_live/install_system/calamares_welcome.py';
-    loadtest 'kdelinux_live/install_system/calamares_timezone.py';
-    loadtest 'kdelinux_live/install_system/calamares_keyboard.py';
-    loadtest 'kdelinux_live/install_system/calamares_partition.py';
-    loadtest 'kdelinux_live/install_system/calamares_usersetting.py';
-    loadtest 'kdelinux_live/install_system/calamares_install.py';
+    loadtest 'kdelinux-live/install_system/calamares_welcome.py';
+    loadtest 'kdelinux-live/install_system/calamares_timezone.py';
+    loadtest 'kdelinux-live/install_system/calamares_keyboard.py';
+    loadtest 'kdelinux-live/install_system/calamares_partition.py';
+    loadtest 'kdelinux-live/install_system/calamares_usersetting.py';
+    loadtest 'kdelinux-live/install_system/calamares_install.py';
     loadtest 'common/shutdown.py';
 }
 
@@ -27,7 +27,9 @@ sub test_kdelinux {
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'kdelinux/sddm/sddm_configure_automatic_login.py';
     loadtest 'common/reboot.py';
-    loadtest 'kdelinux/panel/system_tray.py'
+    loadtest 'kdelinux/panel/system_tray.py';
+    loadtest 'kdelinux/panel/digital_clock.py';
+    loadtest 'kdelinux/desktop/create_file.py';
 }
 
 if (get_var('DO_INSTALL', 0)) {

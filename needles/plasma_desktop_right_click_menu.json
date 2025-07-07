@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 0,
+      "ypos": 3,
+      "width": 322,
+      "height": 200,
+      "type": "match",
+      "match": 20
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "plasma_desktop_right_click_menu"
+  ]
+}

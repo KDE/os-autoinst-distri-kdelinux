@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 451,
+      "ypos": 253,
+      "width": 554,
+      "height": 444,
+      "type": "match",
+      "match": 5
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "plasma_panel_digital_clock_default_popup"
+  ]
+}
