@@ -18,4 +18,5 @@ class KRunnerSession(BaseSession):
         return instance
 
     def expect_ready(self, timeout=30):
-        return self.expect("empty_krunner", timeout=timeout)
+        send_key_until_needlematch("empty_krunner", 'backspace', "timeout", 30)
+        return self

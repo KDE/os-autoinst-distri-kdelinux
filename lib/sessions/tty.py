@@ -27,14 +27,14 @@ class TTYSession(BaseSession):
 
     def ensure_logged_in(self, username='kdelinuxtestuser', password=None):
         """Ensure user is logged in before executing sensitive commands"""
-        if not self.is_logged_in(self.tty_number):
+        if not TTYSession.is_logged_in(self.tty_number):
             self.expect_not_login()
             self.type_and_submit(username)
             sleep(5)
             if password:
                 self.type_and_submit(password)
             self.expect_login()
-            self.mark_logged_in(self.tty_number)
+            TTYSession.mark_logged_in(self.tty_number)
         else:
             self.expect_login()
 
@@ -46,11 +46,13 @@ class TTYSession(BaseSession):
         self.ensure_logged_in(username, password)
         self.type_and_submit('poweroff')
         assert_shutdown(300)
+        TTYSession._ttys_logged_in_set.remove(self.tty_number)
         return self
 
     def reboot(self, username='kdelinuxtestuser', password=None, automatic_login=False):
         self.ensure_logged_in(username, password)
         self.type_and_submit('reboot')
+        TTYSession._ttys_logged_in_set.remove(self.tty_number)
         return self
 
     def expect_ready(self, timeout=30):

@@ -8,4 +8,4 @@ class KonsoleSession(BaseSession):
     allowed_strategies = ['krunner']
 
     def expect_ready(self, timeout=30):
-        return self.expect("empty_konsole", timeout=30)
+        return self.expect('empty_konsole', timeout=timeout)
