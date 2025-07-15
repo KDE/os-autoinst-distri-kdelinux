@@ -271,7 +271,8 @@ Then we can remove the spinning icon by pressing `del`, and adjust the match lev
 ## 2.2 How to control the OpenQA test runner VM
 
 ```bash
-podman run -it --rm --device /dev/kvm  --name openqa-server -p 5991:5991 -p 1443:443 -p 5990:5990  -p 1080:80 -p 9526:9526  -v /srv/kde-raw:/var/lib/openqa/factory/hdd:Z  registry.opensuse.org/devel/openqa/containers/openqa-single-instance
+mkdir $HOME/hdd
+podman run -it --rm --device /dev/kvm  --name openqa-server -p 5991:5991 -p 1443:443 -p 5990:5990  -p 1080:80 -p 9526:9526  -v $HOME/hdd:/var/lib/openqa/factory/hdd:Z  registry.opensuse.org/devel/openqa/containers/openqa-single-instance
 ```
 
 For the WebUI, just add the port transfer 5991 when starting the openqa-instance
@@ -353,12 +354,12 @@ qemu-system-x86_64 \
   -enable-kvm \
   -m 4G \
   -cpu host \
-  -drive file=/srv/kde-raw/kde-linux_202507020254.qcow2,format=qcow2 \
+  -drive file=//kde-linux_202507020254.qcow2,format=qcow2 \
   -bios /usr/share/OVMF/x64/OVMF.4m.fd \
   -device VGA,edid=on,xres=1024,yres=768 \
   -serial stdio \
   -vnc :1 \
-  -display sdl \
+  -display sdl 
   -qmp unix:/tmp/qmp-kde.sock,server,nowait
 ```
 

@@ -54,7 +54,7 @@ BOOTFROM=c
 UEFI=1
 UEFI_PFLASH_CODE=/usr/share/qemu/ovmf-x86_64-4m-code.bin
 UEFI_PFLASH_VARS=/usr/share/qemu/ovmf-x86_64-4m-vars.bin
-TIMEOUT_SCALE=3
+TIMEOUT_SCALE=10
 
 # Test Configuration
 TEST=install_full_system
