@@ -19,6 +19,8 @@ class BaseSession:
 
     @classmethod
     def open(cls, method='krunner', **kwargs):
+        if cls._current_instance is not None:
+            raise RuntimeError(f"{cls.__name__} instance already exists. Call close() before opening a new one.")
         if not cls.default_app_name:
             raise ValueError(f'{cls.__name__} must define a default app name')
         if not cls.allowed_open_strategies:
