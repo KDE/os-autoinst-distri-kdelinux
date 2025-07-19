@@ -8,7 +8,7 @@ test-latest-image-opensuse:
   allow_failure: false
   when: manual
   image:
-    name: opensuse/tumbleweed
+    name: opensuse/tumbleweed:latest
   before_script:
     # Install dependencies
     - zypper --non-interactive install openQA-bootstrap perl-Inline-Python python3-requests python3-beautifulsoup4
