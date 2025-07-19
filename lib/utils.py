@@ -17,6 +17,12 @@ def get_username_and_password():
     password = '1122334455' if do_install == '0' else None
     return username, password
 
-def type_and_submit(text):
+
+def type_and_submit(text, **kwargs):
+    needle = kwargs.get('needle')
+    timeout = kwargs.get('timeout', 30)
     type_string(text)
+    if needle:
+        assert_screen(needle, 'timeout', timeout)
     send_key('ret')
+    return self

@@ -4,7 +4,7 @@ stages:
 test-latest-image-opensuse:
   stage: test
   tags:
-    - kde-linux-image+test-x86_64
+    - LinuxHighMemory
   allow_failure: false
   when: manual
   image:
