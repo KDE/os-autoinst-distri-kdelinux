@@ -21,7 +21,7 @@ class OpenableSessionMixin:
         if launch_app:
             strategy = get_open_strategy(open_strategy)
             strategy.open_app(cls.default_app_name, **kwargs)
-
         instance = cls()
-        instance.expect_ready()
+        if launch_app:
+            instance.expect_ready()
         return instance
