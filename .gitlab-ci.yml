@@ -13,8 +13,7 @@ test-latest-image-opensuse:
     # Install dependencies
     - zypper --non-interactive install openQA-bootstrap perl-Inline-Python python3-requests python3-beautifulsoup4
     # Bootstrap OpenQA Environment
-    - /usr/share/openqa/script/openqa-bootstrap &
-    - ./utils/wait_openqa_ready.sh
+    - .gitlab/scripts/openqa-bootstrap.sh
     # Download the latest image
     - python3 utils/download_image.py
   script:
