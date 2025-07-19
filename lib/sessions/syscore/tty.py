@@ -47,7 +47,7 @@ class TTYSession(BaseSession):
         TTYSession._ttys_logged_in_set.remove(self.tty_number)
         return self
 
-    def reboot(self, username='kdelinuxtestuser', password=None, automatic_login=False):
+    def reboot(self, username='kdelinuxtestuser', password=None):
         self.ensure_logged_in(username, password)
         self.type_and_submit('reboot')
         TTYSession._ttys_logged_in_set.remove(self.tty_number)

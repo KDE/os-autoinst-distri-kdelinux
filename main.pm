@@ -27,6 +27,7 @@ sub test_kdelinux {
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'kdelinux/sddm/sddm_configure_automatic_login.py';
     loadtest 'common/reboot.py';
+    loadtest 'common/bootup.py';
     loadtest 'kdelinux/panel/system_tray.py';
     loadtest 'kdelinux/panel/digital_clock.py';
     loadtest 'kdelinux/desktop/create_file.py';
