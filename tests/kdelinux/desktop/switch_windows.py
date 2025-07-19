@@ -2,34 +2,42 @@ from testapi import *
 import sys, os
 
 from lib.sessions.app.system_settings import SystemSettingsSession
-from lib.sessions.konsole import KonsoleSession
+from lib.sessions.app.konsole import KonsoleSession
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from lib.sessions.plasma_desktop import PlasmaDesktopSession
+from lib.sessions.syscore.plasma_desktop import PlasmaDesktopSession
 
 
 def run(self):
+    # Open konsole
     (
         KonsoleSession
-            .open()
+            .ensure_active()
     )
+
+    # Open system-setting
     (
         SystemSettingsSession
-            .open()
+            .ensure_active()
     )
+
+    # Switch between these two apps
     (
         PlasmaDesktopSession
-            .current()
+            .ensure_active()
             .switch_windows(fast=False)
     )
+
+    # After switch, konsole should on top, close it
     (
         KonsoleSession
-            .current()
-            .expect_ready()
+            .ensure_active(launch_app=False)
             .close_window()
     )
+
+    # Close system-setting
     (
         SystemSettingsSession
-            .current()
+            .ensure_active(launch_app=False)
             .close_window()
     )

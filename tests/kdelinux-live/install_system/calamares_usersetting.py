@@ -8,7 +8,7 @@ from lib.sessions.app.calamares import CalamaresSession
 def run(self):
     (
         CalamaresSession
-            .current()
+            .ensure_active(launch_app=False)
             .expect_calamares_usersetting_screen()
             .click_calamares_usersetting_username_input()
             .type_calamares_usersetting_username()

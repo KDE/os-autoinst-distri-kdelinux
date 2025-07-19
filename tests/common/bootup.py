@@ -1,5 +1,6 @@
 from testapi import *
 
+
 def run(self):
     DO_INSTALL = get_var("DO_INSTALL")
     assert_screen('uefi_screen', timeout=30)

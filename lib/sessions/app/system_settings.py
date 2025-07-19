@@ -1,8 +1,9 @@
 from testapi import *
 from lib.sessions.base import BaseSession
+from lib.sessions.mixins.openable import OpenableSessionMixin
 
 
-class SystemSettingsSession(BaseSession):
+class SystemSettingsSession(BaseSession, OpenableSessionMixin):
     default_app_name = 'system settings'
     allowed_open_strategies = ['krunner', 'kickoff']
 
@@ -28,7 +29,8 @@ class SystemSettingsSession(BaseSession):
         return self.expect('system_settings_login_screen_sddm_page_initial_behavior_subpage', timeout)
 
     def click_system_settings_login_screen_sddm_page_automatically_login_checkbox(self, timeout=30, button='left'):
-        return self.click('system_settings_login_screen_sddm_page_automatically_login_checkbox', timeout=timeout, button=button)
+        return self.click('system_settings_login_screen_sddm_page_automatically_login_checkbox', timeout=timeout,
+                          button=button)
 
     def click_system_settings_login_screen_sddm_page_apply_button(self, timeout=30, button='left'):
         return self.click('system_settings_login_screen_sddm_page_apply_button', timeout=timeout, button=button)
@@ -36,4 +38,3 @@ class SystemSettingsSession(BaseSession):
     def query(self, query_text):
         type_string(query_text)
         return self
-

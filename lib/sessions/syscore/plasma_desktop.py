@@ -1,14 +1,12 @@
 from lib.sessions.base import BaseSession
 from testapi import *
 
+
 class PlasmaDesktopSession(BaseSession):
-    name = "plasma_desktop_session"
-    allowed_open_strategies = []
 
     @classmethod
-    def open(cls, method=None, **kwargs):
+    def ensure_active(cls):
         instance = cls()
-        cls._current_instance = instance
         instance.expect_ready()
         return instance
 
@@ -62,6 +60,13 @@ class PlasmaDesktopSession(BaseSession):
         return self.expect('plasma_desktop_new_file_created', timeout=timeout)
 
     def switch_windows(self, fast=True, timeout=30):
+        '''
+        hold the `alt` key and press tab to ensure the `task switcher` overview shows up, then release the `alt` key.
+
+        :param fast:
+        :param timeout:
+        :return:
+        '''
         if fast:
             send_key('alt-tab')
         else:

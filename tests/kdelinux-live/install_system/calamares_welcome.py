@@ -1,5 +1,3 @@
-from time import sleep
-
 from testapi import *
 
 import os
@@ -12,6 +10,6 @@ from lib.sessions.app.calamares import CalamaresSession
 def run(self):
     (
         CalamaresSession
-            .open(method='konsole')
+            .ensure_active(method='konsole')
             .click_welcome_screen_next_button()
     )

@@ -1,9 +1,10 @@
 from testapi import *
 
 from lib.sessions.base import BaseSession
-from lib.sessions.krunner import KRunnerSession
+from lib.sessions.mixins.openable import OpenableSessionMixin
 
-class KonsoleSession(BaseSession):
+
+class KonsoleSession(BaseSession, OpenableSessionMixin):
     default_app_name = 'konsole'
     allowed_strategies = ['krunner']
 

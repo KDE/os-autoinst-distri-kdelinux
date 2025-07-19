@@ -1,12 +1,11 @@
 from testapi import *
 from lib.sessions.base import BaseSession
 
+
 class KickOffSession(BaseSession):
-    default_app_name = 'kickoff'
-    allowed_open_strategies = []
 
     @classmethod
-    def open(cls, method=None):
+    def ensure_active(cls):
         send_key('super')
         instance = cls()
         instance.expect_ready()

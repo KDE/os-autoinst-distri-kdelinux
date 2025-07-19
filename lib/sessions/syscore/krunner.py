@@ -1,12 +1,10 @@
 from testapi import *
 from lib.sessions.base import BaseSession
 
-class KRunnerSession(BaseSession):
-    default_app_name = 'krunner'
-    allowed_open_strategies = []
 
+class KRunnerSession(BaseSession):
     @classmethod
-    def open(cls, method=None):
+    def ensure_active(cls):
         """
         krunner cannot open itself. So the open function must be overridden.
         :param method:

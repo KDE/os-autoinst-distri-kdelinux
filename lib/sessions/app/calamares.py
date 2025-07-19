@@ -1,19 +1,13 @@
 from testapi import *
 from lib.sessions.base import BaseSession
+from lib.sessions.mixins.openable import OpenableSessionMixin
 
 
-class CalamaresSession(BaseSession):
-    # temporary, should be open via krunner, or even manual click
+class CalamaresSession(BaseSession, OpenableSessionMixin):
     default_app_name = 'sudo pkexec calamares'
     allowed_open_strategies = ['krunner', 'konsole']
 
     def expect_ready(self, timeout=30):
-        """
-        The initial page after calamares is launched.
-
-        :param timeout: default timeout, 30s. Fail after timeout.
-        :return: self
-        """
         return self.expect('calamares_welcome_screen')
 
     def click_welcome_screen_next_button(self, timeout=60, button='left'):
@@ -61,7 +55,7 @@ class CalamaresSession(BaseSession):
         return self.click('calamares_usersetting_password_input', timeout, button)
 
     def type_calamares_usersetting_password(self):
-        type_string('1122334455') # not sure if it is good here to hardcode username and password.
+        type_string('1122334455')  # not sure if it is good here to hardcode username and password.
         return self
 
     def click_calamares_usersetting_password_repeat_input(self, timeout=60, button='left'):

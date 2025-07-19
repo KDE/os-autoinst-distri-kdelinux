@@ -4,14 +4,12 @@ from lib.sessions.base import BaseSession
 
 class TTYSession(BaseSession):
     _ttys_logged_in_set = set()
-    default_app_name = 'tty'
-    allowed_open_strategies = []
 
     def __init__(self, tty_number):
         self.tty_number = tty_number
 
     @classmethod
-    def open(cls, method=None, tty_number=3):
+    def ensure_active(cls, tty_number=3):
         send_key(f'ctrl-alt-f{tty_number}')
         instance = cls(tty_number)
         instance.expect_ready()

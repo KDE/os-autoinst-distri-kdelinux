@@ -1,12 +1,14 @@
 from testapi import *
 import sys, os
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from lib.sessions.plasma_desktop import PlasmaDesktopSession
+from lib.sessions.syscore.plasma_desktop import PlasmaDesktopSession
+
 
 def run(self):
     (
         PlasmaDesktopSession
-            .current()
+            .ensure_active()
             .right_click_empty_desktop()
             .expect_plasma_desktop_right_click_menu()
             .click_plasma_desktop_right_click_menu_create_new()
