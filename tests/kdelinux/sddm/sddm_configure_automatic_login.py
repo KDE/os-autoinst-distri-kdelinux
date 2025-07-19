@@ -9,7 +9,7 @@ from lib.sessions.app.system_settings import SystemSettingsSession
 def run(self):
     (
         SystemSettingsSession
-            .ensure_active(method='kickoff', needle='kickoff_system_settings_query_result', timeout=30)
+            .ensure_active(open_strategy='kickoff', needle='kickoff_system_settings_query_result', timeout=30)
             .click_system_settings_searchbar()
             .query('Login Screen ')  # Empty Space needed.
             .expect_system_settings_login_screen_sddm_page_query_result()
