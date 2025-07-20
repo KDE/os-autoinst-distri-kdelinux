@@ -6,7 +6,7 @@
       "xpos": 186,
       "height": 603,
       "width": 651,
-      "match": 20
+      "match": 90
     },
     {
       "type": "match",
@@ -14,7 +14,7 @@
       "height": 44,
       "width": 1008,
       "xpos": 8,
-      "match": 20
+      "match": 90
     },
     {
       "type": "match",
@@ -22,7 +22,7 @@
       "width": 91,
       "height": 86,
       "xpos": 10,
-      "match": 20
+      "match": 90
     }
   ],
   "properties": [],

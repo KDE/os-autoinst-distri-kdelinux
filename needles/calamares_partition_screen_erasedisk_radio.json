@@ -6,7 +6,7 @@
       "width": 30,
       "height": 40,
       "type": "match",
-      "match": 10,
+      "match": 90,
       "click_point": {
         "xpos": 16,
         "ypos": 23
