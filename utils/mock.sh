@@ -40,7 +40,7 @@ zypper --non-interactive install perl-Inline-Python python3-requests python3-bea
 #./utils/wait_openqa_ready.sh
 
 # Download the latest image
-python3 utils/download_image.py
+python3 utils/download_image.py --latest
 
 export CI_PROJECT_DIR=$(pwd)
 IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)

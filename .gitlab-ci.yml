@@ -15,6 +15,6 @@ test-latest-image-opensuse:
     # Bootstrap OpenQA Environment
     - .gitlab/scripts/openqa-bootstrap.sh
     # Download the latest image
-    - python3 utils/download_image.py
+    - python3 utils/download_image.py --latest
   script:
     - .gitlab/scripts/openqa_test.sh
