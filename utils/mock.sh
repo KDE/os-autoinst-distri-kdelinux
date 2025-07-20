@@ -10,7 +10,7 @@
 
 # Start Another terminal instance, and run
 # podman exec -it openqa-server bash
-# ./utils/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git#refs/heads/issue178
+# ./utils/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 
 
 # Parse arguments

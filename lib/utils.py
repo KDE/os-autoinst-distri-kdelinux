@@ -25,4 +25,3 @@ def type_and_submit(text, **kwargs):
     if needle:
         assert_screen(needle, 'timeout', timeout)
     send_key('ret')
-    return self
