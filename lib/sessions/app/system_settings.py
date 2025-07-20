@@ -35,6 +35,24 @@ class SystemSettingsSession(BaseSession, OpenableSessionMixin):
     def click_system_settings_login_screen_sddm_page_apply_button(self, timeout=30, button='left'):
         return self.click('system_settings_login_screen_sddm_page_apply_button', timeout=timeout, button=button)
 
+    def expect_system_settings_screen_locking_query_result(self, timeout=30):
+        return self.expect('system_settings_screen_locking_query_result', timeout)
+
+    def click_system_settings_screen_locking_sidebar_item(self, timeout=30, button='left'):
+        return self.click('system_settings_screen_locking_sidebar_item', timeout=timeout, button=button)
+
+    def expect_system_settings_screen_locking_default_page(self, timeout=30):
+        return self.expect('system_settings_screen_locking_default_page', timeout)
+
+    def expect_and_click_system_settings_screen_locking_default_page_lockscreen_listview(self, timeout=30, button='left'):
+        return self.click('system_settings_screen_locking_default_page_lockscreen_listview', timeout=timeout, button=button)
+
+    def click_system_settings_screen_locking_default_page_lockscreen_listview_option_never(self, timeout=30, button='left'):
+        return self.click('system_settings_screen_locking_default_page_lockscreen_listview_option_never', timeout=timeout, button=button)
+
+    def click_system_settings_screen_locking_default_page_apply_button(self, timeout=30, button='left'):
+        return self.click('system_settings_screen_locking_default_page_apply_button', timeout=timeout, button=button)
+
     def query(self, query_text):
         type_string(query_text)
         return self

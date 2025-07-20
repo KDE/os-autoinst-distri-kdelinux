@@ -7,6 +7,7 @@ from lib.sessions.app.system_settings import SystemSettingsSession
 
 
 def run(self):
+    # todo: move this script into common/system_settings and add `DO_INSTALL` check
     (
         SystemSettingsSession
             .ensure_active(open_strategy='kickoff', needle='kickoff_system_settings_query_result', timeout=30)
@@ -21,13 +22,5 @@ def run(self):
             .click_system_settings_login_screen_sddm_page_apply_button()
             .expect_gui_password_pop_up()
             .submit_gui_password()
+            .close_window()
     )
-
-    def teardown():
-        (
-            SystemSettingsSession
-                .ensure_active(launch_app=False)
-                .close_window()
-        )
-
-    teardown()

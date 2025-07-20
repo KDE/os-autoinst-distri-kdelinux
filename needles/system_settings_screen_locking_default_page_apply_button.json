@@ -1,0 +1,19 @@
+{
+  "area": [
+    {
+      "xpos": 940,
+      "ypos": 686,
+      "width": 73,
+      "height": 24,
+      "type": "match",
+      "click_point": {
+        "xpos": 72,
+        "ypos": 5
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_screen_locking_default_page_apply_button"
+  ]
+}

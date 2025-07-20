@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 5,
+      "ypos": 36,
+      "width": 232,
+      "height": 117,
+      "type": "match",
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_screen_locking_query_result"
+  ]
+}

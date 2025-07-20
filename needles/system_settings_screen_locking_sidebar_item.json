@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 4,
+      "ypos": 106,
+      "width": 123,
+      "height": 27,
+      "type": "match",
+      "match": 90,
+      "click_point": {
+        "xpos": 47,
+        "ypos": 16
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_screen_locking_sidebar_item"
+  ]
+}
