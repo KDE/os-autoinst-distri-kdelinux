@@ -10,6 +10,6 @@ from lib.sessions.app.calamares import CalamaresSession
 def run(self):
     (
         CalamaresSession
-            .ensure_active(method='konsole')
+            .ensure_active(open_strategy='konsole')
             .click_welcome_screen_next_button()
     )
