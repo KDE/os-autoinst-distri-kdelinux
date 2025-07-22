@@ -84,6 +84,9 @@ class SystemSettingsSession(BaseSession, OpenableSessionMixin):
     def click_system_settings_power_management_apply_button(self, timeout=30, button='left'):
         return self.click('system_settings_power_management_apply_button', timeout=timeout, button=button)
 
+    def expect_system_settings_login_screen_sddm_page_configure_completed(self, timeout=30):
+        return self.expect('system_settings_login_screen_sddm_page_configure_completed', timeout)
+
     def query(self, query_text):
         type_string(query_text)
         return self
