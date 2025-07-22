@@ -1,20 +1,23 @@
 stages:
-- test
+    - test
 
 test-latest-image-opensuse:
-  stage: test
-  tags:
-    - LinuxHighMemory
-  allow_failure: false
-  when: manual
-  image:
-    name: opensuse/tumbleweed:latest
-  before_script:
-    # Install dependencies
-    - zypper --non-interactive install openQA-bootstrap perl-Inline-Python python3-requests python3-beautifulsoup4
-    # Bootstrap OpenQA Environment
-    - .gitlab/scripts/openqa-bootstrap.sh
-    # Download the latest image
-    - python3 utils/download_image.py --latest
-  script:
-    - .gitlab/scripts/openqa_test.sh
+    stage: test
+    tags:
+        - LinuxHighCPUMemory
+    allow_failure: false
+    when: manual
+    image:
+        name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
+        entrypoint: ["/bin/bash", "-c"]
+    before_script:
+        # Bootstrap OpenQA Environment
+        - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
+        # Wait openQA ready
+        - ./utils/wait_openqa_ready.sh
+        # Install dependencies
+        - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
+        # Download the latest image
+        - python3 utils/download_image.py --latest
+    script:
+        - .gitlab/scripts/openqa_test.sh
