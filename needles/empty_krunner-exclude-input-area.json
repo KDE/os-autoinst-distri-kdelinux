@@ -1,0 +1,23 @@
+{
+  "area": [
+    {
+      "width": 445,
+      "height": 22,
+      "xpos": 271,
+      "type": "exclude",
+      "ypos": 8
+    },
+    {
+      "xpos": 285,
+      "ypos": 6,
+      "width": 422,
+      "height": 26,
+      "type": "match",
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "empty_krunner"
+  ]
+}
