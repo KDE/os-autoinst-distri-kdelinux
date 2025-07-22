@@ -4,7 +4,7 @@ stages:
 test-latest-image-opensuse:
     stage: test
     tags:
-        - LinuxHighCPUMemory
+        - LinuxHighMemory
     allow_failure: false
     when: manual
     image:
