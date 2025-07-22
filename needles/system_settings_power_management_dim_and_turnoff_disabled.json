@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 444,
+      "ypos": 254,
+      "width": 247,
+      "height": 79,
+      "type": "match",
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_power_management_dim_and_turnoff_disabled"
+  ]
+}

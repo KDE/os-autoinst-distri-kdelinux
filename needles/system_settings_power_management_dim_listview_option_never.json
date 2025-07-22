@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 583,
+      "ypos": 298,
+      "width": 311,
+      "height": 228,
+      "type": "match",
+      "click_point": {
+        "xpos": 24,
+        "ypos": 13
+      },
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_power_management_dim_listview_option_never"
+  ]
+}

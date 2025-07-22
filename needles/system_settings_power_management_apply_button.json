@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 878,
+      "ypos": 659,
+      "width": 88,
+      "height": 34,
+      "type": "match",
+      "match": 90,
+      "click_point": {
+        "xpos": 60,
+        "ypos": 17
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_power_management_apply_button"
+  ]
+}

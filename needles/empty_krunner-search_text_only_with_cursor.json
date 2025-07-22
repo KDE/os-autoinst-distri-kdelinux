@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "ypos": 11,
+      "type": "match",
+      "xpos": 294,
+      "height": 18,
+      "width": 47,
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "empty_krunner"
+  ]
+}

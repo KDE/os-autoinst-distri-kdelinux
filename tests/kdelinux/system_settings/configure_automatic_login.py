@@ -7,7 +7,7 @@ from lib.sessions.app.system_settings import SystemSettingsSession
 
 
 def run(self):
-    # todo: move this script into common/system_settings and add `DO_INSTALL` check
+    # todo: add `DO_INSTALL` check
     (
         SystemSettingsSession
             .ensure_active(open_strategy='kickoff', needle='kickoff_system_settings_query_result', timeout=30)

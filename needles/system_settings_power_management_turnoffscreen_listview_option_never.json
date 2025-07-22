@@ -1,0 +1,20 @@
+{
+  "area": [
+    {
+      "xpos": 584,
+      "ypos": 334,
+      "width": 103,
+      "height": 201,
+      "type": "match",
+      "match": 90,
+      "click_point": {
+        "xpos": 32,
+        "ypos": 13
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_power_management_turnoffscreen_listview_option_never"
+  ]
+}

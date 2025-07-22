@@ -1,0 +1,16 @@
+{
+  "area": [
+    {
+      "xpos": 326,
+      "ypos": 54,
+      "width": 636,
+      "height": 446,
+      "type": "match",
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_power_management_default_page"
+  ]
+}
