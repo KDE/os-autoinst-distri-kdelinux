@@ -17,7 +17,7 @@ class PlasmaDesktopSession(BaseSession):
         This may not be entirely accurate, but based on my observation, the bottom panel tends to load last.
         So if it's visible, the entire desktop environment is likely ready.
         """
-        self.expect('bottom_panel_left_part', timeout)
+        self.expect('kickoff_icon_on_panel', timeout)
 
     def click_plasma_panel_system_tray_icon(self, timeout=30, button='left'):
         return self.click('plasma_panel_system_tray_icon', timeout=timeout, button=button)
