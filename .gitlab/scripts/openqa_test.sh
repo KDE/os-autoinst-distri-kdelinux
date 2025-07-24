@@ -17,14 +17,26 @@ poll_openqa_job() {
     local result
 
     echo "[INFO] Job ${job_id} submitted. Polling job result..."
+    local status_json="/var/lib/openqa/pool/1/autoinst-status.json"
+
     while true; do
         result=$(openqa-cli api --host "http://${host}" jobs/${job_id} \
                  | jq -r '.job.result // empty')
         echo "[INFO] Job result: ${result}"
+        if [[ -f "$status_json" ]]; then
+            local current_test
+            local status
+            current_test=$(jq -r '.current_test // empty' "$status_json")
+            status=$(jq -r '.status // empty' "$status_json")
+            if [[ -n "$current_test" && "$status" == "running" ]]; then
+                echo "[STATUS] Currently running: $current_test"
+            fi
+        fi
+
         if [[ "${result}" =~ ^(passed|softfailed|failed|incomplete|timeout|user_cancelled|obsoleted|cancelled|skipped)$ ]]; then
             break
         fi
-        sleep 30
+        sleep 5
     done
 
     if [[ "${result}" != "passed" && "${result}" != "softfailed" ]]; then
