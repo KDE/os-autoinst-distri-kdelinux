@@ -1,7 +1,7 @@
 stages:
     - test
 
-live+fullsystem:
+testing-latest-live-fullsystem:
     stage: test
     tags:
         - LinuxHighMemory
@@ -24,5 +24,6 @@ live+fullsystem:
     after_script:
         - .gitlab/scripts/collect_results.sh
     artifacts:
+        when: always
         paths:
             - testresults/
