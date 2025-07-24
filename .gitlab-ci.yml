@@ -1,7 +1,7 @@
 stages:
     - test
 
-test-latest-image-opensuse:
+live+fullsystem:
     stage: test
     tags:
         - LinuxHighMemory
@@ -21,3 +21,8 @@ test-latest-image-opensuse:
         - python3 utils/download_image.py --latest
     script:
         - .gitlab/scripts/openqa_test.sh
+    after_script:
+        - .gitlab/scripts/collect_results.sh
+    artifacts:
+        paths:
+            - testresults/
