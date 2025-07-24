@@ -11,6 +11,8 @@ class KRunnerSession(BaseSession):
         :return:
         """
         send_key("alt-spc")
+        # KRunner somehow stores the previously executed app, so a backspace is needed to clear it.
+        send_key('backspace')
         instance = cls()
         instance.expect_ready()
         return instance
