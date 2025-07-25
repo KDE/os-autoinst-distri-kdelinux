@@ -22,5 +22,6 @@ def run(self):
             .click_system_settings_login_screen_sddm_page_apply_button()
             .expect_gui_password_pop_up()
             .submit_gui_password()
+            .expect_system_settings_login_screen_sddm_page_configure_completed()
             .close_window()
     )
