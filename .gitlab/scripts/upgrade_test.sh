@@ -1,32 +1,13 @@
-# This script should only be used when mock.sh have been run.
-
-for arg in "$@"; do
-    case $arg in
-        --CASEDIR=*)
-            CASEDIR="${arg#*=}"
-            shift
-            ;;
-        *)
-            echo "[ERROR] Unknown argument: $arg"
-            echo "[USAGE] $0 --CASEDIR=your_case_repo_url"
-            exit 1
-            ;;
-    esac
-done
-
-if [[ -z "$CASEDIR" ]]; then
-    echo "[ERROR] --CASEDIR not provided"
-    exit 1
-fi
-
-cd /var/lib/openqa/factory/hdd
-export CI_PROJECT_DIR=$(pwd)
+#!/bin/bash
 IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
 IMG=$(basename "$IMG_PATH")
 OUTPUT=${IMG%.raw}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 OPENQA_HOST_ADDR=localhost
+
+# Move the image to openqa dir
+mv "$CI_PROJECT_DIR/$IMG" /var/lib/openqa/factory/hdd/
 
 poll_openqa_job() {
     # OpenQA will keep result of the test running as 'none', before the test running finish. Another approach is jq -r '.job.status'.
@@ -35,14 +16,26 @@ poll_openqa_job() {
     local result
 
     echo "[INFO] Job ${job_id} submitted. Polling job result..."
+    local status_json="/var/lib/openqa/pool/1/autoinst-status.json"
+
     while true; do
         result=$(openqa-cli api --host "http://${host}" jobs/${job_id} \
                  | jq -r '.job.result // empty')
         echo "[INFO] Job result: ${result}"
+        if [[ -f "$status_json" ]]; then
+            local current_test
+            local status
+            current_test=$(jq -r '.current_test // empty' "$status_json")
+            status=$(jq -r '.status // empty' "$status_json")
+            if [[ -n "$current_test" && "$status" == "running" ]]; then
+                echo "[STATUS] Currently running: $current_test"
+            fi
+        fi
+
         if [[ "${result}" =~ ^(passed|softfailed|failed|incomplete|timeout|user_cancelled|obsoleted|cancelled|skipped)$ ]]; then
             break
         fi
-        sleep 30
+        sleep 5
     done
 
     if [[ "${result}" != "passed" && "${result}" != "softfailed" ]]; then
@@ -54,7 +47,8 @@ poll_openqa_job() {
     echo "[INFO] Job URL: http://${host}/tests/${job_id}"
 }
 
-echo "[INFO] Start installation tests..."
+
+echo "[INFO] Start installation tests(Previously success build)..."
 # Distri Configuration
 DISTRI=KDE-Linux
 FLAVOR=live-system
@@ -71,9 +65,12 @@ BOOTFROM=c
 UEFI=1
 UEFI_PFLASH_CODE=/usr/share/qemu/ovmf-x86_64-4m-code.bin
 UEFI_PFLASH_VARS=/usr/share/qemu/ovmf-x86_64-4m-vars.bin
+TIMEOUT_SCALE=10
 
 # Test Configuration
 TEST=install_full_system
+#CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git#refs/heads/brute-force-debug
+CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 NEEDLES_DIR=%%CASEDIR%%/needles
 DO_INSTALL=1
 HDDSIZEGB=50
@@ -104,18 +101,18 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     NUMDISKS="$NUMDISKS" \
     CASEDIR="$CASEDIR" \
     NEEDLES_DIR="$NEEDLES_DIR" \
-    TIMEOUT_SCALE=3 \
+    TIMEOUT_SCALE="$TIMEOUT_SCALE" \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
-echo "[INFO] Successfully installed full system from live image..."
+echo "[INFO] Successfully installed full system fcrom live image(Previous success build)..."
 
 # Start testing the installed system
-echo "[INFO] Start testing the installed system"
+echo "[INFO] Start testing the installed system (Upgrade only)"
 FLAVOR="full-system"
 NUMDISKS=1
-DO_INSTALL=0
-TEST="installed_system_sanity_check"
+DO_UPGRADE=1
+TEST="upgrade_system"
 
 JOB_ID=$(openqa-cli api -X POST jobs \
     --host http://${OPENQA_HOST_ADDR} \
@@ -132,17 +129,17 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     UEFI="$UEFI" \
     UEFI_PFLASH_CODE="$UEFI_PFLASH_CODE" \
     UEFI_PFLASH_VARS="$UEFI_PFLASH_VARS" \
-    DO_INSTALL="$DO_INSTALL" \
+    DO_UPGRADE="$DO_UPGRADE" \
     QEMUCPUS="$QEMUCPUS" \
     QEMURAM="$QEMURAM" \
     HDDSIZEGB="$HDDSIZEGB" \
     NUMDISKS="$NUMDISKS" \
     CASEDIR="$CASEDIR" \
     NEEDLES_DIR="$NEEDLES_DIR" \
-    TIMEOUT_SCALE=3 \
+    TIMEOUT_SCALE="$TIMEOUT_SCALE" \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
-echo "[INFO] All passed!"
+echo "[INFO] Upgrade success!"
 
 exit 0

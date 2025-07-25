@@ -17,7 +17,7 @@ def download_file(download_url, filename):
     print("Download completed")
     print(f"Downloaded file: {filename}")
 
-def download_latest():
+def download(build_index):
     url = base_url + "?C=M;O=D"
     resp = requests.get(url)
     resp.raise_for_status()
@@ -25,9 +25,9 @@ def download_latest():
 
     pattern = re.compile(r'kde-linux_\d+\.raw$')
     links = soup.find_all("a", href=pattern)
-
+    print(links)
     if links:
-        latest_href = links[0]["href"]
+        latest_href = links[build_index]["href"]
         download_url = base_url + latest_href
         download_file(download_url, latest_href)
     else:
@@ -50,19 +50,25 @@ def download_specific(build_version):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: script.py [--latest | --build=VERSION]")
+        print("Usage: script.py [--latest | --build=VERSION | --previously_success]")
         sys.exit(1)
 
     arg = sys.argv[1]
 
     if arg == "--latest":
-        download_latest()
+        download(build_index=0)
     elif arg.startswith("--build="):
         build_version = arg.split("=", 1)[1]
         if not re.fullmatch(r"\d{12}", build_version):
             print("Invalid version format. Expected format: YYYYMMDDHHMM")
             sys.exit(1)
         download_specific(build_version)
+    elif arg == "--previously-success":
+        """
+            Each build appears twice in the list: one icon link and one text link.
+            To get the previous successful build, we skip the latest (index 0 and 1) and pick index 2.
+        """
+        download(build_index=2)
     else:
         print("Unknown argument")
         sys.exit(1)

@@ -37,8 +37,20 @@ sub test_kdelinux {
     loadtest 'common/shutdown.py';
 }
 
+sub test_system_upgrade {
+    loadtest 'common/bootup.py';
+    loadtest 'kdelinux/sddm/sddm_password_login.py';
+    loadtest 'kdelinux/app/upgrade_system.py';
+    loadtest 'common/reboot.py';
+    loadtest 'common/bootup.py';
+    loadtest 'kdelinux/sddm/sddm_password_login.py';
+    loadtest 'common/shutdown.py';
+}
+
 if (get_var('DO_INSTALL', 0)) {
     test_live_image();
+} elsif (get_var('DO_UPGRADE', 0)) {
+    test_system_upgrade();
 } else {
     test_kdelinux();
 }

@@ -13,8 +13,9 @@ def switch_to_tty(login=True, user_role='root'):
 
 def get_username_and_password():
     do_install = get_var('DO_INSTALL')
-    username = 'kdelinuxtester' if do_install == '0' else 'live'
-    password = '1122334455' if do_install == '0' else None
+    do_upgrade = get_var('DO_UPGRADE')
+    username = 'kdelinuxtester' if do_install == '0' or do_upgrade == '1' else 'live'
+    password = '1122334455' if do_install == '0' or do_upgrade == '1' else None
     return username, password
 
 

@@ -1,7 +1,7 @@
 stages:
     - test
 
-testing-latest-live-fullsystem:
+.openqa_base:
     stage: test
     tags:
         - LinuxHighMemory
@@ -9,7 +9,7 @@ testing-latest-live-fullsystem:
     when: manual
     image:
         name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
-        entrypoint: ["/bin/bash", "-c"]
+        entrypoint: [ "/bin/bash", "-c" ]
     before_script:
         # Bootstrap OpenQA Environment
         - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
@@ -17,13 +17,23 @@ testing-latest-live-fullsystem:
         - ./utils/wait_openqa_ready.sh
         # Install dependencies
         - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
-        # Download the latest image
-        - python3 utils/download_image.py --latest
-    script:
-        - .gitlab/scripts/openqa_test.sh
     after_script:
         - .gitlab/scripts/collect_results.sh
     artifacts:
         when: always
         paths:
             - testresults/
+
+testing-latest-build:
+    extends: .openqa_base
+    before_script:
+        - python3 utils/download_image.py --latest
+    script:
+        - .gitlab/scripts/latest_build_test.sh
+
+testing-upgrade:
+    extends: .openqa_base
+    before_script:
+        - python3 utils/download_image.py --previously-success
+    script:
+        - .gitlab/scripts/upgrade_test.sh

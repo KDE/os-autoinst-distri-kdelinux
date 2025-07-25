@@ -1,0 +1,103 @@
+{
+  "area": [
+    {
+      "xpos": 298,
+      "ypos": 70,
+      "width": 680,
+      "height": 612,
+      "type": "exclude"
+    },
+    {
+      "xpos": 850,
+      "ypos": 690,
+      "width": 128,
+      "height": 26,
+      "type": "exclude"
+    },
+    {
+      "xpos": 301,
+      "ypos": 34,
+      "width": 107,
+      "height": 30,
+      "type": "exclude"
+    },
+    {
+      "xpos": 134,
+      "ypos": 146,
+      "width": 60,
+      "height": 16,
+      "type": "exclude"
+    },
+    {
+      "xpos": 245,
+      "ypos": 145,
+      "width": 25,
+      "height": 18,
+      "type": "exclude"
+    },
+    {
+      "xpos": 54,
+      "ypos": 145,
+      "width": 19,
+      "height": 18,
+      "type": "exclude"
+    },
+    {
+      "xpos": 46,
+      "ypos": 140,
+      "width": 228,
+      "height": 27,
+      "type": "match",
+      "match": 90
+    },
+    {
+      "xpos": 441,
+      "ypos": 0,
+      "width": 143,
+      "height": 28,
+      "type": "match",
+      "match": 90
+    },
+    {
+      "xpos": 780,
+      "ypos": 37,
+      "width": 23,
+      "height": 22,
+      "type": "exclude"
+    },
+    {
+      "xpos": 893,
+      "ypos": 35,
+      "width": 24,
+      "height": 24,
+      "type": "exclude"
+    },
+    {
+      "xpos": 807,
+      "ypos": 30,
+      "width": 76,
+      "height": 34,
+      "type": "match",
+      "match": 90
+    },
+    {
+      "xpos": 919,
+      "ypos": 35,
+      "width": 55,
+      "height": 26,
+      "type": "match",
+      "match": 90
+    },
+    {
+      "xpos": 299,
+      "ypos": 30,
+      "width": 681,
+      "height": 656,
+      "type": "match"
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "discover_updates_page"
+  ]
+}

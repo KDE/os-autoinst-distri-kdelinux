@@ -1,0 +1,30 @@
+{
+  "area": [
+    {
+      "xpos": 320,
+      "ypos": 105,
+      "width": 641,
+      "height": 546,
+      "type": "match",
+      "match": 90
+    },
+    {
+      "xpos": 584,
+      "ypos": 296,
+      "width": 114,
+      "height": 90,
+      "type": "exclude"
+    },
+    {
+      "xpos": 519,
+      "ypos": 453,
+      "width": 269,
+      "height": 86,
+      "type": "exclude"
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "discover_upgrade_completed"
+  ]
+}
