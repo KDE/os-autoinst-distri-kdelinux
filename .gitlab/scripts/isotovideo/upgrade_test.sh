@@ -1,6 +1,10 @@
 #!/bin/bash
 IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
 IMG=$(basename "$IMG_PATH")
+# Move the downloaded raw file into the test directory
+mkdir -p /installation-tests
+mv $CI_PROJECT_DIR/$IMG /installation-tests
+cd /installation-tests
 OUTPUT=${IMG%.raw}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
@@ -23,7 +27,7 @@ BOOTFROM=c
 UEFI=1
 UEFI_PFLASH_CODE=/usr/share/qemu/ovmf-x86_64-4m-code.bin
 UEFI_PFLASH_VARS=/usr/share/qemu/ovmf-x86_64-4m-vars.bin
-TIMEOUT_SCALE=10
+TIMEOUT_SCALE=3
 
 # Test Configuration
 TEST=install_full_system
@@ -62,13 +66,20 @@ isotovideo \
     TIMEOUT_SCALE="$TIMEOUT_SCALE" \
     _GROUP="$_GROUP"
 
+INSTALL_EXIT_CODE=$?
+if [[ $INSTALL_EXIT_CODE -ne 0 ]]; then
+  echo "[ERROR] Installation test failed with exit code $INSTALL_EXIT_CODE"
+  exit $INSTALL_EXIT_CODE
+fi
 echo "[INFO] Successfully installed full system fcrom live image(Previous success build)..."
 
 # Start testing the installed system
 echo "[INFO] Start testing the installed system (Upgrade only)"
 
-# Move the created qcow2 into test directory
-mv assets_public/* $CI_PROJECT_DIR
+# Move the created qcow2 into fullsystem directory
+mkdir -p /fullsystem-test
+mv /installation-tests/assets_public/$DISK /fullsystem-test
+cd /fullsystem-test
 
 FLAVOR="full-system"
 NUMDISKS=1
@@ -100,7 +111,11 @@ isotovideo \
     TIMEOUT_SCALE="$TIMEOUT_SCALE" \
     _GROUP="$_GROUP"
 
-poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
+EXIT_CODE=$?
+if [[ $EXIT_CODE -ne 0 ]]; then
+  echo "[ERROR] Full System test failed with exit code $EXIT_CODE"
+  exit $EXIT_CODE
+fi
 echo "[INFO] Upgrade success!"
 
 exit 0

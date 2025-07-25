@@ -1,6 +1,6 @@
 #!/bin/bash
 # Test Base Directory
-TEST_BASE_DIR="$CI_PROJECT_DIR/testresults"
+TEST_BASE_DIR="$CI_PROJECT_DIR"
 
 # Results Directory
 RESULT_DIR="$CI_PROJECT_DIR/reports"
