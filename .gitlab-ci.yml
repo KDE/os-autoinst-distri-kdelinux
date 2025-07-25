@@ -10,13 +10,6 @@ stages:
     image:
         name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
         entrypoint: [ "/bin/bash", "-c" ]
-    before_script:
-        # Bootstrap OpenQA Environment
-        - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
-        # Wait openQA ready
-        - ./utils/wait_openqa_ready.sh
-        # Install dependencies
-        - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
     after_script:
         - .gitlab/scripts/collect_results.sh
     artifacts:
@@ -27,6 +20,13 @@ stages:
 testing-latest-build:
     extends: .openqa_base
     before_script:
+        # Bootstrap OpenQA Environment
+        - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
+        # Wait openQA ready
+        - ./utils/wait_openqa_ready.sh
+        # Install dependencies
+        - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
+        # Download the latest image
         - python3 utils/download_image.py --latest
     script:
         - .gitlab/scripts/latest_build_test.sh
@@ -34,6 +34,13 @@ testing-latest-build:
 testing-upgrade:
     extends: .openqa_base
     before_script:
+        # Bootstrap OpenQA Environment
+        - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
+        # Wait openQA ready
+        - ./utils/wait_openqa_ready.sh
+        # Install dependencies
+        - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
+        # Download the previous successfully built image
         - python3 utils/download_image.py --previously-success
     script:
         - .gitlab/scripts/upgrade_test.sh
