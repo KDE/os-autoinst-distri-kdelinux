@@ -67,6 +67,10 @@ echo "[INFO] Successfully installed full system from live image..."
 
 # Start testing the installed system
 echo "[INFO] Start testing the installed system"
+
+# Move the created qcow2 into test directory
+mv assets_public/* $CI_PROJECT_DIR
+
 FLAVOR="full-system"
 NUMDISKS=1
 DO_INSTALL=0

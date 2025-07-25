@@ -1,83 +1,76 @@
 stages:
-    - test
-    - test_isotovideo
+  - test
+  - test_isotovideo
 
-.openqa_base:
-    stage: test
-    tags:
-        - LinuxHighMemory
-    allow_failure: true
-    when: manual
-    image:
-        name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
-        entrypoint: [ "/bin/bash", "-c" ]
-    after_script:
-        - .gitlab/scripts/collect_results.sh
-    artifacts:
-        when: always
-        paths:
-            - testresults/
+.common_before_script:
+  before_script:
+    - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
+    - python3 utils/download_image.py --$IMAGE_VERSION
+
+.openqa-cli_base:
+  stage: test
+  tags:
+    - LinuxHighMemory
+  allow_failure: true
+  when: manual
+  image:
+    name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
+    entrypoint: ["/bin/bash", "-c"]
+  after_script:
+    - .gitlab/scripts/collect_results.sh
+  artifacts:
+    when: always
+    paths:
+      - testresults/
 
 .isotovideo_base:
-    stage: test_isotovideo
-    tags:
-        - LinuxHighMemory
-    allow_failure: false
-    when: manual
-    image:
-        name: registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86
-        entrypoint: [ "/bin/bash", "-c" ]
-    after_script:
-        - .gitlab/scripts/collect_results.sh
-    artifacts:
-        when: always
-        paths:
-            - reports/
+  stage: test_isotovideo
+  tags:
+    - LinuxHighMemory
+  allow_failure: false
+  when: manual
+  image:
+    name: registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86
+    entrypoint: ["/bin/bash", "-c"]
+  after_script:
+    - .gitlab/scripts/collect_results.sh
+  artifacts:
+    when: always
+    paths:
+      - reports/
 
 testing-latest-build:
-    extends: .openqa_base
-    before_script:
-        # Bootstrap OpenQA Environment
-        - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
-        # Wait openQA ready
-        - ./utils/wait_openqa_ready.sh
-        # Install dependencies
-        - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
-        # Download the latest image
-        - python3 utils/download_image.py --latest
-    script:
-        - .gitlab/scripts/latest_build_test.sh
+  extends:
+    - .openqa-cli_base
+    - .common_before_script
+  variables:
+    IMAGE_VERSION: latest
+  script:
+    - .gitlab/scripts/latest_build_test.sh
 
 testing-upgrade:
-    extends: .openqa_base
-    before_script:
-        # Bootstrap OpenQA Environment
-        - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
-        # Wait openQA ready
-        - ./utils/wait_openqa_ready.sh
-        # Install dependencies
-        - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
-        # Download the previous successfully built image
-        - python3 utils/download_image.py --previously-success
-    script:
-        - .gitlab/scripts/upgrade_test.sh
+  extends:
+    - .openqa-cli_base
+    - .common_before_script
+  variables:
+    IMAGE_VERSION: previously-success
+  script:
+    - .gitlab/scripts/upgrade_test.sh
 
 testing-latest-build-isotovideo:
-    extends: .isotovideo_base
-    before_script:
-        # Install dependencies
-        - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
-        # Download the latest image
-        - python3 utils/download_image.py --latest
-    script:
-        - .gitlab/scripts/isotovideo/latest_build_test.sh
+  extends:
+    - .isotovideo_base
+    - .common_before_script
+  variables:
+    IMAGE_VERSION: latest
+  script:
+    - .gitlab/scripts/isotovideo/latest_build_test.sh
 
 testing-upgrade-isotovideo:
-    extends: .isotovideo_base
-    before_script:
-        # Install dependencies
-        - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
-        # Download the previous successfully built image
-        - python3 utils/download_image.py --previously-success
-    script:
-        - .gitlab/scripts/isotovideo/upgrade_test.sh
+  extends:
+    - .isotovideo_base
+    - .common_before_script
+  variables:
+    IMAGE_VERSION: previously-success
+  script:
+    - .gitlab/scripts/isotovideo/upgrade_test.sh

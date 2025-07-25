@@ -66,6 +66,10 @@ echo "[INFO] Successfully installed full system fcrom live image(Previous succes
 
 # Start testing the installed system
 echo "[INFO] Start testing the installed system (Upgrade only)"
+
+# Move the created qcow2 into test directory
+mv assets_public/* $CI_PROJECT_DIR
+
 FLAVOR="full-system"
 NUMDISKS=1
 DO_UPGRADE=1
