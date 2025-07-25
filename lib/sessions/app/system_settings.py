@@ -88,5 +88,5 @@ class SystemSettingsSession(BaseSession, OpenableSessionMixin):
         return self.expect('system_settings_login_screen_sddm_page_configure_completed', timeout)
 
     def query(self, query_text):
-        type_string(query_text)
+        type_string(query_text, "max_interval", 250)
         return self

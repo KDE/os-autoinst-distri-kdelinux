@@ -17,7 +17,7 @@ class BaseSession:
     def type_and_submit(self, text, **kwargs):
         needle = kwargs.get('needle')
         timeout = kwargs.get('timeout', 30)
-        type_string(text)
+        type_string(text, "max_interval", 250)
         if needle:
             self.expect(needle, timeout)
         send_key('ret')
