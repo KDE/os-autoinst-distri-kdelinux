@@ -7,8 +7,8 @@ class BaseSession:
         assert_screen(needle, 'timeout', timeout)
         return self
 
-    def click(self, needle, timeout=30, button='left'):
-        assert_and_click(needle, 'timeout', timeout, 'button', button)
+    def click(self, needle, timeout=30, button='left', dclick=0):
+        assert_and_click(needle, 'timeout', timeout, 'button', button, 'dclick', dclick)
         return self
 
     def expect_ready(self, timeout=30):

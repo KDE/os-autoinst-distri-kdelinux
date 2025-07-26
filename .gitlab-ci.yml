@@ -2,9 +2,15 @@ stages:
   - test
   - test_isotovideo
 
-.common_before_script:
+.openqa-cli_common_before_script:
   before_script:
+    # Bootstrap OpenQA Environment
+    - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
+    # Wait openQA ready
+    - ./utils/wait_openqa_ready.sh
+    # Install dependencies
     - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
+    # Download the latest image
     - python3 utils/download_image.py --$IMAGE_VERSION
 
 .openqa-cli_base:
@@ -12,6 +18,7 @@ stages:
   tags:
     - LinuxHighMemory
   allow_failure: true
+  retry: 2
   when: manual
   image:
     name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
@@ -23,11 +30,19 @@ stages:
     paths:
       - testresults/
 
+.isotovideo_common_before_script:
+  before_script:
+    - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
+    - python3 utils/download_image.py --$IMAGE_VERSION
+
 .isotovideo_base:
+  dependencies: []
+  needs: []
   stage: test_isotovideo
   tags:
     - LinuxHighMemory
   allow_failure: false
+  retry: 2
   when: manual
   image:
     name: registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86
@@ -39,37 +54,37 @@ stages:
     paths:
       - reports/
 
-testing-latest-build:
+testing-latest-build_openqa-cli:
   extends:
     - .openqa-cli_base
-    - .common_before_script
+    - .openqa-cli_common_before_script
   variables:
     IMAGE_VERSION: latest
   script:
     - .gitlab/scripts/latest_build_test.sh
 
-testing-upgrade:
+testing-upgrade_openqa-cli:
   extends:
     - .openqa-cli_base
-    - .common_before_script
+    - .openqa-cli_common_before_script
   variables:
     IMAGE_VERSION: previously-success
   script:
     - .gitlab/scripts/upgrade_test.sh
 
-testing-latest-build-isotovideo:
+testing-latest-build_isotovideo:
   extends:
     - .isotovideo_base
-    - .common_before_script
+    - .isotovideo_common_before_script
   variables:
     IMAGE_VERSION: latest
   script:
     - .gitlab/scripts/isotovideo/latest_build_test.sh
 
-testing-upgrade-isotovideo:
+testing-upgrade_isotovideo:
   extends:
     - .isotovideo_base
-    - .common_before_script
+    - .isotovideo_common_before_script
   variables:
     IMAGE_VERSION: previously-success
   script:

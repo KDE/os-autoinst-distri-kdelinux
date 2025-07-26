@@ -24,7 +24,7 @@ class DiscoverSession(BaseSession, OpenableSessionMixin):
         return self.expect('discover_tasks_running', timeout=timeout)
 
     def expect_and_click_discover_updates_page_refresh(self, timeout=60, button='left'):
-        return self.click('discover_updates_page_refresh', timeout=timeout, button=button)
+        return self.click('discover_updates_page_refresh', timeout=timeout, button=button, dclick=1)
 
     def expect_discover_upgrade_completed(self, timeout=60):
         return self.expect('discover_upgrade_completed', timeout=timeout)
