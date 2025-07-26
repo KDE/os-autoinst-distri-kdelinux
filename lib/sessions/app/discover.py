@@ -5,7 +5,7 @@ from lib.sessions.mixins.openable import OpenableSessionMixin
 
 
 class DiscoverSession(BaseSession, OpenableSessionMixin):
-    default_app_name = "Discover"
+    default_app_name = "discover"
     allowed_open_strategies = ['krunner', 'kickoff', 'konsole']
 
     def expect_ready(self, timeout=30):
