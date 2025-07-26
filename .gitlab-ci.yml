@@ -33,7 +33,7 @@ stages:
     name: registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86
     entrypoint: ["/bin/bash", "-c"]
   after_script:
-    - .gitlab/scripts/collect_results.sh
+    - .gitlab/scripts/isotovideo/collect_results.sh
   artifacts:
     when: always
     paths:
