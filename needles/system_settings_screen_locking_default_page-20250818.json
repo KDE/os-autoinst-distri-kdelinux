@@ -1,0 +1,23 @@
+{
+  "area": [
+    {
+      "width": 641,
+      "type": "match",
+      "ypos": 53,
+      "xpos": 327,
+      "height": 233,
+      "match": 90
+    },
+    {
+      "xpos": 329,
+      "ypos": 56,
+      "width": 204,
+      "height": 34,
+      "type": "exclude"
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_screen_locking_default_page"
+  ]
+}

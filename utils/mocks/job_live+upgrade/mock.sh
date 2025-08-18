@@ -14,6 +14,7 @@
 
 
 # Parse arguments
+CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 for arg in "$@"; do
     case $arg in
         --CASEDIR=*)
@@ -114,7 +115,7 @@ TIMEOUT_SCALE=10
 # Test Configuration
 TEST=install_full_system
 #CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git#refs/heads/brute-force-debug
-CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
+#CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 NEEDLES_DIR=%%CASEDIR%%/needles
 DO_INSTALL=1
 HDDSIZEGB=50

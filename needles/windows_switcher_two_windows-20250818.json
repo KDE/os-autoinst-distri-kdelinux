@@ -1,0 +1,30 @@
+{
+  "area": [
+    {
+      "xpos": 221,
+      "ypos": 262,
+      "width": 290,
+      "height": 229,
+      "type": "exclude"
+    },
+    {
+      "xpos": 522,
+      "ypos": 266,
+      "width": 287,
+      "height": 226,
+      "type": "exclude"
+    },
+    {
+      "xpos": 218,
+      "ypos": 258,
+      "width": 598,
+      "height": 261,
+      "type": "match",
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "windows_switcher_two_windows"
+  ]
+}
