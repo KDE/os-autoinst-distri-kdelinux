@@ -1,0 +1,65 @@
+{
+  "area": [
+    {
+      "xpos": 325,
+      "ypos": 98,
+      "width": 641,
+      "height": 554,
+      "type": "exclude"
+    },
+    {
+      "xpos": 53,
+      "ypos": 91,
+      "width": 265,
+      "height": 609,
+      "type": "exclude"
+    },
+    {
+      "xpos": 284,
+      "ypos": 57,
+      "width": 32,
+      "height": 28,
+      "type": "exclude"
+    },
+    {
+      "xpos": 895,
+      "ypos": 24,
+      "width": 73,
+      "height": 26,
+      "type": "exclude"
+    },
+    {
+      "xpos": 53,
+      "ypos": 25,
+      "width": 28,
+      "height": 26,
+      "type": "exclude"
+    },
+    {
+      "xpos": 875,
+      "ypos": 659,
+      "width": 95,
+      "height": 38,
+      "type": "exclude"
+    },
+    {
+      "xpos": 325,
+      "ypos": 658,
+      "width": 95,
+      "height": 42,
+      "type": "exclude"
+    },
+    {
+      "xpos": 53,
+      "ypos": 25,
+      "width": 919,
+      "height": 675,
+      "type": "match",
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_quick_settings_page"
+  ]
+}
