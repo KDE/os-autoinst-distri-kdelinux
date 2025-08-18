@@ -1,0 +1,30 @@
+{
+  "area": [
+    {
+      "xpos": 325,
+      "ypos": 56,
+      "width": 241,
+      "height": 34,
+      "type": "exclude"
+    },
+    {
+      "xpos": 355,
+      "ypos": 349,
+      "width": 608,
+      "height": 211,
+      "type": "exclude"
+    },
+    {
+      "xpos": 324,
+      "ypos": 54,
+      "width": 646,
+      "height": 573,
+      "type": "match",
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_power_management_default_page"
+  ]
+}
