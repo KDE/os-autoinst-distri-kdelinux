@@ -1,3 +1,4 @@
+CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 for arg in "$@"; do
     case $arg in
         --CASEDIR=*)
