@@ -32,7 +32,7 @@ stages:
 
 .isotovideo_common_before_script:
   before_script:
-    - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
+    - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 ffmpeg
     - python3 utils/download_image.py --$IMAGE_VERSION
 
 .isotovideo_base:
