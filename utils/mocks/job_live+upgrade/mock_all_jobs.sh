@@ -1,4 +1,5 @@
 # This script should only be used when mock.sh have been run.
+# default CASEDIR
 CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 
 for arg in "$@"; do

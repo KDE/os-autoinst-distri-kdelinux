@@ -12,6 +12,8 @@
 # podman exec -it openqa-server bash
 # ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 
+# default CASEDIR
+CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 
 # Parse arguments
 for arg in "$@"; do
