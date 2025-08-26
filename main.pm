@@ -19,7 +19,6 @@ sub test_live_image {
     loadtest 'kdelinux-live/install_system/calamares_timezone.py';
     loadtest 'kdelinux-live/install_system/calamares_keyboard.py';
     loadtest 'kdelinux-live/install_system/calamares_partition.py';
-    loadtest 'kdelinux-live/install_system/calamares_usersetting.py';
     loadtest 'kdelinux-live/install_system/calamares_install.py';
     loadtest 'common/shutdown.py';
 }

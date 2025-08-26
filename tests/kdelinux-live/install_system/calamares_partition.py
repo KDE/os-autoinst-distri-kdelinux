@@ -14,5 +14,5 @@ def run(self):
             .click_calamares_partition_screen_storage_device_listview()
             .click_calamares_partition_screen_storage_device_listview_vdb()
             .click_calamares_partition_screen_erasedisk_radio()
-            .click_calamares_partition_screen_next_btn()
+            .click_calamares_partition_screen_install_button()
     )
