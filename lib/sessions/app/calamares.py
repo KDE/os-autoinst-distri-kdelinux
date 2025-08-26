@@ -73,3 +73,6 @@ class CalamaresSession(BaseSession, OpenableSessionMixin):
 
     def expect_calamares_install_completed(self, timeout=1000):
         return self.expect('calamares_install_completed', timeout)
+
+    def click_calamares_partition_screen_install_button(self, timeout=60, button='left'):
+        return self.click('calamares_partition_screen_install_button', timeout, button)

@@ -1,0 +1,27 @@
+{
+  "area": [
+    {
+      "xpos": 688,
+      "ypos": 578,
+      "width": 67,
+      "height": 20,
+      "type": "exclude"
+    },
+    {
+      "xpos": 681,
+      "ypos": 574,
+      "width": 76,
+      "height": 29,
+      "type": "match",
+      "match": 90,
+      "click_point": {
+        "xpos": 4,
+        "ypos": 23
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "plasma_welcome_settings_completed_finish_button"
+  ]
+}

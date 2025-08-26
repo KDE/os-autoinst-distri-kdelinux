@@ -1,0 +1,15 @@
+{
+  "area": [
+    {
+      "xpos": 331,
+      "width": 633,
+      "type": "match",
+      "height": 649,
+      "ypos": 49
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "system_settings_login_screen_sddm_page_initial_behavior_subpage"
+  ]
+}

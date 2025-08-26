@@ -19,14 +19,13 @@ sub test_live_image {
     loadtest 'kdelinux-live/install_system/calamares_timezone.py';
     loadtest 'kdelinux-live/install_system/calamares_keyboard.py';
     loadtest 'kdelinux-live/install_system/calamares_partition.py';
-    loadtest 'kdelinux-live/install_system/calamares_usersetting.py';
     loadtest 'kdelinux-live/install_system/calamares_install.py';
     loadtest 'common/shutdown.py';
 }
 
 sub test_kdelinux {
     loadtest 'common/bootup.py';
-    loadtest 'kdelinux/sddm/sddm_password_login.py';
+    loadtest 'kdelinux/desktop/configure_plasma_welcome.py';
     loadtest 'common/system_settings/disable_screen_lock.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
     loadtest 'kdelinux/system_settings/configure_automatic_login.py';
@@ -41,7 +40,7 @@ sub test_kdelinux {
 
 sub test_system_upgrade {
     loadtest 'common/bootup.py';
-    loadtest 'kdelinux/sddm/sddm_password_login.py';
+    loadtest 'kdelinux/desktop/configure_plasma_welcome.py';
     loadtest 'common/system_settings/disable_screen_lock.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
     loadtest 'kdelinux/app/upgrade_system.py';
