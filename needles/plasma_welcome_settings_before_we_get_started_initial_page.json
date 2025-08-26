@@ -1,0 +1,23 @@
+{
+  "area": [
+    {
+      "xpos": 250,
+      "ypos": 232,
+      "width": 517,
+      "height": 298,
+      "type": "exclude"
+    },
+    {
+      "xpos": 244,
+      "ypos": 225,
+      "width": 532,
+      "height": 313,
+      "type": "match",
+      "match": 90
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "plasma_welcome_settings_before_we_get_started_initial_page"
+  ]
+}

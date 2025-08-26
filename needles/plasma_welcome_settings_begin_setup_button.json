@@ -1,0 +1,27 @@
+{
+  "area": [
+    {
+      "xpos": 465,
+      "ypos": 412,
+      "width": 95,
+      "height": 21,
+      "type": "exclude"
+    },
+    {
+      "xpos": 460,
+      "ypos": 408,
+      "width": 100,
+      "height": 26,
+      "type": "match",
+      "match": 90,
+      "click_point": {
+        "xpos": 54,
+        "ypos": 3
+      }
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "plasma_welcome_settings_begin_setup_button"
+  ]
+}
