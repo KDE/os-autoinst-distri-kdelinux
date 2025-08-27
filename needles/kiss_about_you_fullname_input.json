@@ -1,13 +1,13 @@
 {
   "area": [
     {
-      "xpos": 280,
-      "ypos": 429,
-      "width": 75,
+      "xpos": 276,
+      "ypos": 404,
+      "width": 224,
       "height": 21,
       "type": "match",
       "click_point": {
-        "xpos": 37,
+        "xpos": 112,
         "ypos": 10
       },
       "match": 90
@@ -15,6 +15,6 @@
   ],
   "properties": [],
   "tags": [
-    "plasma_welcome_settings_set_a_password_second_time_input"
+    "kiss_about_you_fullname_input"
   ]
 }

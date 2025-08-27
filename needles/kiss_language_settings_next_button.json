@@ -1,17 +1,17 @@
 {
   "area": [
     {
-      "xpos": 692,
-      "ypos": 549,
-      "width": 56,
-      "height": 19,
+      "xpos": 694,
+      "ypos": 586,
+      "width": 49,
+      "height": 17,
       "type": "exclude"
     },
     {
       "xpos": 684,
-      "ypos": 547,
+      "ypos": 581,
       "width": 70,
-      "height": 24,
+      "height": 28,
       "type": "match",
       "match": 90,
       "click_point": {
@@ -22,6 +22,6 @@
   ],
   "properties": [],
   "tags": [
-    "plasma_welcome_settings_keyboard_layout_next_button"
+    "kiss_language_settings_next_button"
   ]
 }
