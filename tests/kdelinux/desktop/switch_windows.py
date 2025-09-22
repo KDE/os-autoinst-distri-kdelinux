@@ -12,13 +12,13 @@ def run(self):
     # Open konsole
     (
         KonsoleSession
-            .ensure_active()
+            .ensure_active(open_strategy='krunner', needle="krunner_text_konsole")
     )
 
     # Open system-setting
     (
         SystemSettingsSession
-            .ensure_active()
+            .ensure_active(open_strategy='krunner', needle="krunner_text_systemsettings")
     )
 
     # Switch between these two apps
