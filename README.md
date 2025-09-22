@@ -5,18 +5,20 @@
 
 | Feature Category | Test Case | Status |
 |------------------|-----------|--------|
-| [Ensure upgrading works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/206) | Discover update page | ✅ |
-| [Ensure basic desktop functionality works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/178) | Create a text file on desktop | ✅ |
-|  | Open system tray popup | ✅ |
-|  | Open Digital Clock popup | ✅ |
-|  | Switch windows using Task Manager | ✅ |
-| [Ensure automatic login works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/176) | Configure automatic login via System Settings | ✅ |
-| [Ensure manual login works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/175) | SDDM login | ✅ |
-|  | TTY login / reboot / shutdown | ✅ |
-| [Ensure bootability](https://invent.kde.org/kde-linux/kde-linux/-/work_items/174) | UEFI boot menu | ✅ |
-|  | Plymouth boot splash | ✅ |
-|  | Desktop panel loads | ✅ |
-| | UEFI boot menu shows multiple system versions after upgrade | ✅ |
+| [Ensure upgrading works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/206) | Discover update page | ✅      |
+| [Ensure basic desktop functionality works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/178) | Create a text file on desktop | ✅      |
+|  | Open system tray popup | ✅      |
+|  | Open Digital Clock popup | ✅      |
+|  | Switch windows using Task Manager | ✅      |
+| [Ensure automatic login works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/176) | Configure automatic login via System Settings | ✅      |
+| [Ensure manual login works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/175) | SDDM login | ✅      |
+|  | TTY login / reboot / shutdown | ✅      |
+| [Ensure bootability](https://invent.kde.org/kde-linux/kde-linux/-/work_items/174) | UEFI boot menu | ✅      |
+|  | Plymouth boot splash | ✅      |
+|  | Desktop panel loads | ✅      |
+| | UEFI boot menu shows multiple system versions after upgrade | ✅      |
+| [Ensure Firefox works]() | Test by can search google | TODO   |
+| [Ensure installation from Discover works]() | Test by install steam | TODO   |
 
 
 
@@ -44,11 +46,14 @@
   ```bash
   ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
   ```
+  
+### Test Case Architecture(Todo: Guide)
 
+### End-to-End testing scenarios
+We offer 2 E2E testing scenarios.
 
-
-### Test Case Architecture
-
+1. Install the lastest raw file, which contains the live system, from KDE storage. Boot the live system up, and use it to install the full(complete) system. After installation, boot up and sanity check this installed system.
+2. Install the raw file produced by previously successful build(typically speaking a yesterday's raw file, in contrast to today's), which contains the live system, from KDE storage. Boot this live system up, and use it to install the full(complete) system. After installation, boot up and sanity check this installed system. Then try to update the system from yesterday's build to today's build.
 
 
 ### Integrate with Gitlab CI
@@ -57,3 +62,13 @@ Currently, we offer two options for running CI jobs:
 
 1. **An openQA instance** – an all-in-one, openSUSE-based image that includes the Web UI, a PostgreSQL database for storing test/job results and authentication/authorization data, the `openqa-worker` service, nginx, etc,.
 2. **A lightweight backend-only image** – Also an openSUSE-based image, but contains only the test execution engine (`isotovideo`).
+
+### How to Mock test running locally(Todo: Guide)
+
+### Imperfections
+
+1. **Mock script redundancy** - The current mock scripts (`utils/mocks/`) contain significant code duplication across different job types (live+fullsystem, live+upgrade). The scripts lack reusability and should be refactored to use shared components or a common base script with configurable parameters.
+
+2. **TTY session implementation issues** - The implementation or even the existence of TTY session in `lib/sessions/syscore/tty.py` may have reliability problems, as I never used them.
+
+3. **Desktop file creation test verification** - The desktop file creation test (`tests/kdelinux/desktop/create_file.py`) currently only verifies the file creation through the GUI. It should be enhanced to confirm that the file actually exists on the filesystem by checking via konsole or TTY session using serial output.

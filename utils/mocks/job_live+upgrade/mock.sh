@@ -13,7 +13,10 @@
 # ./utils/mocks/job_live+upgrade/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
 
 # default CASEDIR
-CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
+rm -rf /var/lib/openqa/tests/kde-linux
+cp -r /builds/1/project /var/lib/openqa/tests/kde-linux
+CASEDIR=/var/lib/openqa/tests/kde-linux
+chown -R geekotest:geekotest /var/lib/openqa/tests/kde-linux
 
 # Parse arguments
 for arg in "$@"; do

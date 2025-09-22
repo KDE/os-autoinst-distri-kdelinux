@@ -1,6 +1,9 @@
 # This script should only be used when mock.sh have been run.
 # default CASEDIR
-CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
+rm -rf /var/lib/openqa/tests/kde-linux
+cp -r /builds/1/project /var/lib/openqa/tests/kde-linux
+CASEDIR=/var/lib/openqa/tests/kde-linux
+chown -R geekotest:geekotest /var/lib/openqa/tests/kde-linux
 
 for arg in "$@"; do
     case $arg in
