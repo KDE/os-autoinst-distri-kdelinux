@@ -32,3 +32,7 @@ class BaseSession:
     def close_window(self):
         send_key('alt-f4')
         return self
+
+    def check_screen(self, needle, timeout=30, no_wait=0):
+        result = check_screen(needle, "timeout", timeout, "no_wait", no_wait)
+        return result

@@ -26,5 +26,10 @@ class DiscoverSession(BaseSession, OpenableSessionMixin):
     def expect_and_click_discover_updates_page_refresh(self, timeout=60, button='left'):
         return self.click('discover_updates_page_refresh', timeout=timeout, button=button, dclick=1)
 
+    def check_discover_updates_still_has_pending_updates(self, timeout=60, button='left'):
+        if self.check_screen("discover_updates_still_has_pending_updates"):
+            self.click("discover_updates_still_has_pending_updates", timeout=timeout, button=button)
+        return self.expect_and_click_discover_updates_page_refresh(timeout=300)
+
     def expect_discover_upgrade_completed(self, timeout=60):
         return self.expect('discover_upgrade_completed', timeout=timeout)

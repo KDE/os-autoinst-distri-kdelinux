@@ -4,7 +4,7 @@ from lib.sessions.mixins.openable import OpenableSessionMixin
 
 
 class CalamaresSession(BaseSession, OpenableSessionMixin):
-    default_app_name = 'sudo pkexec calamares'
+    default_app_name = 'calamares'
     allowed_open_strategies = ['krunner', 'konsole']
 
     def expect_ready(self, timeout=30):
