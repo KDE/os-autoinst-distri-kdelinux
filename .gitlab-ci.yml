@@ -18,7 +18,6 @@ stages:
   tags:
     - LinuxHighMemory
   allow_failure: true
-  retry: 2
   when: manual
   image:
     name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
@@ -42,7 +41,6 @@ stages:
   tags:
     - LinuxHighMemory
   allow_failure: false
-  retry: 2
   when: manual
   image:
     name: registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86

@@ -41,10 +41,46 @@ poll_openqa_job() {
     if [[ "${result}" != "passed" && "${result}" != "softfailed" ]]; then
         echo "[ERROR] Job ${job_id} failed with result: ${result}"
         echo "[INFO] Job URL: http://${host}/tests/${job_id}"
-        exit 1
+        return 1
     fi
     echo "[INFO] Job ${job_id} completed with result: ${result}"
     echo "[INFO] Job URL: http://${host}/tests/${job_id}"
+    return 0
+}
+
+run_with_retry() {
+    local test_name="$1"
+    local max_retries=2
+    local attempt=1
+
+    while [[ $attempt -le $((max_retries + 1)) ]]; do
+        echo "[INFO] $test_name - Attempt $attempt"
+
+        if [[ $attempt -eq 1 ]]; then
+            shift
+            "$@"
+            local exit_code=$?
+        else
+            shift
+            "$@"
+            local exit_code=$?
+        fi
+
+        if [[ $exit_code -eq 0 ]]; then
+            echo "[INFO] $test_name succeeded on attempt $attempt"
+            return 0
+        else
+            echo "[WARNING] $test_name failed on attempt $attempt"
+            if [[ $attempt -le $max_retries ]]; then
+                echo "[INFO] Retrying $test_name (attempt $((attempt + 1)) of $((max_retries + 1)))..."
+                sleep 10
+            fi
+        fi
+        ((attempt++))
+    done
+
+    echo "[ERROR] $test_name failed after $max_retries retries"
+    exit 1
 }
 
 
@@ -78,33 +114,37 @@ HDDSIZEGB=50
 # Assign it with a pre-configured group name.
 _GROUP="KDE Linux"
 
-JOB_ID=$(openqa-cli api -X POST jobs \
-    --host http://${OPENQA_HOST_ADDR} \
-    DISTRI="$DISTRI" \
-    VERSION="$VERSION" \
-    FLAVOR="$FLAVOR" \
-    ARCH="$ARCH" \
-    BUILD="$BUILD" \
-    TEST="$TEST" \
-    MACHINE="$MACHINE" \
-    HDD_1="$IMG" \
-    PUBLISH_HDD_2="$DISK" \
-    BOOTFROM="$BOOTFROM" \
-    BACKEND="$BACKEND" \
-    UEFI="$UEFI" \
-    UEFI_PFLASH_CODE="$UEFI_PFLASH_CODE" \
-    UEFI_PFLASH_VARS="$UEFI_PFLASH_VARS" \
-    DO_INSTALL="$DO_INSTALL" \
-    QEMUCPUS="$QEMUCPUS" \
-    QEMURAM="$QEMURAM" \
-    HDDSIZEGB="$HDDSIZEGB" \
-    NUMDISKS="$NUMDISKS" \
-    CASEDIR="$CASEDIR" \
-    NEEDLES_DIR="$NEEDLES_DIR" \
-    TIMEOUT_SCALE="$TIMEOUT_SCALE" \
-    _GROUP="$_GROUP" | jq -r .id)
+run_installation_test() {
+    JOB_ID=$(openqa-cli api -X POST jobs \
+        --host http://${OPENQA_HOST_ADDR} \
+        DISTRI="$DISTRI" \
+        VERSION="$VERSION" \
+        FLAVOR="$FLAVOR" \
+        ARCH="$ARCH" \
+        BUILD="$BUILD" \
+        TEST="$TEST" \
+        MACHINE="$MACHINE" \
+        HDD_1="$IMG" \
+        PUBLISH_HDD_2="$DISK" \
+        BOOTFROM="$BOOTFROM" \
+        BACKEND="$BACKEND" \
+        UEFI="$UEFI" \
+        UEFI_PFLASH_CODE="$UEFI_PFLASH_CODE" \
+        UEFI_PFLASH_VARS="$UEFI_PFLASH_VARS" \
+        DO_INSTALL="$DO_INSTALL" \
+        QEMUCPUS="$QEMUCPUS" \
+        QEMURAM="$QEMURAM" \
+        HDDSIZEGB="$HDDSIZEGB" \
+        NUMDISKS="$NUMDISKS" \
+        CASEDIR="$CASEDIR" \
+        NEEDLES_DIR="$NEEDLES_DIR" \
+        TIMEOUT_SCALE="$TIMEOUT_SCALE" \
+        _GROUP="$_GROUP" | jq -r .id)
 
-poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
+    poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
+}
+
+run_with_retry "Installation test" run_installation_test
 echo "[INFO] Successfully installed full system fcrom live image(Previous success build)..."
 
 # Start testing the installed system
@@ -114,32 +154,36 @@ NUMDISKS=1
 DO_UPGRADE=1
 TEST="upgrade_system"
 
-JOB_ID=$(openqa-cli api -X POST jobs \
-    --host http://${OPENQA_HOST_ADDR} \
-    DISTRI="$DISTRI" \
-    VERSION="$VERSION" \
-    FLAVOR="$FLAVOR" \
-    ARCH="$ARCH" \
-    BUILD="$BUILD" \
-    TEST="$TEST" \
-    MACHINE="$MACHINE" \
-    HDD_1="$DISK" \
-    BOOTFROM="$BOOTFROM" \
-    BACKEND="$BACKEND" \
-    UEFI="$UEFI" \
-    UEFI_PFLASH_CODE="$UEFI_PFLASH_CODE" \
-    UEFI_PFLASH_VARS="$UEFI_PFLASH_VARS" \
-    DO_UPGRADE="$DO_UPGRADE" \
-    QEMUCPUS="$QEMUCPUS" \
-    QEMURAM="$QEMURAM" \
-    HDDSIZEGB="$HDDSIZEGB" \
-    NUMDISKS="$NUMDISKS" \
-    CASEDIR="$CASEDIR" \
-    NEEDLES_DIR="$NEEDLES_DIR" \
-    TIMEOUT_SCALE="$TIMEOUT_SCALE" \
-    _GROUP="$_GROUP" | jq -r .id)
+run_upgrade_test() {
+    JOB_ID=$(openqa-cli api -X POST jobs \
+        --host http://${OPENQA_HOST_ADDR} \
+        DISTRI="$DISTRI" \
+        VERSION="$VERSION" \
+        FLAVOR="$FLAVOR" \
+        ARCH="$ARCH" \
+        BUILD="$BUILD" \
+        TEST="$TEST" \
+        MACHINE="$MACHINE" \
+        HDD_1="$DISK" \
+        BOOTFROM="$BOOTFROM" \
+        BACKEND="$BACKEND" \
+        UEFI="$UEFI" \
+        UEFI_PFLASH_CODE="$UEFI_PFLASH_CODE" \
+        UEFI_PFLASH_VARS="$UEFI_PFLASH_VARS" \
+        DO_UPGRADE="$DO_UPGRADE" \
+        QEMUCPUS="$QEMUCPUS" \
+        QEMURAM="$QEMURAM" \
+        HDDSIZEGB="$HDDSIZEGB" \
+        NUMDISKS="$NUMDISKS" \
+        CASEDIR="$CASEDIR" \
+        NEEDLES_DIR="$NEEDLES_DIR" \
+        TIMEOUT_SCALE="$TIMEOUT_SCALE" \
+        _GROUP="$_GROUP" | jq -r .id)
 
-poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
+    poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
+}
+
+run_with_retry "Upgrade test" run_upgrade_test
 echo "[INFO] Upgrade success!"
 
 exit 0
