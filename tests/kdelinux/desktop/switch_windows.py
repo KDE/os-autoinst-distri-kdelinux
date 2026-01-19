@@ -1,10 +1,6 @@
 from testapi import *
-import sys, os
-
 from lib.sessions.app.system_settings import SystemSettingsSession
 from lib.sessions.app.konsole import KonsoleSession
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from lib.sessions.syscore.plasma_desktop import PlasmaDesktopSession
 
 

@@ -1,89 +1,91 @@
 stages:
-  - test
-  - test_isotovideo
+- test
+- test_isotovideo
 
 .openqa-cli_common_before_script:
   before_script:
-    # Bootstrap OpenQA Environment
-    - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
-    # Wait openQA ready
-    - ./utils/wait_openqa_ready.sh
-    # Install dependencies
-    - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4
-    # Download the latest image
-    - python3 utils/download_image.py --$IMAGE_VERSION
+  # Install dependencies
+  - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 patch
+  # Bootstrap OpenQA Environment
+  - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
+  # (temp) patch autotest.pm
+  - patch /usr/lib/os-autoinst/autotest.pm < .gitlab/scripts/python-casedir.patch
+  # Wait openQA ready
+  - ./utils/wait_openqa_ready.sh
+  # Download the latest image
+  - python3 utils/download_image.py --$IMAGE_VERSION
 
 .openqa-cli_base:
   stage: test
   tags:
-    - LinuxHighMemory
+  - LinuxHighMemory
   allow_failure: true
   when: manual
   image:
     name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
     entrypoint: ["/bin/bash", "-c"]
   after_script:
-    - .gitlab/scripts/collect_results.sh
+  - .gitlab/scripts/collect_results.sh
   artifacts:
     when: always
     paths:
-      - testresults/
+    - testresults/
 
 .isotovideo_common_before_script:
   before_script:
-    - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 ffmpeg
-    - python3 utils/download_image.py --$IMAGE_VERSION
+  - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 ffmpeg
+  - python3 utils/download_image.py --$IMAGE_VERSION
 
 .isotovideo_base:
   dependencies: []
   needs: []
   stage: test_isotovideo
   tags:
-    - LinuxHighMemory
+  - LinuxHighMemory
   allow_failure: false
   when: manual
   image:
     name: registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86
     entrypoint: ["/bin/bash", "-c"]
   after_script:
-    - .gitlab/scripts/isotovideo/collect_results.sh
+  - .gitlab/scripts/isotovideo/collect_results.sh
   artifacts:
     when: always
     paths:
-      - reports/
+    - reports/
 
 testing-latest-build_openqa-cli:
   extends:
-    - .openqa-cli_base
-    - .openqa-cli_common_before_script
+  - .openqa-cli_base
+  - .openqa-cli_common_before_script
   variables:
     IMAGE_VERSION: latest
   script:
-    - .gitlab/scripts/latest_build_test.sh
+  - .gitlab/scripts/latest_build_test.sh
 
 testing-upgrade_openqa-cli:
   extends:
-    - .openqa-cli_base
-    - .openqa-cli_common_before_script
+  - .openqa-cli_base
+  - .openqa-cli_common_before_script
   variables:
     IMAGE_VERSION: previously-success
   script:
-    - .gitlab/scripts/upgrade_test.sh
+  - .gitlab/scripts/upgrade_test.sh
 
 testing-latest-build_isotovideo:
   extends:
-    - .isotovideo_base
-    - .isotovideo_common_before_script
+  - .isotovideo_base
+  - .isotovideo_common_before_script
   variables:
     IMAGE_VERSION: latest
   script:
-    - .gitlab/scripts/isotovideo/latest_build_test.sh
+  - .gitlab/scripts/isotovideo/latest_build_test.sh
 
 testing-upgrade_isotovideo:
   extends:
-    - .isotovideo_base
-    - .isotovideo_common_before_script
+  - .isotovideo_base
+  - .isotovideo_common_before_script
   variables:
     IMAGE_VERSION: previously-success
   script:
-    - .gitlab/scripts/isotovideo/upgrade_test.sh
+  - .gitlab/scripts/isotovideo/upgrade_test.sh
