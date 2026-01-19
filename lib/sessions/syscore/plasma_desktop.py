@@ -1,5 +1,5 @@
-from lib.sessions.base import BaseSession
 from testapi import *
+from lib.sessions.base import BaseSession
 
 
 class PlasmaDesktopSession(BaseSession):

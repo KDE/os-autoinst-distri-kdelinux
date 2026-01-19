@@ -1,0 +1,10 @@
+--- autotest.pm.orig
++++ autotest.pm
+@@ -209,6 +209,7 @@
+             import sys
+             sys.path.append("$inc")
+             sys.path.append("$script_dir")
++            sys.path.append("$casedir")
+             import $name
+             END_OF_PYTHON_CODE
+             # Bind the python functions to the perl $name package

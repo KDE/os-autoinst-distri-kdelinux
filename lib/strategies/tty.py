@@ -1,5 +1,4 @@
 from testapi import *
-
 from lib.sessions.syscore.tty import TTYSession
 from lib.strategies.base import OpenStrategy
 
