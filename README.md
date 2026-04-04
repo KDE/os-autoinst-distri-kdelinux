@@ -72,3 +72,7 @@ Currently, we offer two options for running CI jobs:
 2. **TTY session implementation issues** - The implementation or even the existence of TTY session in `lib/sessions/syscore/tty.py` may have reliability problems, as I never used them.
 
 3. **Desktop file creation test verification** - The desktop file creation test (`tests/kdelinux/desktop/create_file.py`) currently only verifies the file creation through the GUI. It should be enhanced to confirm that the file actually exists on the filesystem by checking via konsole or TTY session using serial output.
+
+### Notes
+- needles directory needs permissions 755 for the WebUI needle editor to work.
+
