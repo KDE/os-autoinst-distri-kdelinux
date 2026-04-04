@@ -5,6 +5,14 @@ use testapi;
 use File::Find;
 use autotest;
 
+use Inline::Python qw(py_eval);
+use Cwd 'abs_path';
+use File::Basename;
+
+my $distri_path = dirname(abs_path(__FILE__));
+
+py_eval("import sys; sys.path.insert(0, '$distri_path')");
+
 sub loadtest {
     my ($path) = @_;
     my $filename = $path =~ /\.p[my]$/ ? $path : $path . '.pm';
