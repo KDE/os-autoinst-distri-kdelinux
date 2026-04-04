@@ -21,7 +21,7 @@ sub loadtest {
 
 sub test_live_image {
     loadtest 'common/bootup.py';
-    loadtest 'common/system_settings/disable_screen_lock.py';
+#    loadtest 'common/system_settings/disable_screen_lock.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
     loadtest 'kdelinux-live/install_system/calamares_welcome.py';
     loadtest 'kdelinux-live/install_system/calamares_timezone.py';
