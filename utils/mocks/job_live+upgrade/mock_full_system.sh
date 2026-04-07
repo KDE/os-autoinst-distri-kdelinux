@@ -122,7 +122,8 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     NUMDISKS="$NUMDISKS" \
     CASEDIR="$CASEDIR" \
     NEEDLES_DIR="$NEEDLES_DIR" \
-    TIMEOUT_SCALE=3 \
+    TIMEOUT_SCALE=3\
+    VIRTIO_CONSOLE=1 \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"

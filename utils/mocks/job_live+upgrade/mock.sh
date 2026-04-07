@@ -151,6 +151,7 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     CASEDIR="$CASEDIR" \
     NEEDLES_DIR="$NEEDLES_DIR" \
     TIMEOUT_SCALE="$TIMEOUT_SCALE" \
+    VIRTIO_CONSOLE=1 \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
@@ -186,6 +187,7 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     CASEDIR="$CASEDIR" \
     NEEDLES_DIR="$NEEDLES_DIR" \
     TIMEOUT_SCALE="$TIMEOUT_SCALE" \
+    VIRTIO_CONSOLE=1 \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"

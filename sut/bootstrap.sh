@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LGPL-2.0-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+python3 -m venv ~/tests/venv
+#~/tests/venv/bin/pip install whatever

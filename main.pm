@@ -1,17 +1,19 @@
 use strict;
 use warnings;
 
-use testapi;
-use File::Find;
-use autotest;
-
 use Inline::Python qw(py_eval);
 use Cwd 'abs_path';
 use File::Basename;
 
+use lib 'lib';
 my $distri_path = dirname(abs_path(__FILE__));
-
 py_eval("import sys; sys.path.insert(0, '$distri_path')");
+
+use testapi;
+use File::Find;
+use autotest;
+
+$testapi::distri->add_console('root-virtio-terminal', 'virtio-terminal');
 
 sub loadtest {
     my ($path) = @_;
@@ -21,6 +23,8 @@ sub loadtest {
 
 sub test_live_image {
     loadtest 'common/bootup.py';
+    loadtest 'sut/bootstrap.py';
+    loadtest 'sut/basic_test.py';
 #    loadtest 'common/system_settings/disable_screen_lock.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
     loadtest 'kdelinux-live/install_system/calamares_welcome.py';
@@ -34,6 +38,8 @@ sub test_live_image {
 
 sub test_kdelinux {
     loadtest 'common/bootup.py';
+    loadtest 'sut/bootstrap.py';
+    loadtest 'sut/basic_test.py';
 #    loadtest 'kdelinux/desktop/kiss.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'common/system_settings/disable_screen_lock.py';
@@ -50,6 +56,8 @@ sub test_kdelinux {
 
 sub test_system_upgrade {
     loadtest 'common/bootup.py';
+    loadtest 'sut/bootstrap.py';
+    loadtest 'sut/basic_test.py';
 #    loadtest 'kdelinux/desktop/kiss.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'common/system_settings/disable_screen_lock.py';

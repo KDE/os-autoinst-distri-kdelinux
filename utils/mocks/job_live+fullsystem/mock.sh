@@ -44,19 +44,24 @@ zypper --non-interactive install perl-Inline-Python python3-requests python3-bea
 #/usr/share/openqa/script/openqa-bootstrap &
 #./utils/wait_openqa_ready.sh
 
-# Download the latest image
-python3 utils/download_image.py --latest
+# Download the latest image temporary TODO
+#python3 utils/download_image.py --latest
 
 export CI_PROJECT_DIR=$(pwd)
-IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
-IMG=$(basename "$IMG_PATH")
+#IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
+#IMG=$(basename "$IMG_PATH")
+IMG_PATH="/var/lib/openqa/factory/hdd/kde-linux_202604062250.raw"
+IMG="kde-linux_202604062250.raw"
 OUTPUT=${IMG%.raw}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 OPENQA_HOST_ADDR=localhost
 
 # Move the image to openqa dir
-mv "$CI_PROJECT_DIR/$IMG" /var/lib/openqa/factory/hdd/
+#mv "$CI_PROJECT_DIR/$IMG" /var/lib/openqa/factory/hdd/
+# temporary TODO
+#IMG_PATH="/var/lib/openqa/factory/hdd/kde-linux_202604062250.raw"
+#IMG="kde-linux_202604062250.raw"
 
 poll_openqa_job() {
     # OpenQA will keep result of the test running as 'none', before the test running finish. Another approach is jq -r '.job.status'.
@@ -148,6 +153,7 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     CASEDIR="$CASEDIR" \
     NEEDLES_DIR="$NEEDLES_DIR" \
     TIMEOUT_SCALE=3 \
+    VIRTIO_CONSOLE=1 \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
@@ -183,6 +189,7 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     CASEDIR="$CASEDIR" \
     NEEDLES_DIR="$NEEDLES_DIR" \
     TIMEOUT_SCALE=3 \
+    VIRTIO_CONSOLE=1 \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
