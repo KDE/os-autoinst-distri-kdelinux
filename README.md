@@ -26,7 +26,7 @@
 
 * Start the openQA environment (Terminal 1)
   ```bash
-  git clone https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
+  git clone https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git
   cd os-autoinst-distri-kdelinux
   podman run --rm -it \
       -v "$PWD":/builds/1/project \
@@ -44,7 +44,7 @@
   podman exec -it openqa-server bash
   ```
   ```bash
-  ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
+  ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git
   ```
   
 ### Test Case Architecture(Todo: Guide)

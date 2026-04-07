@@ -3,18 +3,11 @@
 
 from testapi import *
 
-class SerialTest:
-    script = None
-    timeout = 120
-
-    def run(self):
-        assert_script_run(
-            f'~/tests/venv/bin/python scripts/{self.script}',
-            timeout=self.timeout
-        )
-
-    def test_flags(self):
-        return {'fatal': 1}
-
-    def post_fail_hook(self):
-        upload_logs('/tmp/test_output.log')
+def run(script):
+    # Ensure we're in the terminal
+    select_console('virtio-terminal')
+    assert_script_run(
+        f'~/tests/venv/bin/python ~/tests/sut/scripts/{script}',
+    )
+    # Then switch back to the GUI to avoid breaking needle tests
+    select_console('desktop')

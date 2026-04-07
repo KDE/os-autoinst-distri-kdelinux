@@ -92,7 +92,7 @@ TIMEOUT_SCALE=10
 
 # Test Configuration
 TEST=install_full_system
-#CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git#refs/heads/brute-force-debug
+#CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git#refs/heads/brute-force-debug
 NEEDLES_DIR=%%CASEDIR%%/needles
 DO_INSTALL=1
 HDDSIZEGB=50

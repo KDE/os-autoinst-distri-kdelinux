@@ -10,7 +10,7 @@
 
 # Start Another terminal instance, and run
 # podman exec -it openqa-server bash
-# ./utils/mocks/job_live+upgrade/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
+# ./utils/mocks/job_live+upgrade/mock.sh --CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git
 
 # default CASEDIR
 rm -rf /var/lib/openqa/tests/kde-linux
@@ -118,8 +118,8 @@ TIMEOUT_SCALE=10
 
 # Test Configuration
 TEST=install_full_system
-#CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git#refs/heads/brute-force-debug
-#CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
+#CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git#refs/heads/brute-force-debug
+#CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git
 NEEDLES_DIR=%%CASEDIR%%/needles
 DO_INSTALL=1
 HDDSIZEGB=50

@@ -37,7 +37,7 @@
 #   "DISTRI" : "kdelinux",
 #   "BIOS" : null,
 #   "BOOTFROM" : "c",
-#   "CASEDIR" : "https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git",
+#   "CASEDIR" : "https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git",
 #   "NEEDLES_DIR": "needles",
 #   "CDMODEL" : "scsi-cd",
 #   "DO_INSTALL" : "1",
@@ -127,7 +127,7 @@
 #     QEMURAM=4096 \
 #     HDDSIZEGB=50 \
 #     NUMDISKS=2 \
-#     CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git \
+#     CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git \
 #     NEEDLES_DIR=%%CASEDIR%%/needles \
 #  )
 

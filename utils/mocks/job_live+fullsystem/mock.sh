@@ -10,7 +10,7 @@
 
 # Start Another terminal instance, and run
 # podman exec -it openqa-server bash
-# ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=https://invent.kde.org/anicaazhu/os-autoinst-distri-kdelinux.git
+# ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git
 
 # default CASEDIR
 rm -rf /var/lib/openqa/tests/kde-linux
@@ -44,24 +44,19 @@ zypper --non-interactive install perl-Inline-Python python3-requests python3-bea
 #/usr/share/openqa/script/openqa-bootstrap &
 #./utils/wait_openqa_ready.sh
 
-# Download the latest image temporary TODO
-#python3 utils/download_image.py --latest
+# Download the latest image
+python3 utils/download_image.py --latest
 
 export CI_PROJECT_DIR=$(pwd)
-#IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
-#IMG=$(basename "$IMG_PATH")
-IMG_PATH="/var/lib/openqa/factory/hdd/kde-linux_202604062250.raw"
-IMG="kde-linux_202604062250.raw"
+IMG_PATH=$(find "$CI_PROJECT_DIR" -maxdepth 1 -name '*.raw' | head -n1)
+IMG=$(basename "$IMG_PATH")
 OUTPUT=${IMG%.raw}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 OPENQA_HOST_ADDR=localhost
 
 # Move the image to openqa dir
-#mv "$CI_PROJECT_DIR/$IMG" /var/lib/openqa/factory/hdd/
-# temporary TODO
-#IMG_PATH="/var/lib/openqa/factory/hdd/kde-linux_202604062250.raw"
-#IMG="kde-linux_202604062250.raw"
+mv "$CI_PROJECT_DIR/$IMG" /var/lib/openqa/factory/hdd/
 
 poll_openqa_job() {
     # OpenQA will keep result of the test running as 'none', before the test running finish. Another approach is jq -r '.job.status'.

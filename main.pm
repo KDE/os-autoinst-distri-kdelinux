@@ -13,7 +13,8 @@ use testapi;
 use File::Find;
 use autotest;
 
-$testapi::distri->add_console('root-virtio-terminal', 'virtio-terminal');
+$testapi::distri->add_console('virtio-terminal', 'virtio-terminal', { persistent => 1 });
+$testapi::distri->add_console('desktop', 'vnc-base', { display => 0, hostname => 'localhost', port => 5991 });
 
 sub loadtest {
     my ($path) = @_;
@@ -33,7 +34,8 @@ sub test_live_image {
     loadtest 'kdelinux-live/install_system/calamares_partition.py';
 #    loadtest 'kdelinux-live/install_system/calamares_usersetting.py';
     loadtest 'kdelinux-live/install_system/calamares_install.py';
-    loadtest 'common/shutdown.py';
+#    loadtest 'common/shutdown.py';
+    loadtest 'sut/shutdown.py';
 }
 
 sub test_kdelinux {
@@ -51,7 +53,8 @@ sub test_kdelinux {
     loadtest 'kdelinux/panel/digital_clock.py';
     loadtest 'kdelinux/desktop/create_file.py';
     loadtest 'kdelinux/desktop/switch_windows.py';
-    loadtest 'common/shutdown.py';
+#    loadtest 'common/shutdown.py';
+    loadtest 'sut/shutdown.py';
 }
 
 sub test_system_upgrade {
@@ -66,7 +69,8 @@ sub test_system_upgrade {
     loadtest 'common/reboot.py';
     loadtest 'common/bootup.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
-    loadtest 'common/shutdown.py';
+#    loadtest 'common/shutdown.py';
+    loadtest 'sut/shutdown.py';
 }
 
 if (get_var('DO_INSTALL', 0)) {
