@@ -12,8 +12,10 @@ def run(self):
     wait_serial(r'~.*\$', timeout=30)
 
     # bootstrap the SUT tests
-    serial_test.run(f'git clone -b {BRANCH} {REPO_URL} ~/tests')
-    serial_test.run('~/tests/sut/bootstrap.sh')
+    serial_test.run('mkdir -p /tests', root=True)
+    serial_test.run('chmod 777 /tests', root=True)
+    serial_test.run(f'git clone -b {BRANCH} {REPO_URL} /tests')
+    serial_test.run('/tests/sut/bootstrap.sh')
 
 def test_flags(self):
     return {'fatal': 1}

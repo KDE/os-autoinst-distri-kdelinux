@@ -6,6 +6,6 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-python3 -m venv ~/tests/venv
-source venv/bin/activate
-#~/tests/venv/bin/pip install whatever
+python3 -m venv /tests/venv
+source /tests/venv/bin/activate
+#/tests/venv/bin/pip install whatever
