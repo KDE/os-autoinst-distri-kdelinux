@@ -2,7 +2,4 @@ from testapi import *
 from lib import serial_test
 
 def run(self):
-    serial_test.run('basic_test.py')
-
-def test_flags(self):
-    return {'fatal': 1}
+    serial_test.run('~/tests/venv/bin/python ~/tests/sut/scripts/basic_test.py')
