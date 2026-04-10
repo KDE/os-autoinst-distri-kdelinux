@@ -24,24 +24,24 @@ sub loadtest {
 
 sub test_live_image {
     loadtest 'common/bootup.py';
-    loadtest 'sut/bootstrap.py';
-    loadtest 'sut/basic_test.py';
-#    loadtest 'common/system_settings/disable_screen_lock.py';
+    loadtest 'bootstrap_sut.py';
+    loadtest 'common/basic_test.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
-    loadtest 'kdelinux-live/install_system/calamares_welcome.py';
+    loadtest 'kdelinux-live/calamares_install.py';
+#    loadtest 'common/system_settings/disable_screen_lock.py';
+#    loadtest 'kdelinux-live/install_system/calamares_welcome.py';
 #    loadtest 'kdelinux-live/install_system/calamares_timezone.py';
 #    loadtest 'kdelinux-live/install_system/calamares_keyboard.py';
-    loadtest 'kdelinux-live/install_system/calamares_partition.py';
+#    loadtest 'kdelinux-live/install_system/calamares_partition.py';
 #    loadtest 'kdelinux-live/install_system/calamares_usersetting.py';
-    loadtest 'kdelinux-live/install_system/calamares_install.py';
-#    loadtest 'common/shutdown.py';
-    loadtest 'sut/shutdown.py';
+#    loadtest 'kdelinux-live/install_system/calamares_install.py';
+    loadtest 'common/shutdown.py';
 }
 
 sub test_kdelinux {
     loadtest 'common/bootup.py';
-    loadtest 'sut/bootstrap.py';
-    loadtest 'sut/basic_test.py';
+    loadtest 'bootstrap_sut.py';
+    loadtest 'common/basic_test.py';
 #    loadtest 'kdelinux/desktop/kiss.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'common/system_settings/disable_screen_lock.py';
