@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
+# TODO needs https://invent.kde.org/sdk/selenium-webdriver-at-spi/-/merge_requests/69
+
 import unittest
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
@@ -30,7 +32,7 @@ class DisableScreenDimAndScreenOffTests(unittest.TestCase):
         ActionChains(self.driver).send_keys(Keys.DOWN).perform()
         self.driver.find_element(by=AppiumBy.XPATH, value="//list_item[@name='Power Management' and contains(@states, 'focused')]")
         ActionChains(self.driver).send_keys(Keys.RETURN).perform()
-        # These offsets are a code smell and don't work consistently. TODO
+        # These offsets are a code smell and don't work properly. TODO
         # Maybe https://invent.kde.org/sdk/selenium-webdriver-at-spi/-/merge_requests/69 will help
         ActionChains(self.driver).move_to_element_with_offset(self.driver.find_element(by=AppiumBy.NAME, value="Action to perform when the system is idle"), 100, 100).click().perform()
         ActionChains(self.driver).move_to_element_with_offset(self.driver.find_element(by=AppiumBy.NAME, value="Do nothing"), 100, 100).click().perform()

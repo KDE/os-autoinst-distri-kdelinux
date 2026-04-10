@@ -3,27 +3,25 @@
 
 from testapi import *
 
-def run(cmdline, root=False):
-    # Ensure we're in the terminal
+_SHELL_INIT = 'export TERM=dumb; unset PROMPT_COMMAND; unsetopt zle 2>/dev/null; set +o emacs +o vi 2>/dev/null; export PS1="# "\n'
+_PROMPT = r'# '
+
+_console_ready = False
+
+def _ensure_console_ready():
+    global _console_ready
     select_console('virtio-terminal')
+    if not _console_ready:
+        type_string(_SHELL_INIT)
+        wait_serial(_PROMPT, timeout=30)
+        _console_ready = True
 
+def run(cmdline, root=False):
+    _ensure_console_ready()
     try:
-        # TODO don't run this every time
-        type_string('export TERM=dumb; unset PROMPT_COMMAND; export PS1="# "; set +o emacs +o vi\n')
-        wait_serial(r'#', timeout=30)
-
         if root:
-            # TODO store and use password
-            type_string('sudo -i\n')
-            wait_serial(r'#', timeout=30)
-            type_string('export TERM=dumb; unset PROMPT_COMMAND; export PS1="# "; set +o emacs +o vi\n')
-            wait_serial(r'#', timeout=30)
-
-        assert_script_run(cmdline)
-
+            assert_script_run(f'sudo bash -c {cmdline!r}')
+        else:
+            assert_script_run(cmdline)
     finally:
-        if root:
-            assert_script_run('exit')
-
-        # Then switch back to the GUI to avoid breaking needle tests
         select_console('desktop')

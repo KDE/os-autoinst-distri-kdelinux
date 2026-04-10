@@ -5,4 +5,4 @@ from testapi import *
 from lib import serial_test
 
 def run(self):
-    serial_test.run('systemctl poweroff')
+    serial_test.run('systemctl poweroff &', root=True)
