@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# hacks around constraints of selenium-webdriver-at-spi-run
+
+export QT_ACCESSIBILITY=1
+export QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1
+
+"$1" &
+PID=$!
+
+source /tests/venv/bin/activate
+KWIN_PID="$(pgrep -n kwin_wayland)" selenium-webdriver-at-spi-run python3 "$2" "$PID"

@@ -5,5 +5,6 @@ from testapi import *
 from lib import serial_test
 
 def run(self):
-    #serial_test.run('selenium-webdriver-at-spi-run /tests/venv/bin/python /tests/sut/scripts/disable_screen_dim_and_screen_off.py')
+    # TODO doesn't work because it doesn't know it's own coordinates
+    #serial_test.run('/tests/sut/openqa-selenium-webdriver-at-spi-run systemsettings /tests/sut/scripts/disable_screen_dim_and_screen_off.py')
     serial_test.run('/tests/sut/scripts/disable_screen_dim_and_screen_off.sh')
