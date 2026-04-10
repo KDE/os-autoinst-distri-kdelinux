@@ -1,4 +1,5 @@
 from testapi import *
+from lib import serial_test
 
 REPO_URL = get_var('TEST_REPO', 'https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git')
 BRANCH = get_var('TEST_BRANCH', 'master')
