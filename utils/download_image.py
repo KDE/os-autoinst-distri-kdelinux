@@ -1,11 +1,19 @@
 #!/usr/bin/python3
-
 import requests
 from bs4 import BeautifulSoup
 import re
 import sys
+import os
+import glob
 
 base_url = "https://files.kde.org/kde-linux/"
+
+def find_local_file(filename):
+    """Check if a matching .raw file already exists in the current directory."""
+    if os.path.isfile(filename):
+        print(f"Found existing file: {filename}")
+        return filename
+    return None
 
 def download_file(download_url, filename):
     print(f"Start downloading from: {download_url}")
@@ -22,12 +30,13 @@ def download(build_index):
     resp = requests.get(url)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
-
     pattern = re.compile(r'kde-linux_\d+\.raw$')
     links = soup.find_all("a", href=pattern)
     print(links)
     if links:
         latest_href = links[build_index]["href"]
+        if find_local_file(latest_href):
+            return
         download_url = base_url + latest_href
         download_file(download_url, latest_href)
     else:
@@ -36,6 +45,8 @@ def download(build_index):
 
 def download_specific(build_version):
     filename = f"kde-linux_{build_version}.raw"
+    if find_local_file(filename):
+        return
     download_url = base_url + filename
     try:
         resp = requests.head(download_url)
@@ -45,16 +56,13 @@ def download_specific(build_version):
     except Exception as e:
         print(f"Error checking build: {e}")
         sys.exit(1)
-
     download_file(download_url, filename)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: script.py [--latest | --build=VERSION | --previously_success]")
         sys.exit(1)
-
     arg = sys.argv[1]
-
     if arg == "--latest":
         download(build_index=0)
     elif arg.startswith("--build="):
