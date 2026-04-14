@@ -51,7 +51,7 @@ poll_openqa_job() {
 run_with_retry() {
     local test_name="$1"
     local max_retries=2
-    local attempt=1
+    local attempt=1QEMUCPU="$QEMUCPU" \
 
     while [[ $attempt -le $((max_retries + 1)) ]]; do
         echo "[INFO] $test_name - Attempt $attempt"
@@ -96,6 +96,7 @@ MACHINE=general_64bit
 BACKEND=qemu
 QEMUCPUS=4
 QEMURAM=4096
+QEMUCPU=host
 NUMDISKS=2
 BOOTFROM=c
 UEFI=1
@@ -134,6 +135,7 @@ run_installation_test() {
         DO_INSTALL="$DO_INSTALL" \
         QEMUCPUS="$QEMUCPUS" \
         QEMURAM="$QEMURAM" \
+        QEMUCPU="$QEMUCPU" \
         HDDSIZEGB="$HDDSIZEGB" \
         NUMDISKS="$NUMDISKS" \
         CASEDIR="$CASEDIR" \
@@ -173,6 +175,7 @@ run_upgrade_test() {
         DO_UPGRADE="$DO_UPGRADE" \
         QEMUCPUS="$QEMUCPUS" \
         QEMURAM="$QEMURAM" \
+        QEMUCPU="$QEMUCPU" \
         HDDSIZEGB="$HDDSIZEGB" \
         NUMDISKS="$NUMDISKS" \
         CASEDIR="$CASEDIR" \

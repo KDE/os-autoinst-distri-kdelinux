@@ -97,6 +97,7 @@ MACHINE=general_64bit
 BACKEND=qemu
 QEMUCPUS=4
 QEMURAM=4096
+QEMUCPU=host
 NUMDISKS=2
 BOOTFROM=c
 UEFI=1
@@ -135,6 +136,7 @@ run_installation_test() {
         DO_INSTALL="$DO_INSTALL" \
         QEMUCPUS="$QEMUCPUS" \
         QEMURAM="$QEMURAM" \
+        QEMUCPU="$QEMUCPU" \
         HDDSIZEGB="$HDDSIZEGB" \
         NUMDISKS="$NUMDISKS" \
         CASEDIR="$CASEDIR" \
@@ -174,6 +176,7 @@ run_sanity_test() {
         DO_INSTALL="$DO_INSTALL" \
         QEMUCPUS="$QEMUCPUS" \
         QEMURAM="$QEMURAM" \
+        QEMUCPU="$QEMUCPU" \
         HDDSIZEGB="$HDDSIZEGB" \
         NUMDISKS="$NUMDISKS" \
         CASEDIR="$CASEDIR" \
