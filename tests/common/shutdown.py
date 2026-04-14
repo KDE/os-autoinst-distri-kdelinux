@@ -6,5 +6,5 @@ from lib import serial_test
 
 def run(self):
     select_console('virtio-terminal')
-    type_string('poweroff\n')
+    power('off')
     assert_shutdown()
