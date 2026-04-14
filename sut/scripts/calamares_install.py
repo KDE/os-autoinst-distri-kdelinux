@@ -38,13 +38,9 @@ class CalamaresTests(unittest.TestCase):
         # Click the last disk in the list view
         ActionChains(self.driver).move_to_element(options[-1]).click().perform()
         self.driver.find_element(by=AppiumBy.XPATH, value="//*[contains(@name, 'Erase disk')]").click()
-        wait = WebDriverWait(self.driver, 20)
-        install_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Install"))
-        )
-        install_button.click()
+        next_button.click()
         ## Finished page
-        done_button = wait.until(
+        wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Done"))
         )
 
