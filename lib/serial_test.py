@@ -19,9 +19,12 @@ def _ensure_console_ready():
 def run(cmdline, root=False):
     _ensure_console_ready()
     try:
+        # Run a transient service in the user's current session, so we get access to the desktop and the dbus session
         if root:
-            assert_script_run(f'sudo bash -c {cmdline!r}')
+            full_cmd = f'systemd-run --pipe --wait --collect bash -c {cmdline!r}'
         else:
-            assert_script_run(cmdline)
+            full_cmd = f'systemd-run --pipe --user --wait --collect bash -c {cmdline!r}'
+
+        assert_script_run(full_cmd)
     finally:
         select_console('desktop')
