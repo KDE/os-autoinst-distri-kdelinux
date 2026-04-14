@@ -5,5 +5,6 @@ from testapi import *
 from lib import serial_test
 
 def run(self):
-    serial_test.run('systemctl poweroff &', root=True)
+    select_console('virtio-terminal')
+    type_string('poweroff\n')
     assert_shutdown()
