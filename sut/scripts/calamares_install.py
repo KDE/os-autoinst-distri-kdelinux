@@ -40,6 +40,7 @@ class CalamaresTests(unittest.TestCase):
         self.driver.find_element(by=AppiumBy.XPATH, value="//*[contains(@name, 'Erase disk')]").click()
         next_button.click()
         ## Finished page
+        wait = WebDriverWait(self.driver, 300)
         wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Done"))
         )
