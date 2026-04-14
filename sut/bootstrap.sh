@@ -6,5 +6,5 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-python3 -m venv --system-site-packages /tests/venv
+python3 -m venv --system-site-packages --upgrade-deps /tests/venv
 /tests/venv/bin/pip3 install -r /tests/sut/requirements.txt

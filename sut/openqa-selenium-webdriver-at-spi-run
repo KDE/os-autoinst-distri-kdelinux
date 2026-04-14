@@ -9,4 +9,4 @@ export QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1
 PID=$!
 
 source /tests/venv/bin/activate
-KWIN_PID="$(pgrep -n kwin_wayland)" selenium-webdriver-at-spi-run /tests/venv/bin/python3 "$2" "$PID"
+KWIN_PID="$(pgrep -n kwin_wayland)" selenium-webdriver-at-spi-run python3 "$2" "$PID"
