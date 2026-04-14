@@ -19,22 +19,10 @@ def _ensure_console_ready():
 def run(cmdline, root=False):
     _ensure_console_ready()
     try:
-        # Run a transient service in the user's current session
         if root:
             full_cmd = f'systemd-run --pipe --wait --collect bash -c {cmdline!r}'
         else:
-            # Then get all their desktop vars to pass into it
-            full_cmd = (
-                f'eval $(systemctl --user show-environment | '
-                f'grep -E "^(DISPLAY|WAYLAND_DISPLAY|DBUS_SESSION_BUS_ADDRESS|XDG_RUNTIME_DIR)=" | '
-                f'sed \'s/^/export /\') && '
-                f'systemd-run --pipe --user --wait --collect '
-                f'--setenv=DISPLAY=$DISPLAY '
-                f'--setenv=WAYLAND_DISPLAY=$WAYLAND_DISPLAY '
-                f'--setenv=DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS '
-                f'--setenv=XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR '
-                f'bash -c {cmdline!r}'
-            )
+            full_cmd = f'systemd-run --machine=$(id -u)@.host --user --pipe --wait --collect bash -lc {cmdline!r}'
 
         assert_script_run(full_cmd)
     finally:
