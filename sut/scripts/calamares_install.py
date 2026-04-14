@@ -43,7 +43,10 @@ class CalamaresTests(unittest.TestCase):
             ec.element_to_be_clickable((AppiumBy.NAME, "Install"))
         )
         install_button.click()
-        ## We will now be at the finished page, but we don't want to restart, just shut down. This is handled in the next OpenQA test.
+        ## Finished page
+        done_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Done"))
+        )
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(CalamaresTests)
