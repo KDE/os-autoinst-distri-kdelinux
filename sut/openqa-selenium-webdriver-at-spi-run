@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # hacks around constraints of selenium-webdriver-at-spi-run
 
 export QT_ACCESSIBILITY=1
