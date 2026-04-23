@@ -19,7 +19,7 @@ class PlasmaSetupTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         options = AppiumOptions()
-        options.set_capability("app", str(sys.argv[1])) # pid passed in by openqa-selenium-webdriver-at-spi-run
+        options.set_capability("app", subprocess.run(['pgrep', '-n', 'plasma-setup'], capture_output=True, text=True).strip()) # get the pid because it will already be launched
         self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
         self.driver.implicitly_wait = 10
 

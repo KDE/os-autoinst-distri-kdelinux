@@ -19,7 +19,7 @@ class DisableScreenDimAndScreenOffTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         options = AppiumOptions()
-        options.set_capability("app", str(sys.argv[1])) # pid passed in by openqa-selenium-webdriver-at-spi-run
+        options.set_capability("app", "systemsettings")
         self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
         self.driver.implicitly_wait = 10
 
