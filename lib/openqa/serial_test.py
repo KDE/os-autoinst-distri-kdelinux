@@ -60,7 +60,7 @@ class SerialSession:
         wait_serial(r'[~$#]', timeout=10)
         self._ensure_ready()
 
-    def run(self, cmdline: str, user: user_manager.User | None = None, timeout: int = 90) -> str:
+    def run(self, cmdline: str, user: user_manager.User | None = None, timeout: int = 90, wait_result: bool = True) -> str | None:
         if self._user is None:
             raise RuntimeError("No user logged in - call login() first")
 
@@ -80,8 +80,10 @@ class SerialSession:
             if effective_user.pw:
                 wait_serial(r'Password: ', timeout=10)
                 type_string(effective_user.pw + '\n')
-            wait_serial(r'Finished with result:', timeout=timeout)
-            return wait_serial(_PROMPT, timeout=10)
+            if wait_result:
+                wait_serial(r'Finished with result:', timeout=timeout)
+                return wait_serial(_PROMPT, timeout=10)
+            return None
         finally:
             select_console('desktop')
 
