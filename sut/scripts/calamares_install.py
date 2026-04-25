@@ -9,6 +9,7 @@ import selenium.common.exceptions
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from lib.sut import openqa_junit_xml
 import sys
 
 class CalamaresTests(unittest.TestCase):
@@ -46,5 +47,4 @@ class CalamaresTests(unittest.TestCase):
         )
 
 if __name__ == "__main__":
-    suite = unittest.TestLoader().loadTestsFromTestCase(CalamaresTests)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+     openqa_junit_xml.run(CalamaresTests, "calamares_install")

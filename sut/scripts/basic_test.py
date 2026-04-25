@@ -8,35 +8,44 @@ import json
 import subprocess
 import sys
 import time
+import unittest
 from pathlib import Path
+from lib.sut import openqa_junit_xml
 
 # 1000 is the uid of the live user. always.
-BLESS_FILE = Path('/run/user/1000/kde-linux-bless-session')
+BLESS_FILE    = Path('/run/user/1000/kde-linux-bless-session')
 POLL_INTERVAL = 5
-TIMEOUT = 120
+TIMEOUT       = 120
 
-elapsed = 0
-while elapsed < TIMEOUT:
-    if BLESS_FILE.is_file():
+class BasicTests(unittest.TestCase):
+
+    def test_1_bless_file_appears(self):
+        elapsed = 0
+        while elapsed < TIMEOUT:
+            if BLESS_FILE.is_file():
+                return
+            time.sleep(POLL_INTERVAL)
+            elapsed += POLL_INTERVAL
+        self.fail(f'Timed out after {TIMEOUT}s waiting for bless file')
+
+    def test_2_no_failed_units(self):
+        self.assertTrue(BLESS_FILE.is_file(), 'Bless file not present — run test_1_bless_file_appears first')
         failed = json.loads(subprocess.check_output(['systemctl', '--failed', '--output=json']))
-        if failed:
-            print('Boot blessed but failed units detected:')
-            for unit in failed:
-                print(json.dumps(unit))
-                try:
-                    journal = subprocess.check_output(
-                        ['journalctl', '--no-pager', f'_SYSTEMD_UNIT={unit["unit"]}']
-                    ).decode()
-                    print(journal)
-                except Exception as e:
-                    print(f'Failed to get journal for {unit["unit"]}: {e}')
-            sys.exit(1)
-        else:
-            print('Boot blessed, no failed units.')
-            sys.exit(0)
+        if not failed:
+            return
+        messages = []
+        for unit in failed:
+            msg = f'Failed unit: {unit["unit"]}\n'
+            try:
+                journal = subprocess.check_output(
+                    ['journalctl', '--no-pager', f'_SYSTEMD_UNIT={unit["unit"]}']
+                ).decode()
+                msg += journal
+            except Exception as e:
+                msg += f'(could not get journal: {e})'
+            messages.append(msg)
+        self.fail('\n\n'.join(messages))
 
-    time.sleep(POLL_INTERVAL)
-    elapsed += POLL_INTERVAL
 
-print(f'Timed out after {TIMEOUT}s waiting for bless file.')
-sys.exit(1)
+if __name__ == '__main__':
+    openqa_junit_xml.run(BasicTests, 'basic_test')

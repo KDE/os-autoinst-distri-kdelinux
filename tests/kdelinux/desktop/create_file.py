@@ -1,5 +1,5 @@
 from testapi import *
-from lib.sessions.syscore.plasma_desktop import PlasmaDesktopSession
+from lib.openqa.sessions.syscore.plasma_desktop import PlasmaDesktopSession
 
 
 def run(self):

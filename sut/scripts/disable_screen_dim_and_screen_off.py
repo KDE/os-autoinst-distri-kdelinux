@@ -12,6 +12,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from lib.sut import openqa_junit_xml
 import sys
 
 class DisableScreenDimAndScreenOffTests(unittest.TestCase):
@@ -41,5 +42,4 @@ class DisableScreenDimAndScreenOffTests(unittest.TestCase):
         ActionChains(self.driver).move_to_element_with_offset(self.driver.find_element(by=AppiumBy.NAME, value="Apply"), 100, 100).click().perform()
 
 if __name__ == "__main__":
-    suite = unittest.TestLoader().loadTestsFromTestCase(DisableScreenDimAndScreenOffTests)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+     openqa_junit_xml.run(DisableScreenDimAndScreenOffTests, "disable_screen_dim_and_screen_off")

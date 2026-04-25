@@ -1,5 +1,5 @@
 from testapi import *
-from lib.sessions.app.system_settings import SystemSettingsSession
+from lib.openqa.sessions.app.system_settings import SystemSettingsSession
 
 
 def run(self):

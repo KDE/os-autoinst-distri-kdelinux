@@ -10,6 +10,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from lib.sut import openqa_junit_xml
+from lib import user_manager
 import sys
 import time
 
@@ -61,9 +63,9 @@ class PlasmaSetupTests(unittest.TestCase):
         form = self.driver.find_element(AppiumBy.CLASS_NAME, '[form | ]')
 
         form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[0].send_keys('Testy McTestface')
-        form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[1].send_keys('user')
-        form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]')[0].send_keys('user')
-        form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]')[1].send_keys('user')
+        form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[1].send_keys(user_manager.installed().name)
+        form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]')[0].send_keys(user_manager.installed().pw)
+        form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]')[1].send_keys(user_manager.installed().pw)
 
         next_button = wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
@@ -99,5 +101,4 @@ class PlasmaSetupTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    suite = unittest.TestLoader().loadTestsFromTestCase(PlasmaSetupTests)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    openqa_junit_xml.run(PlasmaSetupTests, "plasma_setup")

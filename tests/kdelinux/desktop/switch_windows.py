@@ -1,7 +1,7 @@
 from testapi import *
-from lib.sessions.app.system_settings import SystemSettingsSession
-from lib.sessions.app.konsole import KonsoleSession
-from lib.sessions.syscore.plasma_desktop import PlasmaDesktopSession
+from lib.openqa.sessions.app.system_settings import SystemSettingsSession
+from lib.openqa.sessions.app.konsole import KonsoleSession
+from lib.openqa.sessions.syscore.plasma_desktop import PlasmaDesktopSession
 
 
 def run(self):

@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
 from testapi import *
-from lib import serial_test
+from lib.openqa import serial_test
 from lib import user_manager
 
 def run(self):

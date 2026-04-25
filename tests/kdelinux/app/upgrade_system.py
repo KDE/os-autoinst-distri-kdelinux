@@ -1,6 +1,5 @@
 from testapi import *
-from lib.sessions.app.discover import DiscoverSession
-
+from lib.openqa.sessions.app.discover import DiscoverSession
 
 def run(self):
     (

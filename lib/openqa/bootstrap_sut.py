@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
 from testapi import *
-from lib import serial_test
+from lib.openqa import serial_test
 from lib import user_manager
 
 REPO_URL = get_var('TEST_REPO', 'https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git')
