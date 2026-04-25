@@ -1,0 +1,103 @@
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+
+import unittest
+from appium import webdriver
+from appium.webdriver.common.appiumby import AppiumBy
+from appium.options.common.base import AppiumOptions
+import selenium.common.exceptions
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as ec
+import sys
+import time
+
+class PlasmaSetupTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        options = AppiumOptions()
+        options.set_capability("app", str(sys.argv[1])) # pid passed in by openqa-selenium-webdriver-at-spi-run
+        self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
+        self.driver.implicitly_wait = 10
+
+    @classmethod
+    def tearDownClass(self):
+        self.driver.quit()
+        pass
+
+    def test_setup(self):
+        ## Welcome page
+        wait = WebDriverWait(self.driver, 5)
+        setup_button = self.driver.find_element(AppiumBy.NAME, 'Begin Setup')
+        setup_button.click()
+
+        ## Language page
+        search = self.driver.find_element(AppiumBy.NAME, 'Search')
+        search.send_keys('American English')
+        time.sleep(1) # animations race with our test
+        ActionChains(self.driver).move_to_element(self.driver.find_element(AppiumBy.NAME, 'American English (United States)')).click().perform()
+        next_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
+        )
+        next_button.click()
+
+        ## Keyboard layout page
+        time.sleep(1)
+        next_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
+        )
+        next_button.click()
+
+        ## Dark mode page
+        time.sleep(1)
+        next_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
+        )
+        next_button.click()
+
+        ## User account page
+        # TODO source username/pw from some universal source of truth
+        form = self.driver.find_element(AppiumBy.CLASS_NAME, '[form | ]')
+
+        form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[0].send_keys('Testy McTestface')
+        form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[1].send_keys('user')
+        form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]')[0].send_keys('user')
+        form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]')[1].send_keys('user')
+
+        next_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
+        )
+        next_button.click()
+
+        ## Hostname page
+        time.sleep(1)
+        next_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
+        )
+        next_button.click()
+
+        ## Timezone page
+        region_combo = self.driver.find_element(AppiumBy.XPATH, '//combo_box[@name="Timezone region selector"]')
+        ActionChains(self.driver).move_to_element(region_combo).click().send_keys('Etc').send_keys(Keys.RETURN).perform()
+
+        tz_combo = self.driver.find_element(AppiumBy.XPATH, '//combo_box[@name="Timezone location selector"]')
+        ActionChains(self.driver).move_to_element(tz_combo).click().send_keys('UTC').send_keys(Keys.RETURN).perform()
+
+        time.sleep(1)
+        next_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
+        )
+        next_button.click()
+
+        ## Finished page
+        time.sleep(1)
+        finish_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Finish"))
+        )
+        finish_button.click()
+
+
+if __name__ == "__main__":
+    suite = unittest.TestLoader().loadTestsFromTestCase(PlasmaSetupTests)
+    unittest.TextTestRunner(verbosity=2).run(suite)
