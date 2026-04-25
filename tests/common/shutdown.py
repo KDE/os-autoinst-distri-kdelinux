@@ -3,7 +3,9 @@
 
 from testapi import *
 from lib import serial_test
+from lib import user_manager
 
 def run(self):
-    serial_test.run('systemctl shutdown', root=True)
+    serial_test.session.run('systemctl poweroff', user_manager.root())
     assert_shutdown()
+    serial_test.session.reset()
