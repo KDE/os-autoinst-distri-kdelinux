@@ -60,8 +60,7 @@ class SerialSession:
         wait_serial(r'[~$#]', timeout=10)
         self._ensure_ready()
 
-    def run(self, cmdline: str, user: user_manager.User | None = None) -> str:
-        """Run a command in a transient systemd unit, optionally as a specific user"""
+    def run(self, cmdline: str, user: user_manager.User | None = None, timeout: int = 90) -> str:
         if self._user is None:
             raise RuntimeError("No user logged in - call login() first")
 
@@ -78,15 +77,13 @@ class SerialSession:
                     f'--pipe --wait --collect bash -lc {cmdline!r}'
                 )
             type_string(full_cmd + '\n')
-
             if effective_user.pw:
                 wait_serial(r'Password: ', timeout=10)
                 type_string(effective_user.pw + '\n')
-            return wait_serial(_PROMPT, timeout=30)
-
+            wait_serial(r'Finished with result:', timeout=timeout)
+            return wait_serial(_PROMPT, timeout=10)
         finally:
             select_console('desktop')
-            self._ready = False
 
 session = SerialSession()
 
@@ -94,50 +91,31 @@ class SerialTest:
     """Runs tests inside the SUT and collects JUnit XML and optional artifacts for OpenQA"""
 
     RESULTS_DIR = '/tests/sut/openqa-junit-results'
-    SENTINEL    = 'JUNIT_BEGIN'
 
-    def __init__(self, name: str, artifacts: list[str] | None = None):
+    def __init__(self, name: str, artifacts: list[str] | None = None, timeout: int = 90):
         self.name            = name
-        self._remote_results = f'{self.RESULTS_DIR}/{name}-results.xml'
+        self._remote_results = f'{self.RESULTS_DIR}/{name}/junit.xml'
         self._artifacts      = artifacts or []
+        self.timeout         = timeout
 
     def run_cmd(self, cmdline: str, user: user_manager.User | None = None):
-        """Run an arbitrary command."""
-        session.run(cmdline, user=user)
+        """Run an arbitrary command"""
+        session.run(cmdline, user=user, timeout=self.timeout)
         self._collect()
 
     def run_selenium(self, script_path: str, user: user_manager.User | None = None):
         """Run a selenium-webdriver-at-spi unittest file with xmlrunner"""
-        session.run(f'/tests/sut/openqa-selenium-webdriver-at-spi-run {script_path}', user=user)
+        session.run(f'/tests/sut/openqa-selenium-webdriver-at-spi-run {script_path}', user=user, timeout=self.timeout)
         self._collect()
 
-    def _collect_file(self, remote_path: str, host_path: str):
-        """Pull a file from SUT over serial via base64"""
-        raw = session.run(
-            f'echo {self.SENTINEL} && base64 -w0 {remote_path} && echo JUNIT_END'
-        )
-        lines = raw.splitlines()
-        start = next(i for i, l in enumerate(lines) if 'JUNIT_BEGIN' in l)
-        end   = next(i for i, l in enumerate(lines) if 'JUNIT_END' in l)
-        b64   = ''.join(l.strip() for l in lines[start+1:end])
-        data  = base64.b64decode(b64)
-        with open(host_path, 'wb') as f:
-            f.write(data)
-
     def _collect(self):
-        """Pull JUnit XML and artifacts from SUT and report to OpenQA"""
-        host_path = f'/tmp/{self.name}-results.xml'
+        result = session.run(f'test -f {self._remote_results} && echo "JUnit XML exists for {self.name}, collecting..." || echo "No JUnit XML for {self.name}, not collecting."')
+        if f'JUnit XML exists for {self.name}, collecting...' in result:
+            select_console('virtio-terminal')
+            session._ready = True
+            parse_junit_log(self._remote_results)
 
-        # junit XML is optional, some tests don't need it
-        result = session.run(f'test -f {self._remote_results} && echo exists || echo missing')
-        if 'exists' in result:
-            self._collect_file(self._remote_results, host_path)
-            parse_junit_log(host_path)
-            upload_logs(host_path)
-
-        # artifacts are explicitly listed so failure to collect them is an error
         for artifact_path in self._artifacts:
-            artifact_name = artifact_path.split('/')[-1]
-            host_artifact = f'/tmp/{artifact_name}'
-            self._collect_file(artifact_path, host_artifact)
-            upload_logs(host_artifact)
+            select_console('virtio-terminal')
+            session._ready = True
+            upload_logs(artifact_path)

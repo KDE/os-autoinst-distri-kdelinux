@@ -7,12 +7,11 @@ RESULTS_DIR = '/tests/sut/openqa-junit-results'
 
 def run(test_class: type, name: str):
     """Run a unittest class and write JUnit XML to the expected results dir"""
-    output_path = f'{RESULTS_DIR}/{name}-results.xml'
-    os.makedirs(RESULTS_DIR, exist_ok=True)
+    output_dir  = f'{RESULTS_DIR}/{name}'
+    output_path = f'{output_dir}/junit.xml'
+    os.makedirs(output_dir, exist_ok=True)
+    suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
     with open(output_path, 'wb') as f:
-        unittest.main(
-            module=test_class.__module__,
-            testRunner=xmlrunner.XMLTestRunner(output=f),
-            argv=[sys.argv[0]],
-            exit=True
-        )
+        runner = xmlrunner.XMLTestRunner(output=f, verbosity=2)
+        result = runner.run(suite)
+    sys.exit(0 if result.wasSuccessful() else 1)
