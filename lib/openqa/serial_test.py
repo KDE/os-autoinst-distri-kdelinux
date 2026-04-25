@@ -61,6 +61,8 @@ class SerialSession:
         self._ensure_ready()
 
     def run(self, cmdline: str, user: user_manager.User | None = None, timeout: int = 90, wait_result: bool = True) -> str | None:
+        # TODO return exit code, and have assert_run to throw exception when it's not 0
+        # TODO remove the systemd crap on the end. throw sentinel at the start and end of output and only return what's inbetween
         if self._user is None:
             raise RuntimeError("No user logged in - call login() first")
 
@@ -81,8 +83,9 @@ class SerialSession:
                 wait_serial(r'Password: ', timeout=10)
                 type_string(effective_user.pw + '\n')
             if wait_result:
-                wait_serial(r'Finished with result:', timeout=timeout)
-                return wait_serial(_PROMPT, timeout=10)
+                result = wait_serial(r'Finished with result:', timeout=timeout)
+                wait_serial(_PROMPT, timeout=10)
+                return result
             return None
         finally:
             select_console('desktop')
@@ -111,13 +114,19 @@ class SerialTest:
         self._collect()
 
     def _collect(self):
-        result = session.run(f'test -f {self._remote_results} && echo "JUnit XML exists for {self.name}, collecting..." || echo "No JUnit XML for {self.name}, not collecting."')
-        if f'JUnit XML exists for {self.name}, collecting...' in result:
-            select_console('virtio-terminal')
-            session._ready = True
+        session._ensure_ready()
+        type_string("\n") # ensure it picks up a prompt
+        result = script_run(f'test -f {self._remote_results}')
+
+        if result == "0":
+            print(f"JUnit XML exists for {self.name}, collecting...")
+            session._ensure_ready()
+            type_string("\n") # ensure it picks up a prompt
             parse_junit_log(self._remote_results)
+        else:
+            print(f"No JUnit XML for {self.name}, not collecting.")
 
         for artifact_path in self._artifacts:
-            select_console('virtio-terminal')
-            session._ready = True
+            session._ensure_ready()
+            type_string("\n") # ensure it picks up a prompt
             upload_logs(artifact_path)
