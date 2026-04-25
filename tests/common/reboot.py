@@ -1,12 +1,9 @@
-from testapi import *
-from lib.sessions.syscore.tty import TTYSession
-from lib.utils import get_username_and_password
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
+from testapi import *
+from lib import serial_test
 
 def run(self):
-    username, password = get_username_and_password()
-    (
-        TTYSession
-            .ensure_active(tty_number=3)
-            .reboot(username=username, password=password)
-    )
+    serial_test.run('systemctl reboot', root=True)
+    assert_shutdown()
