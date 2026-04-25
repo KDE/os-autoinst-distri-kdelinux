@@ -16,5 +16,5 @@ else
   PID=$!
 fi
 
-source ../venv/bin/activate
+source /tests/venv/bin/activate
 KWIN_PID="$(pgrep -n kwin_wayland)" selenium-webdriver-at-spi-run python3 "$2" "$PID"
