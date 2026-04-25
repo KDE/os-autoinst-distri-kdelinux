@@ -3,7 +3,7 @@
 https://invent.kde.org/sdk/selenium-webdriver-at-spi/-/merge_requests/69
 - https://invent.kde.org/sdk/selenium-webdriver-at-spi/-/merge_requests/112 also this
 
-# Reimplement tests with selenium
+# (Re)implement tests with selenium
 
 - calamares installation (done)
 - disable_screen_dim_and_screen_off - this needs upstream changes see https://invent.kde.org/sdk/selenium-webdriver-at-spi/-/merge_requests/69
@@ -12,6 +12,7 @@ https://invent.kde.org/sdk/selenium-webdriver-at-spi/-/merge_requests/69
 - panel tests, - system tray, digital clock
 - desktop tests - create file, switch windows
 - KISS test, might be difficult. Could log in as whatever user it is, get its environment from /proc and sniff all the variables, then pass in its pid to the test? Then ideally check if the marker it spits out is on the disk.
+- Tests for discover and firefox (test plasma integration in firefox?)
 
 # Fix tests so they work properly
 - Shutdown and reboot, these shouldn't be hardware controls
