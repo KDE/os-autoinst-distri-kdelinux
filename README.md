@@ -46,7 +46,8 @@
   ```bash
   ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git
   ```
-  
+* You can view the WebUI for the OpenQA at http://localhost:1080/
+
 ### Test Case Architecture(Todo: Guide)
 
 ### End-to-End testing scenarios
