@@ -1,0 +1,29 @@
+{
+  "area": [
+    {
+      "width": 645,
+      "xpos": 190,
+      "type": "match",
+      "ypos": 84,
+      "height": 601
+    },
+    {
+      "height": 86,
+      "type": "match",
+      "ypos": 9,
+      "width": 91,
+      "xpos": 10
+    },
+    {
+      "height": 43,
+      "type": "match",
+      "ypos": 715,
+      "width": 509,
+      "xpos": 10
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "welcome_desktop_screen"
+  ]
+}
