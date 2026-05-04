@@ -43,12 +43,11 @@ Thoughts:
 - Include an .env file for the openqa server and API keys, include an .env.example with dummy values
 
 # Bootstrap with sysext
-from some cursory probing:
-- the repo can have a sysext directory in it that contains a bootstrapping service
-- this bootstrapping service can unlock root and set everything up blahblahblah. you can put whatever you want in it 
-- use `systemd-dissect` to install the sysext on the live image before the image is submitted to openqa for testing
-- then do some finangling with `calamares@subvol` - check if the injected test sysext exists and copy it into the image if it does
-- then the serial terminal can be perpetually logged in as root and we don't have to do fragile user management, and we can also test plasma-login/plasma-setup with selenium and do whatever else we want
-- in future we can build the test sysext with the image so we don't have to ship selenium-webdriver-at-spi and deps with it, but that's for later.
-*or*
-- use `fw_cfg` to set a root password that's read by systemd from the firmware. doesn't really have the same security issues as providing a permanently unlocked root cmdline would in the base system, but it's not a very extensible solution
+done + SSH interaction
+~~from some cursory probing:~~
+- ~~the repo can have a sysext directory in it that contains a bootstrapping service~~
+- ~~this bootstrapping service can unlock root and set everything up blahblahblah. you can put whatever you want in it ~~
+- ~~use `systemd-dissect` to install the sysext on the live image before the image is submitted to openqa for testing~~
+- ~~then do some finangling with `calamares@subvol` - check if the injected test sysext exists and copy it into the image if it does~~
+- ~~then the serial terminal can be perpetually logged in as root and we don't have to do fragile user management, and we can also test plasma-login/plasma-setup with selenium and do whatever else we want~~
+- ~~in future we can build the test sysext with the image so we don't have to ship selenium-webdriver-at-spi and deps with it, but that's for later.~~

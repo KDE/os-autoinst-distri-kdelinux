@@ -1,6 +1,6 @@
 from testapi import *
-from lib.sessions.base import BaseSession
-from lib.sessions.mixins.openable import OpenableSessionMixin
+from lib.openqa.sessions.base import BaseSession
+from lib.openqa.sessions.mixins.openable import OpenableSessionMixin
 
 
 class CalamaresSession(BaseSession, OpenableSessionMixin):

@@ -1,3 +1,4 @@
+set -euo pipefail
 # default CASEDIR
 rm -rf /var/lib/openqa/tests/kde-linux
 cp -r /builds/1/project /var/lib/openqa/tests/kde-linux
@@ -31,6 +32,7 @@ OUTPUT=${IMG%.raw}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 OPENQA_HOST_ADDR=localhost
+SYSEXT_IMG="openqa-sysext.img"
 
 poll_openqa_job() {
     # OpenQA will keep result of the test running as 'none', before the test running finish. Another approach is jq -r '.job.status'.
@@ -84,7 +86,7 @@ BACKEND=qemu
 QEMUCPUS=4
 QEMURAM=4096
 QEMUCPU=host
-NUMDISKS=2
+NUMDISKS=3
 BOOTFROM=c
 UEFI=1
 UEFI_PFLASH_CODE=/usr/share/qemu/ovmf-x86_64-4m-code.bin
@@ -99,7 +101,7 @@ HDDSIZEGB=50
 # Start testing the installed system
 echo "[INFO] Start testing the installed system"
 FLAVOR="full-system"
-NUMDISKS=1
+NUMDISKS=2
 DO_INSTALL=0
 TEST="installed_system_sanity_check"
 
@@ -113,6 +115,7 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     TEST="$TEST" \
     MACHINE="$MACHINE" \
     HDD_1="$DISK" \
+    HDD_2="$SYSEXT_IMG" \
     BOOTFROM="$BOOTFROM" \
     BACKEND="$BACKEND" \
     UEFI="$UEFI" \
@@ -128,6 +131,7 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     NEEDLES_DIR="$NEEDLES_DIR" \
     TIMEOUT_SCALE=3 \
     VIRTIO_CONSOLE=1 \
+    NICTYPE_USER_OPTIONS="hostfwd=tcp::2222-:22" \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"

@@ -1,5 +1,5 @@
 def get_open_strategy(name):
-    from lib.strategies import OPEN_STRATEGIES
+    from lib.openqa.strategies import OPEN_STRATEGIES
     if name not in OPEN_STRATEGIES:
         raise ValueError(f'open strategy {name} does not exist.')
     return OPEN_STRATEGIES[name]

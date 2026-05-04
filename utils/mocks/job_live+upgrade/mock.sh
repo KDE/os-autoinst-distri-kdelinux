@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Only run this locally, for CI tests, we will use opensuse/tumbleweed + bootstrap scripts.
 #podman run --rm -it \
 #    -v "$PWD":/builds/1/project \
@@ -38,7 +39,7 @@ if [[ -z "$CASEDIR" ]]; then
     exit 1
 fi
 
-zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 dos2unix vim
+zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 dos2unix vim erofs-utils python3-fabric
 
 # Bootstrap OpenQA Environment
 #/usr/share/openqa/script/openqa-bootstrap &
@@ -55,8 +56,13 @@ VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 OPENQA_HOST_ADDR=localhost
 
-# Move the image to openqa dir
+# Create a mountable image with the bootstrapping sysext
+SYSEXT_IMG="$CI_PROJECT_DIR/openqa-sysext.img"
+mkfs.erofs -L "kde-openqa-ext" "$SYSEXT_IMG" "$CI_PROJECT_DIR/extensions/openqa"
+
+# Move the images to openqa dir
 mv "$CI_PROJECT_DIR/$IMG" /var/lib/openqa/factory/hdd/
+mv "$CI_PROJECT_DIR/$SYSEXT_IMG" /var/lib/openqa/factory/hdd/
 
 poll_openqa_job() {
     # OpenQA will keep result of the test running as 'none', before the test running finish. Another approach is jq -r '.job.status'.
@@ -110,7 +116,7 @@ BACKEND=qemu
 QEMUCPUS=4
 QEMURAM=4096
 QEMUCPU=host
-NUMDISKS=2
+NUMDISKS=3
 BOOTFROM=c
 UEFI=1
 UEFI_PFLASH_CODE=/usr/share/qemu/ovmf-x86_64-4m-code.bin
@@ -138,7 +144,8 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     TEST="$TEST" \
     MACHINE="$MACHINE" \
     HDD_1="$IMG" \
-    PUBLISH_HDD_2="$DISK" \
+    HDD_2="$SYSEXT_IMG" \
+    PUBLISH_HDD_3="$DISK" \
     BOOTFROM="$BOOTFROM" \
     BACKEND="$BACKEND" \
     UEFI="$UEFI" \
@@ -154,6 +161,7 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     NEEDLES_DIR="$NEEDLES_DIR" \
     TIMEOUT_SCALE="$TIMEOUT_SCALE" \
     VIRTIO_CONSOLE=1 \
+    NICTYPE_USER_OPTIONS="hostfwd=tcp::2222-:22" \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
@@ -162,7 +170,7 @@ echo "[INFO] Successfully installed full system fcrom live image(Previous succes
 # Start testing the installed system
 echo "[INFO] Start testing the installed system (Upgrade only)"
 FLAVOR="full-system"
-NUMDISKS=1
+NUMDISKS=2
 DO_UPGRADE=1
 TEST="upgrade_system"
 
@@ -175,7 +183,8 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     BUILD="$BUILD" \
     TEST="$TEST" \
     MACHINE="$MACHINE" \
-    HDD_1="$DISK" \
+    HDD_1="$IMG" \
+    HDD_2="$SYSEXT_IMG" \
     BOOTFROM="$BOOTFROM" \
     BACKEND="$BACKEND" \
     UEFI="$UEFI" \
@@ -191,6 +200,7 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     NEEDLES_DIR="$NEEDLES_DIR" \
     TIMEOUT_SCALE="$TIMEOUT_SCALE" \
     VIRTIO_CONSOLE=1 \
+    NICTYPE_USER_OPTIONS="hostfwd=tcp::2222-:22" \
     _GROUP="$_GROUP" | jq -r .id)
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"

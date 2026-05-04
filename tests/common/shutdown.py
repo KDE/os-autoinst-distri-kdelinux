@@ -2,10 +2,10 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
 from testapi import *
-from lib.openqa import serial_test
+from lib.openqa.cli_session import session
 from lib import user_manager
 
 def run(self):
-    serial_test.session.run('systemctl poweroff', user_manager.root(), wait_result=False)
+    session.run('systemctl poweroff', wait_result=False)
     assert_shutdown()
-    serial_test.session.reset()
+    session.reset()

@@ -44,7 +44,7 @@
   podman exec -it openqa-server bash
   ```
   ```bash
-  ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git
+  ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=/builds/1/project
   ```
 * You can view the WebUI for the OpenQA at http://localhost:1080/
 

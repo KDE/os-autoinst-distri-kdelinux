@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LGPL-2.0-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+
+set -euxo pipefail
+
+cd "$(dirname "$0")"
+
+# Set up a venv for the test scripts
+mkdir -p /var/lib/kde-linux-openqa
+chmod 777 /var/lib/kde-linux-openqa
+python3 -m venv --system-site-packages --upgrade-deps /var/lib/kde-linux-openqa/venv
+source /var/lib/kde-linux-openqa/venv/bin/activate
+pip3 install -r /usr/lib/kde-linux-openqa/requirements.txt
+SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])")
+echo "/usr/lib/kde-linux-openqa" > "$SITE_PACKAGES/kde-linux-openqa.pth"
+
+# Create a directory for artifact output
+mkdir -p /var/log/kde-linux-openqa
+chmod 777 /var/log/kde-linux-openqa
+
+# Unlock root account
+passwd -d root
+passwd -u root
+
+# Configure SSH for passwordless root login
+mkdir -p /etc/ssh/sshd_config.d
+cat > /etc/ssh/sshd_config.d/99-kde-linux-openqa.conf <<EOF
+PermitRootLogin yes
+PasswordAuthentication yes
+PermitEmptyPasswords yes
+UsePAM no
+EOF
+
+# Enable sshd
+systemctl enable --now sshd

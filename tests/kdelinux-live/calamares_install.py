@@ -1,6 +1,8 @@
 from testapi import *
-from lib.openqa import serial_test
+from lib.openqa import cli_test
+from lib import paths
+from lib import user_manager
 
 def run(self):
-    test = serial_test.SerialTest('calamares_install')
-    test.run_selenium('/usr/local/bin/calamares /tests/sut/scripts/calamares_install.py')
+    test = cli_test.CliTest('calamares_install', timeout=300)
+    test.run_selenium(user=user_manager.live())

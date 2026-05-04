@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 export QT_ACCESSIBILITY=1
 export QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1
 
-source /tests/venv/bin/activate
+source /var/lib/kde-linux-openqa/venv/bin/activate
+
+OLDPWD="$PWD"
+TMPDIR="$(mktemp -d)"
+trap 'cd "$OLDPWD"; rm -rf "$TMPDIR"' EXIT
+cd "$TMPDIR"
+
 KWIN_PID="$(pgrep -n kwin_wayland)" TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 selenium-webdriver-at-spi-run python3 "$1"

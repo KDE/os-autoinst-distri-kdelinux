@@ -24,8 +24,6 @@ sub loadtest {
 
 sub test_live_image {
     loadtest 'common/bootup.py';
-    loadtest 'kdelinux-live/serial_login.py';
-    loadtest 'kdelinux-live/bootstrap_sut.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
     loadtest 'common/basic_test.py';
     loadtest 'kdelinux-live/calamares_install.py';
@@ -34,8 +32,6 @@ sub test_live_image {
 
 sub test_kdelinux {
     loadtest 'common/bootup.py';
-    loadtest 'kdelinux/serial_login.py';
-    loadtest 'kdelinux/bootstrap_sut.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
     loadtest 'common/basic_test.py';
     loadtest 'kdelinux/desktop/plasma_setup.py';
@@ -49,7 +45,7 @@ sub test_kdelinux {
     loadtest 'kdelinux/desktop/create_file.py';
     loadtest 'kdelinux/desktop/switch_windows.py';
 #    loadtest 'common/shutdown.py';
-    loadtest 'sut/shutdown.py';
+    loadtest 'common/shutdown.py';
 }
 
 sub test_system_upgrade {

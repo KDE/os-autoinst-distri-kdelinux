@@ -1,6 +1,7 @@
 from testapi import *
-from lib.openqa import serial_test
+from lib.openqa import cli_test
+from lib import paths
 
 def run(self):
-    test = serial_test.SerialTest('basic_test')
-    test.run_cmd('/tests/venv/bin/python /tests/sut/scripts/basic_test.py')
+    test = cli_test.CliTest('basic_test')
+    test.run_python()
