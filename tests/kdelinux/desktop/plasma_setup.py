@@ -1,6 +1,7 @@
 from testapi import *
 from lib.openqa.sessions.syscore.plasma_desktop import PlasmaDesktopSession
 from lib.openqa import cli_test
+from lib import paths
 from lib import user_manager
 
 def run(self):
