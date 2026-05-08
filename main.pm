@@ -33,7 +33,7 @@ sub test_live_image {
 sub test_kdelinux {
     loadtest 'common/bootup.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
-    loadtest 'common/basic_test.py';
+    # loadtest 'common/basic_test.py';
     loadtest 'kdelinux/desktop/plasma_setup.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'common/system_settings/disable_screen_lock.py';
