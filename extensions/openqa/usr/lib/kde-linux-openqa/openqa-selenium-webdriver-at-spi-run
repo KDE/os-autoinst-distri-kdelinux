@@ -11,4 +11,7 @@ TMPDIR="$(mktemp -d)"
 trap 'cd "$OLDPWD"; rm -rf "$TMPDIR"' EXIT
 cd "$TMPDIR"
 
+# Enable accessibility to be able to connect to processes
+gsettings set org.gnome.desktop.interface toolkit-accessibility true
+
 KWIN_PID="$(pgrep -n kwin_wayland)" TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 selenium-webdriver-at-spi-run python3 "$1"
