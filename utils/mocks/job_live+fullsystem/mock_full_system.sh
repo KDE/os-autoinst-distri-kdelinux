@@ -105,6 +105,8 @@ NUMDISKS=2
 DO_INSTALL=0
 TEST="installed_system_sanity_check"
 
+_GROUP="KDE Linux"
+
 JOB_ID=$(openqa-cli api -X POST jobs \
     --host http://${OPENQA_HOST_ADDR} \
     DISTRI="$DISTRI" \
