@@ -1,3 +1,4 @@
 .idea
 kde-linux_*.raw
 appium_artifact*
+.env

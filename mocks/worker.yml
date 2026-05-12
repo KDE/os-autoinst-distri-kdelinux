@@ -1,0 +1,14 @@
+services:
+  openqa-worker:
+    image: registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
+    devices:
+      - /dev/kvm
+    working_dir: /casedir
+    volumes:
+      - ..:/casedir:z
+      - ../.env:/casedir/.env:z
+      - openqa-cache:/var/lib/openqa/cache
+    entrypoint: /casedir/worker.sh
+
+volumes:
+  openqa-cache:
