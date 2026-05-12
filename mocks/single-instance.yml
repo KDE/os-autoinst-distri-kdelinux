@@ -1,0 +1,21 @@
+services:
+  openqa:
+    image: registry.opensuse.org/devel/openqa/containers/openqa-single-instance
+    hostname: openqa
+    container_name: openqa-single-instance
+    ports:
+      - "1443:443"
+      - "1080:80"
+    devices:
+      - /dev/kvm
+    working_dir: /casedir
+    environment:
+      - OPENQA_HOST_ADDR=localhost
+      - OPENQA_SCHEME=http
+      - OPENQA_SSH_USER=root
+    volumes:
+      - ..:/casedir
+    entrypoint: ["/casedir/mocks/start-single-instance.sh"]
+
+volumes:
+  openqa-pgsql:

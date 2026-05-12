@@ -22,31 +22,49 @@
 
 
 
-### Bootstrap and start running existing tests on your host
+### Running tests locally
 
-* Start the openQA environment (Terminal 1)
-  ```bash
-  git clone https://invent.kde.org/tduck/os-autoinst-distri-kdelinux.git
-  cd os-autoinst-distri-kdelinux
-  podman run --rm -it \
-      -v "$PWD":/builds/1/project \
-      -w /builds/1/project \
-      -p 5991:5991 -p 1443:443 -p 5990:5990 -p 1080:80 -p 9526:9526 \
-      --device /dev/kvm  \
-      --name openqa-server \
-      registry.opensuse.org/devel/openqa/containers/openqa-single-instance
-  ```
+#### Full local stack (worker + webui)
 
-* When you see the openQA worker is ready,![image-20250725215212187](./img/README/image-20250725215212187.png)
+Spins up a local OpenQA webui and worker together.
 
-  Launch Another terminal and run codes below to trigger the test job.
-  ```bash
-  podman exec -it openqa-server bash
-  ```
-  ```bash
-  ./utils/mocks/job_live+fullsystem/mock.sh --CASEDIR=/builds/1/project
-  ```
-* You can view the WebUI for the OpenQA at http://localhost:1080/
+1. Place a KDE Linux `.raw` image in the repo root (the worker finds it automatically). Otherwise, it will try to download the latest one.
+2. Start the stack:
+   ```bash
+   ./mock.sh up
+   ```
+3. The web UI is available at http://localhost:1080 once the container is ready. The worker connects automatically and submits jobs.
+4. Tear down when done (this cleans up volumes):
+   ```bash
+   ./mock.sh down -v
+   ```
+
+`mock.sh` passes any additional arguments to `podman-compose`, so `./mock.sh up -d` etc. all work.
+
+#### Running the worker against a remote OpenQA server
+
+To run only the worker locally while pointing it at an existing hosted OpenQA instance, create a `.env` file in the repo root, based on `.env.example`:
+
+```ini
+OPENQA_HOST_ADDR=openqa.example.com
+OPENQA_SSH_USER=openqa_server_user
+OPENQA_API_KEY=<your key>
+OPENQA_API_SECRET=<your secret>
+OPENQA_SCHEME=https
+OPENQA_SSH_PRIVATE_KEY=<your private key>
+```
+`OPENQA_SSH_USER` must be the user running the OpenQA server, so assets can be sftp'd into the server.
+You'll also need to have a SSH key pair, and have uploaded your public key to the server.
+
+The API key and secret can be set up in the OpenQA web UI. Don't commit these!
+
+Then run the worker via Podman:
+
+```bash
+podman-compose -f mocks/worker.yml up
+```
+
+The worker will register with the remote server, upload assets via SSH/sftp, submit jobs, and stream results back.
 
 ### Test Case Architecture(Todo: Guide)
 
