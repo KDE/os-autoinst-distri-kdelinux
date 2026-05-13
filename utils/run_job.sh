@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Run an OpenQA job from within a worker.
 
@@ -67,7 +68,7 @@ if [[ -n "$LIVE" && "$UPGRADE" -eq 1 ]]; then
     exit 1
 fi
 
-for var in OPENQA_HOST_ADDR CASEDIR WORKER_CLASS; do
+for var in OPENQA_HOST_ADDR OPENQA_SSH_USER CASEDIR WORKER_CLASS; do
     if [[ -z "${!var}" ]]; then
         echo "[ERROR] $var is not set in environment" >&2
         exit 1
@@ -89,36 +90,59 @@ else
     NUMDISKS=2
 fi
 
-WORKER_CACHE=/var/lib/openqa/cache/${OPENQA_HOST_ADDR}:${OPENQA_HOST_PORT}/factory/hdd
+WORKER_CACHE=/var/lib/openqa/cache/${OPENQA_HOST_ADDR}/factory/hdd
 mkdir -p "$WORKER_CACHE"
 
-upload_asset() {
+stage_asset() {
     local path="$1"
     local name
     name=$(basename "$path")
-    echo "[INFO] Uploading $name to server..."
+
+    echo "[INFO] Staging $name into worker cache..."
+    cp "$path" "$WORKER_CACHE/$name"
+
+    ssh -o StrictHostKeyChecking=accept-new \
+        "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
+        "mkdir -p /var/lib/openqa/share/factory/hdd && chmod 777 /var/lib/openqa/share/factory/hdd"
+    local local_hash remote_hash
+    local_hash=$(sha256sum "$path" | awk '{print $1}')
+    remote_hash=$(ssh -o StrictHostKeyChecking=accept-new \
+        "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
+        "sha256sum /var/lib/openqa/share/factory/hdd/$name 2>/dev/null | awk '{print \$1}'" || true)
+    if [[ "$local_hash" == "$remote_hash" ]]; then
+        echo "[INFO] $name is unchanged on server, skipping upload."
+    else
+        echo "[INFO] Uploading $name to server via sftp..."
+        printf 'put "%s" /var/lib/openqa/share/factory/hdd/\n' "$path" \
+            | sftp -o StrictHostKeyChecking=accept-new \
+                   "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}"
+        ssh -o StrictHostKeyChecking=accept-new \
+            "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
+            "ls -lh /var/lib/openqa/share/factory/hdd/$name" \
+            || { echo "[ERROR] $name not found on server after upload" >&2; exit 1; }
+    fi
+    # TODO investigate why they refuse to register
     openqa-cli api -X POST assets \
-        --host "https://${OPENQA_HOST_ADDR}:${OPENQA_PORT}" \
-        --param-file asset="$path" \
-        type=hdd
+        --host "https://${OPENQA_HOST_ADDR}" \
+        name="$name" \
+        type="hdd"
 }
 
 if [[ -n "$LIVE" ]]; then
-    upload_asset "$LIVE"
+    stage_asset "$LIVE"
 else
-    upload_asset "$HDD"
+    stage_asset "$HDD"
 fi
-[[ -n "$SYSEXT" ]] && upload_asset "$SYSEXT"
+stage_asset "$SYSEXT"
 
 poll_openqa_job() {
     local job_id="$1"
-    local host="$2"
     local result
 
     echo "[INFO] Job ${job_id} submitted. Polling for result..."
 
     while true; do
-        result=$(openqa-cli api --host "https://${host}" jobs/${job_id} \
+        result=$(openqa-cli api --host "https://${OPENQA_HOST_ADDR}" jobs/${job_id} \
                  | jq -r '.job.result // empty')
         echo "[INFO] Job result: ${result}"
 
@@ -130,16 +154,16 @@ poll_openqa_job() {
 
     if [[ "${result}" != "passed" && "${result}" != "softfailed" ]]; then
         echo "[ERROR] Job ${job_id} failed with result: ${result}"
-        echo "[INFO] Job URL: https://${host}/tests/${job_id}"
+        echo "[INFO] Job URL: https://${OPENQA_HOST_ADDR}/tests/${job_id}"
         exit 1
     fi
 
     echo "[INFO] Job ${job_id} completed with result: ${result}"
-    echo "[INFO] Job URL: https://${host}/tests/${job_id}"
+    echo "[INFO] Job URL: https://${OPENQA_HOST_ADDR}/tests/${job_id}"
 }
 
 JOB_ID=$(openqa-cli api -X POST jobs \
-    --host https://${OPENQA_HOST_ADDR}:${OPENQA_HOST_PORT} \
+    --host https://${OPENQA_HOST_ADDR} \
     DISTRI=KDE-Linux \
     VERSION="$BUILD" \
     FLAVOR="$FLAVOR" \
@@ -170,4 +194,4 @@ JOB_ID=$(openqa-cli api -X POST jobs \
     _GROUP="KDE Linux" \
     WORKER_CLASS=$WORKER_CLASS | jq -r .id)
 
-poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR:$OPENQA_HOST_PORT"
+poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"

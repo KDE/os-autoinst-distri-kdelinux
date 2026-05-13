@@ -13,7 +13,11 @@ DEPS=(
     erofs-utils
     python3-fabric
 )
-zypper --non-interactive install "${DEPS[@]}" || true
+MISSING=()
+for pkg in "${DEPS[@]}"; do
+    rpm -q "$pkg" &>/dev/null || MISSING+=("$pkg")
+done
+[[ ${#MISSING[@]} -gt 0 ]] && zypper --non-interactive install "${MISSING[@]}" || true
 
 export CASEDIR="$(git rev-parse --show-toplevel)"
 
@@ -26,8 +30,14 @@ mkfs.erofs -L "kde-openqa-ext" "$SYSEXT_IMG" "$CASEDIR/extensions/openqa"
 # download it or get it from the base of the directory.
 IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.raw' | head -n1)
 if [[ -z "$IMG_PATH" ]]; then
-    echo "[INFO] No .raw image found, downloading latest..."
-    IMG_PATH=$(python3 "$CASEDIR/utils/download_image.py" --latest)
+    if [[ -n "${IMAGE_URL:-}" ]]; then
+        echo "[INFO] Downloading image from $IMAGE_URL..."
+        IMG_PATH="$CASEDIR/$(basename "$IMAGE_URL")"
+        curl -L -o "$IMG_PATH" "$IMAGE_URL"
+    else
+        echo "[INFO] No .raw image found, downloading latest..."
+        IMG_PATH=$(python3 "$CASEDIR/utils/download_image.py" --latest)
+    fi
 fi
 IMG=$(basename "$IMG_PATH")
 OUTPUT=${IMG%.raw}
@@ -35,17 +45,27 @@ VERSION=${OUTPUT##*_}
 # This will be the name of the disk published to OpenQA
 DISK=${OUTPUT}.qcow2
 
-# Get the .env file
-set -a
-source .env
-set +a
+# Get the .env file - won't be in CI. The variables will be secrets instead.
+if [[ -f .env ]]; then
+    set -a
+    source .env
+    set +a
+fi
 
-for var in OPENQA_HOST_ADDR OPENQA_API_KEY OPENQA_API_SECRET; do
+for var in OPENQA_HOST_ADDR OPENQA_API_KEY OPENQA_API_SECRET OPENQA_SSH_USER; do
     if [[ -z "${!var}" ]]; then
-        echo "[ERROR] $var is not set in .env" >&2
+        echo "[ERROR] $var is not set in environment" >&2
         exit 1
     fi
 done
+
+# Put a private key in a Gitlab secret - this is for Gitlab CI
+if [[ -n "${OPENQA_SSH_PRIVATE_KEY:-}" ]]; then
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
+    echo "$OPENQA_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    chmod 600 ~/.ssh/id_ed25519
+fi
 
 # Give ourselves a unique UUID so the called job always runs on the calling worker
 export WORKER_CLASS="kde-linux-worker-$(cat /proc/sys/kernel/random/uuid)"
@@ -53,20 +73,20 @@ export WORKER_CLASS="kde-linux-worker-$(cat /proc/sys/kernel/random/uuid)"
 # Autogenerate required files
 cat > /etc/openqa/workers.ini <<EOF
 [global]
-HOST = https://${OPENQA_HOST_ADDR}:${OPENQA_HOST_PORT}
+HOST = https://${OPENQA_HOST_ADDR}
 BACKEND = qemu
 WORKER_CLASS = ${WORKER_CLASS}
 EOF
 
 cat > /etc/openqa/client.conf <<EOF
-[${OPENQA_HOST_ADDR}:${OPENQA_HOST_PORT}]
+[${OPENQA_HOST_ADDR}]
 key = ${OPENQA_API_KEY}
 secret = ${OPENQA_API_SECRET}
 EOF
 
 # Wait for OpenQA to be ready
 for i in {1..10}; do
-  if curl -s https://${OPENQA_HOST_ADDR}:${OPENQA_HOST_PORT}/api/v1/jobs >/dev/null; then
+  if curl -s https://${OPENQA_HOST_ADDR}/api/v1/jobs >/dev/null; then
     echo "[INFO] openQA is ready"
     break
   fi
@@ -105,7 +125,6 @@ else
 fi
 
 # Job 1: Install the system from live image
-echo "[INFO] Running install-system job..."
 bash "$RUN_JOB" \
     --name install-system \
     --live "$INSTALL_LIVE" \
@@ -115,7 +134,6 @@ bash "$RUN_JOB" \
 
 # Job 2 (optional): Upgrade the installed system
 if [[ "$UPGRADE" -eq 1 ]]; then
-    echo "[INFO] Running upgrade-system job..."
     bash "$RUN_JOB" \
         --name upgrade-system \
         --hdd "$DISK" \
@@ -125,7 +143,6 @@ if [[ "$UPGRADE" -eq 1 ]]; then
 fi
 
 # Job 2/3: Sanity test the final system
-echo "[INFO] Running sanity-test job..."
 bash "$RUN_JOB" \
     --name sanity-test \
     --hdd "$DISK" \

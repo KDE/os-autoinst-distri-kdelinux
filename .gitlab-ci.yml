@@ -1,91 +1,47 @@
+# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-FileCopyrightText: None
+
+include:
+  - project: sysadmin/ci-utilities
+    file:
+      - /gitlab-templates/reuse-lint.yml
+      - /gitlab-templates/blocks/workflow.yml
+
 stages:
-- test
-- test_isotovideo
+  - validate
+  - test
+  - test-upgrade
 
-.openqa-cli_common_before_script:
-  before_script:
-  # Install dependencies
-  - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 patch
-  # Bootstrap OpenQA Environment
-  - .gitlab/scripts/openqa_bootstrap_nonsystemd_patch.sh
-  # (temp) patch autotest.pm
-  - patch /usr/lib/os-autoinst/autotest.pm < .gitlab/scripts/python-casedir.patch
-  # Wait openQA ready
-  - ./utils/wait_openqa_ready.sh
-  # Download the latest image
-  - python3 utils/download_image.py --$IMAGE_VERSION
+# Don't run linting when triggered from kde-linux CI
+reuse:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger"
+      when: never
+    - when: always
 
-.openqa-cli_base:
-  stage: test
+.test-base:
   tags:
-  - LinuxHighMemory
-  allow_failure: true
-  when: manual
-  image:
-    name: registry.opensuse.org/devel/openqa/containers/openqa-single-instance:latest
-    entrypoint: ["/bin/bash", "-c"]
-  after_script:
-  - .gitlab/scripts/collect_results.sh
-  artifacts:
-    when: always
-    paths:
-    - testresults/
-
-.isotovideo_common_before_script:
-  before_script:
-  - zypper --non-interactive install perl-Inline-Python python3-requests python3-beautifulsoup4 ffmpeg
-  - python3 utils/download_image.py --$IMAGE_VERSION
-
-.isotovideo_base:
-  dependencies: []
-  needs: []
-  stage: test_isotovideo
-  tags:
-  - LinuxHighMemory
+    - LargeVM
+    - LinuxHighMemory
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger"
+      when: always
+    - if: $CI_MERGE_REQUEST_IID
+      when: manual
+    - when: always
   allow_failure: false
-  when: manual
   image:
-    name: registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86
-    entrypoint: ["/bin/bash", "-c"]
-  after_script:
-  - .gitlab/scripts/isotovideo/collect_results.sh
-  artifacts:
-    when: always
-    paths:
-    - reports/
+    name: registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
+    entrypoint: [""]
 
-testing-latest-build_openqa-cli:
-  extends:
-  - .openqa-cli_base
-  - .openqa-cli_common_before_script
-  variables:
-    IMAGE_VERSION: latest
+test:
+  extends: .test-base
+  stage: test
   script:
-  - .gitlab/scripts/latest_build_test.sh
+    - bash worker.sh
 
-testing-upgrade_openqa-cli:
-  extends:
-  - .openqa-cli_base
-  - .openqa-cli_common_before_script
-  variables:
-    IMAGE_VERSION: previously-success
+test-upgrade:
+  extends: .test-base
+  stage: test-upgrade
   script:
-  - .gitlab/scripts/upgrade_test.sh
-
-testing-latest-build_isotovideo:
-  extends:
-  - .isotovideo_base
-  - .isotovideo_common_before_script
-  variables:
-    IMAGE_VERSION: latest
-  script:
-  - .gitlab/scripts/isotovideo/latest_build_test.sh
-
-testing-upgrade_isotovideo:
-  extends:
-  - .isotovideo_base
-  - .isotovideo_common_before_script
-  variables:
-    IMAGE_VERSION: previously-success
-  script:
-  - .gitlab/scripts/isotovideo/upgrade_test.sh
+    - bash worker.sh --upgrade

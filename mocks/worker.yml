@@ -8,6 +8,7 @@ services:
       - ..:/casedir:z
       - ../.env:/casedir/.env:z
       - openqa-cache:/var/lib/openqa/cache
+      - ${HOME}/.ssh:/root/.ssh:ro
     entrypoint: /casedir/worker.sh
 
 volumes:
