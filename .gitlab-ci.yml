@@ -20,9 +20,12 @@ reuse:
     - when: always
 
 .test-base:
+  variables:
+    OPENQA_HOST_ADDR: openqa.kde-linux.haraldsitter.eu
+    OPENQA_SSH_USER: root
   tags:
     - LargeVM
-    - LinuxHighMemory
+    - amd64
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger"
       when: always

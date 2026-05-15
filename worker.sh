@@ -5,19 +5,25 @@ set -euo pipefail
 
 # Installs dependencies for running tests
 DEPS=(
-#    perl-inline-Python
     python3-requests
     python3-beautifulsoup4
     dos2unix
     vim
     erofs-utils
     python3-fabric
+    perl-Inline-Python
 )
+
+OS_VERSION=$(. /etc/os-release && echo "$VERSION_ID")
+zypper --non-interactive addrepo --refresh \
+    "https://download.opensuse.org/repositories/devel:/languages:/perl/openSUSE_Leap_${OS_VERSION}/" \
+    devel-languages-perl || true
+
 MISSING=()
 for pkg in "${DEPS[@]}"; do
     rpm -q "$pkg" &>/dev/null || MISSING+=("$pkg")
 done
-[[ ${#MISSING[@]} -gt 0 ]] && zypper --non-interactive install "${MISSING[@]}" || true
+[[ ${#MISSING[@]} -gt 0 ]] && zypper --non-interactive --gpg-auto-import-keys install "${MISSING[@]}" || true
 
 export CASEDIR="$(git rev-parse --show-toplevel)"
 
@@ -94,8 +100,10 @@ for i in {1..10}; do
   sleep 3
 done
 
+# Clear stale pending entries from previous runs
+rm -f /var/lib/openqa/cache/cache.sqlite
 
-# Spin up the actual worker instance
+# Spin up the worker
 /run_openqa_worker.sh &
 
 # Parse arguments

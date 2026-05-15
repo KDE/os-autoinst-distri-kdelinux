@@ -90,42 +90,48 @@ else
     NUMDISKS=2
 fi
 
-WORKER_CACHE=/var/lib/openqa/cache/${OPENQA_HOST_ADDR}/factory/hdd
-mkdir -p "$WORKER_CACHE"
+WORKER_CACHE=/var/lib/openqa/cache/${OPENQA_HOST_ADDR}
 
 stage_asset() {
     local path="$1"
     local name
     name=$(basename "$path")
 
-    echo "[INFO] Staging $name into worker cache..."
-    cp "$path" "$WORKER_CACHE/$name"
+    echo "[INFO] Staging $name into worker share..."
+    local share=/var/lib/openqa/share/factory/hdd
+    mkdir -p "$share"
+    cp "$path" "$share/$name"
 
     ssh -o StrictHostKeyChecking=accept-new \
         "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
-        "mkdir -p /var/lib/openqa/share/factory/hdd && chmod 777 /var/lib/openqa/share/factory/hdd"
+        "mkdir -p /var/lib/openqa/factory/hdd && chmod 777 /var/lib/openqa/factory/hdd"
     local local_hash remote_hash
     local_hash=$(sha256sum "$path" | awk '{print $1}')
     remote_hash=$(ssh -o StrictHostKeyChecking=accept-new \
         "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
-        "sha256sum /var/lib/openqa/share/factory/hdd/$name 2>/dev/null | awk '{print \$1}'" || true)
+        "sha256sum /var/lib/openqa/factory/hdd/$name 2>/dev/null | awk '{print \$1}'" || true)
     if [[ "$local_hash" == "$remote_hash" ]]; then
         echo "[INFO] $name is unchanged on server, skipping upload."
     else
         echo "[INFO] Uploading $name to server via sftp..."
-        printf 'put "%s" /var/lib/openqa/share/factory/hdd/\n' "$path" \
+        printf 'put "%s" /var/lib/openqa/factory/hdd/\n' "$path" \
             | sftp -o StrictHostKeyChecking=accept-new \
                    "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}"
         ssh -o StrictHostKeyChecking=accept-new \
             "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
-            "ls -lh /var/lib/openqa/share/factory/hdd/$name" \
+            "ls -lh /var/lib/openqa/factory/hdd/$name" \
             || { echo "[ERROR] $name not found on server after upload" >&2; exit 1; }
+        ssh -o StrictHostKeyChecking=accept-new \
+            "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
+            "chmod 644 /var/lib/openqa/factory/hdd/$name"
     fi
-    # TODO investigate why they refuse to register
-    openqa-cli api -X POST assets \
+
+    local reg_response
+    reg_response=$(openqa-cli api -X POST assets \
         --host "https://${OPENQA_HOST_ADDR}" \
         name="$name" \
-        type="hdd"
+        type="hdd")
+    echo "[INFO] Asset registration response for $name: $reg_response"
 }
 
 if [[ -n "$LIVE" ]]; then
