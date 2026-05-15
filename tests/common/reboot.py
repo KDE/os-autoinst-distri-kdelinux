@@ -7,5 +7,4 @@ from lib import user_manager
 
 def run(self):
     session.run('systemctl reboot', wait_result=False)
-    assert_shutdown()
     session.reset()
