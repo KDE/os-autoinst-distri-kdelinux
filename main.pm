@@ -36,6 +36,7 @@ sub test_kdelinux {
     # loadtest 'common/basic_test.py';
     loadtest 'kdelinux/desktop/plasma_setup.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
+    loadtest 'kdelinux/desktop/plasma_welcome.py';
     # loadtest 'common/system_settings/disable_screen_lock.py';
     loadtest 'kdelinux/system_settings/configure_automatic_login.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
