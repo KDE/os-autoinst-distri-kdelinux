@@ -32,12 +32,6 @@ class PlasmaWelcomeTests(unittest.TestCase):
             ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
         )
         next_button.click()
-
-        ## Internet page
-        access_panel = wait.until(
-            ec.presence_of_all_elements_located((AppiumBy.NAME, "Access the Internet"))
-        )
-        next_button.click()
         
         ## Simple by default
         simple_panel = wait.until(
