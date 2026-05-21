@@ -34,10 +34,6 @@ class CalamaresTests(unittest.TestCase):
         )
         next_button.click()
         ## Partitions page
-        self.driver.find_element(by=AppiumBy.ACCESSIBILITY_ID, value="CalamaresApplication.mainApp.viewManager.viewManagerStack.QStackedWidget.ChoicePage.QComboBox").click()
-        options = wait.until(ec.presence_of_all_elements_located((AppiumBy.ACCESSIBILITY_ID, "CalamaresApplication.mainApp.viewManager.viewManagerStack.QStackedWidget.ChoicePage.QComboBox.QComboBoxListView")))
-        # Click the last disk in the list view
-        ActionChains(self.driver).move_to_element(options[-1]).click().perform()
         self.driver.find_element(by=AppiumBy.XPATH, value="//*[contains(@name, 'Erase disk')]").click()
         next_button.click()
         ## Finished page
