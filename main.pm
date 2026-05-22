@@ -47,18 +47,12 @@ sub test_kdelinux {
 
 sub test_system_upgrade {
     loadtest 'common/bootup.py';
-    loadtest 'bootstrap_sut.py';
     loadtest 'common/basic_test.py';
-#    loadtest 'kdelinux/desktop/kiss.py';
-    loadtest 'kdelinux/sddm/sddm_password_login.py';
-    loadtest 'common/system_settings/disable_screen_lock.py';
-    loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
-    loadtest 'kdelinux/app/upgrade_system.py';
+    loadtest 'kdelinux/app/discover_upgrade.py';
     loadtest 'common/reboot.py';
     loadtest 'common/bootup.py';
-    loadtest 'kdelinux/sddm/sddm_password_login.py';
-#    loadtest 'common/shutdown.py';
-    loadtest 'sut/shutdown.py';
+    loadtest 'common/basic_test.py';
+    loadtest 'common/shutdown.py';
 }
 
 if (get_var('DO_INSTALL', 0)) {
