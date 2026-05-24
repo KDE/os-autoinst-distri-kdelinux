@@ -1,2 +1,4 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: None
 numpy>=2.3.3 # pending https://invent.kde.org/sdk/selenium-webdriver-at-spi/-/merge_requests/99
 unittest-xml-reporting

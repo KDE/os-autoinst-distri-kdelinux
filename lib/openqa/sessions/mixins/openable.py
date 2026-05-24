@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2025 Anicaa (Kangwei Zhu) <anicaazhu@gmail.com>
 def get_open_strategy(name):
     from lib.openqa.strategies import OPEN_STRATEGIES
     if name not in OPEN_STRATEGIES:

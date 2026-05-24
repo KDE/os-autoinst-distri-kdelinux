@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
 # Start the OpenQA stack using the image's own entrypoint
 skip_suse_tests=1 skip_suse_specifics=1 /usr/share/openqa/script/openqa-bootstrap &

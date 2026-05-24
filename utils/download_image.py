@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 import requests
 from bs4 import BeautifulSoup
 import re
