@@ -81,9 +81,11 @@ echo "[INFO] Running test job $TEST..."
 
 if [[ -n "$LIVE" ]]; then
     FLAVOR=live-system
-    HDD_1="$(basename "$LIVE")"
+    # Installation disk is HDD_1 so the system boots into it after live install reboots.
+    # Live image goes to HDD_3 (boot medium).
+    PUBLISH_HDD_1="$(basename "$HDD")"
     HDD_2="$(basename "$SYSEXT")"
-    PUBLISH_HDD_3="$(basename "$HDD")"
+    HDD_3="$(basename "$LIVE")"
     NUMDISKS=3
 else
     FLAVOR=full-system
@@ -201,13 +203,14 @@ JOB_RESPONSE=$(openqa-cli api -X POST jobs \
     BUILD="$BUILD" \
     TEST="$TEST" \
     MACHINE=general_64bit \
-    HDD_1="$HDD_1" \
+    $( [[ -z "$LIVE" ]] && echo HDD_1="$HDD_1" ) \
     HDD_2="$HDD_2" \
-    $( [[ -n "$LIVE" ]] && echo PUBLISH_HDD_3="$PUBLISH_HDD_3" ) \
+    $( [[ -n "$LIVE" ]] && echo PUBLISH_HDD_1="$PUBLISH_HDD_1" ) \
+    $( [[ -n "$LIVE" ]] && echo HDD_3="$HDD_3" ) \
     $( [[ -n "$LIVE" ]] && echo DO_INSTALL=1 ) \
     $( [[ -n "$LIVE" ]] && echo HDDSIZEGB=50 ) \
     $( [[ "$UPGRADE" -eq 1 ]] && echo DO_UPGRADE=1 ) \
-    BOOTFROM=c \
+    BOOT_HDD_IMAGE=1 \
     BACKEND=qemu \
     UEFI=1 \
     UEFI_PFLASH_CODE=/usr/share/qemu/ovmf-x86_64-4m-code.bin \
