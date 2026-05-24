@@ -96,6 +96,10 @@ else
     NUMDISKS=2
 fi
 
+openqa() {
+    openqa-cli api --host "${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}" "$@"
+}
+
 stage_asset() {
     local path="$1"
     local name
@@ -150,8 +154,7 @@ stage_asset() {
 
     # Explicitly register the asset on the WebUI
     local reg_response
-    reg_response=$(openqa-cli api -X POST assets \
-        --host "${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}" \
+    reg_response=$(openqa -X POST assets \
         name="$name" \
         type="hdd")
     echo "[INFO] Asset registration response for $name: $reg_response"
@@ -172,7 +175,7 @@ poll_openqa_job() {
 
     while true; do
         local job_data state
-        job_data=$(openqa-cli api --host "${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}" jobs/${job_id})
+        job_data=$(openqa jobs/${job_id})
         result=$(echo "$job_data" | jq -r '.job.result // empty')
         state=$(echo "$job_data" | jq -r '.job.state // empty')
         echo -e "[INFO] Job state: ${state}\t Job result: ${result}"
@@ -183,21 +186,40 @@ poll_openqa_job() {
         sleep 5
     done
 
-    if [[ "${result}" != "passed" && "${result}" != "softfailed" ]]; then
-        echo "[ERROR] Job ${job_id} failed with result: ${result}"
-        echo "[INFO] Job URL: ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}/tests/${job_id}"
+    echo "[INFO] Job URL: ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}/tests/${job_id}"
+
+    if [[ "${result}" == "passed" || "${result}" == "softfailed" ]]; then
+        echo "[INFO] Job ${job_id} completed with result: ${result}"
+        return
+    fi
+
+    if [[ "${result}" != "failed" ]]; then
+        echo "[ERROR] Job ${job_id} ended with unexpected result: ${result}" >&2
         exit 1
     fi
 
-    echo "[INFO] Job ${job_id} completed with result: ${result}"
-    echo "[INFO] Job URL: ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}/tests/${job_id}"
+    # Job failed; check whether a fatal-flagged module caused the failure.
+    # If so, the test suite was aborted early and subsequent jobs should not run.
+    local details fatal_failures
+    details=$(openqa jobs/${job_id}/details)
+    fatal_failures=$(echo "$details" | jq -r '
+        .job.testresults[]
+        | select(.result == "failed" and .fatal == 1)
+        | .name
+    ')
+
+    if [[ -n "$fatal_failures" ]]; then
+        echo "[ERROR] Job ${job_id} aborted; fatal module(s) failed: $(echo "$fatal_failures" | tr '\n' ' ')" >&2
+        exit 1
+    fi
+
+    echo "[WARN] Job ${job_id} failed; no fatal modules involved, continuing to next job."
 }
 
 GROUP_ARG=()
 [[ -z "${MOCK_MODE:-}" ]] && GROUP_ARG=("_GROUP=KDE Linux")
 
-JOB_RESPONSE=$(openqa-cli api -X POST jobs \
-    --host ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR} \
+JOB_RESPONSE=$(openqa -X POST jobs \
     DISTRI=KDE-Linux \
     VERSION="$BUILD" \
     FLAVOR="$FLAVOR" \
