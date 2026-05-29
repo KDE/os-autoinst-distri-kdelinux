@@ -59,6 +59,7 @@ sub test_kdelinux {
     loadtest 'kdelinux/app/clipboard.py';
     loadtest 'kdelinux/app/ensure_secret_service_provider.py';
     loadtest 'kdelinux/app/package_compatibility_helper.py';
+    loadtest 'kdelinux/app/discover_install.py';
     loadtest 'kdelinux/system_settings/check_default_applications.py';
     loadtest 'common/shutdown.py';
 }
