@@ -94,35 +94,8 @@ if [[ -n "${OPENQA_SSH_PRIVATE_KEY:-}" ]]; then
 fi
 
 # Run test jobs
-RUN_JOB="$CASEDIR/utils/run_job.sh"
-
 if [[ "$UPGRADE" -eq 1 ]]; then
-    # If we're doing an upgrade job, download the previously-published image
-    echo "[INFO] Downloading previous image for upgrade test..."
-    PREV_IMG_PATH=$(python3 "$CASEDIR/utils/download_image.py" --previous-image)
-    INSTALL_LIVE="$PREV_IMG_PATH"
+    bash "$CASEDIR/utils/jobs.sh" --upgrade
 else
-    INSTALL_LIVE="$IMG_PATH"
+    bash "$CASEDIR/utils/jobs.sh"
 fi
-
-bash "$RUN_JOB" \
-    --name install-system \
-    --live "$INSTALL_LIVE" \
-    --hdd "$DISK" \
-    --sysext "$SYSEXT_IMG" \
-    --build "$VERSION"
-
-if [[ "$UPGRADE" -eq 1 ]]; then
-    bash "$RUN_JOB" \
-        --name upgrade-system \
-        --hdd "$DISK" \
-        --sysext "$SYSEXT_IMG" \
-        --build "$VERSION" \
-        --upgrade
-fi
-
-bash "$RUN_JOB" \
-    --name sanity-test \
-    --hdd "$DISK" \
-    --sysext "$SYSEXT_IMG" \
-    --build "$VERSION"

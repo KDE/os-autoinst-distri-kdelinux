@@ -8,6 +8,9 @@ services:
     ports:
       - "1443:443"
       - "1080:80"
+      - "5990:5990"
+      - "5991:5991"
+      - "2222:2222"
     devices:
       - /dev/kvm
     working_dir: /casedir

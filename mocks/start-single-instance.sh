@@ -19,4 +19,9 @@ openqa-cli api jobs state=scheduled \
     done
 
 export MOCK_MODE=1
-exec /casedir/worker.sh
+export CASEDIR=/casedir
+/casedir/worker.sh || true
+
+echo "[INFO] Jobs complete. To inspect results, run:"
+echo "    podman exec -it openqa-single-instance bash"
+sleep infinity
