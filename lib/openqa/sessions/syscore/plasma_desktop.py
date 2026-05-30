@@ -21,19 +21,3 @@ class PlasmaDesktopSession(BaseSession):
         """
         self.expect('kickoff_icon_on_panel', timeout)
 
-    def switch_windows(self, fast=True, timeout=30):
-        '''
-        hold the `alt` key and press tab to ensure the `task switcher` overview shows up, then release the `alt` key.
-
-        :param fast:
-        :param timeout:
-        :return:
-        '''
-        if fast:
-            send_key('alt-tab')
-        else:
-            hold_key('alt')
-            send_key('tab')
-            self.expect("windows_switcher_two_windows", timeout)
-            release_key('alt')
-        return self
