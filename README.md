@@ -1,26 +1,65 @@
 ## os-autoinst-distri-kdelinux
 > End-to-end tests for KDE Linux using [openQA](https://open.qa/).
 
-### Test Coverage
+### What's tested
 
-| Feature Category | Test Case | Status |
-|------------------|-----------|--------|
-| [Ensure upgrading works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/206) | Discover update page | ✅      |
-| [Ensure basic desktop functionality works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/178) | Create a text file on desktop | ✅      |
-|  | Open system tray popup | ✅      |
-|  | Open Digital Clock popup | ✅      |
-|  | Switch windows using Task Manager | ✅      |
-| [Ensure automatic login works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/176) | Configure automatic login via System Settings | ✅      |
-| [Ensure manual login works](https://invent.kde.org/kde-linux/kde-linux/-/work_items/175) | SDDM login | ✅      |
-|  | TTY login / reboot / shutdown | ✅      |
-| [Ensure bootability](https://invent.kde.org/kde-linux/kde-linux/-/work_items/174) | UEFI boot menu | ✅      |
-|  | Plymouth boot splash | ✅      |
-|  | Desktop panel loads | ✅      |
-| | UEFI boot menu shows multiple system versions after upgrade | ✅      |
-| [Ensure Firefox works]() | Test by can search google | TODO   |
-| [Ensure installation from Discover works]() | Test by install steam | TODO   |
+#### Install test suite (`install-system`)
 
+| Test | What it does |
+|---|---|
+| `kdelinux-live/bootup` | Powers on, checks UEFI screen, Plymouth, and live desktop loads |
+| `common/system_settings/disable_screen_dim_and_screen_off` | Disables screen dim/off via kconfig so subsequent tests aren't interrupted |
+| `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `kdelinux-live/calamares_install` | Runs the Calamares installer and installs the system, fatal |
+| `kdelinux-live/bootup_setup` | Powers on after install, checks Plymouth and Plasma Welcome screen appear |
+| `kdelinux/desktop/plasma_setup` | Completes the Plasma initial setup wizard |
+| `kdelinux/sddm/sddm_password_login` | Types password at SDDM, checks desktop or welcome screen loads |
+| `kdelinux/desktop/plasma_welcome` | Runs through the Plasma Welcome screen via Selenium |
+| `kdelinux/system_settings/configure_automatic_login` | Configures automatic login via System Settings using Selenium |
+| `common/shutdown` | Executes `systemctl poweroff` and waits for shutdown |
 
+#### Sanity test suite (`sanity-test`)
+
+| Test | What it does |
+|---|---|
+| `common/bootup` | Powers on; checks Plymouth and desktop panel (kickoff icon) load |
+| `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `common/shutdown` | Executes `systemctl poweroff` and waits for shutdown |
+
+#### Upgrade test suite (`upgrade-system`)
+
+| Test | What it does |
+|---|---|
+| `common/bootup` | Powers on previous build; checks Plymouth and panel load |
+| `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `kdelinux/app/discover_upgrade` | Upgrades the system via Discover, fatal |
+| `common/reboot` | Executes `systemctl reboot` |
+| `common/bootup` | Checks new build boots correctly after upgrade |
+| `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `common/shutdown` | Issues `systemctl poweroff` and waits for shutdown |
+
+### TODO
+
+- Bootability/upgradeability - UEFI boot menu shows both old and new system versions after an upgrade 
+- Panel tests - system tray popup, digital clock popup, create a file on the desktop, switch windows via the task manager, open an application from kickoff
+- Desktop tests - create file on desktop, switch windows via task manager
+- Firefox - basic browser functionality
+- Discover app install - install a package via Discover
+- Clipboard - Copy text in Firefox, paste into KWrite; Copy text in KWrite, paste into LibreOffice Calc; Copy a cell value in LibreOffice Calc, paste into Firefox address bar 
+
+### End-to-end test flows
+
+Two flows are run against each build:
+
+The standard flow, which verifies the current build installs and runs correctly:
+```
+install-system -> sanity-test
+```
+
+The upgrade flow, verifies the current build can be upgraded to from the previous build:
+```
+install-system (previous build) -> upgrade-system -> sanity-test
+```
 
 ### Running tests locally
 
@@ -66,13 +105,6 @@ podman-compose -f mocks/worker.yml up
 ```
 
 The worker will register with the remote server, upload assets via SSH/sftp, submit jobs, and stream results back.
-
-### End-to-End testing scenarios
-We offer 2 E2E testing scenarios.
-
-1. Install the latest raw file, which contains the live system, from KDE storage. Boot the live system up, and use it to install the full system. After installation, boot up and sanity check this installed system.
-2. Install the raw file produced by previously successful build (typically speaking yesterday's raw file, in contrast to today's), which contains the live system, from KDE storage. Boot this live system up, and use it to install the full system. After installation, boot up and sanity check this installed system. Then try to update the system from yesterday's build to today's build, and sanity check today's build.
-
 
 ### Integration with GitLab CI
 
