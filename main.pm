@@ -46,6 +46,19 @@ sub test_live_image {
 sub test_kdelinux {
     loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
+    # TODO unimplemented stubs
+    # loadtest 'kdelinux/desktop/kickoff.py';
+    # loadtest 'kdelinux/desktop/krunner.py';
+    # loadtest 'kdelinux/desktop/system_tray.py';
+    # loadtest 'kdelinux/desktop/task_manager.py';
+    # loadtest 'kdelinux/desktop/task_switcher.py';
+    # loadtest 'kdelinux/desktop/create_file.py';
+    loadtest 'kdelinux/app/dolphin_manipulate_fs.py';
+    loadtest 'kdelinux/app/firefox.py';
+    loadtest 'kdelinux/app/clipboard.py';
+    loadtest 'kdelinux/app/ensure_secret_service_provider.py';
+    loadtest 'kdelinux/app/package_compatibility_helper.py';
+    loadtest 'kdelinux/system_settings/check_default_applications.py';
     loadtest 'common/shutdown.py';
 }
 

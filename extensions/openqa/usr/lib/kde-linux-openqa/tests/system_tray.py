@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+
+import unittest
+from appium import webdriver
+from appium.options.common.base import AppiumOptions
+from lib.sut import openqa_junit_xml
+from lib.sut.atspi import find_pid_on_atspi_bus
+
+
+class SystemTrayTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        options = AppiumOptions()
+        options.set_capability("app", str(find_pid_on_atspi_bus('plasmashell')))
+        self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
+        self.driver.implicitly_wait = 10
+
+    @classmethod
+    def tearDownClass(self):
+        self.driver.quit()
+
+    def test_open_system_tray(self):
+        # TODO click the system tray arrow, verify the popup opens and contains expected entries
+        self.skipTest("not yet implemented")
+
+
+if __name__ == "__main__":
+    openqa_junit_xml.run(SystemTrayTests, "system_tray")

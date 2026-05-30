@@ -23,6 +23,7 @@ class PlasmaSetupTests(unittest.TestCase):
         options = AppiumOptions()
         options.set_capability("app", str(find_pid_on_atspi_bus('plasma-setup')))
         self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
+        self.driver.implicitly_wait = 10
 
     @classmethod
     def tearDownClass(self):
