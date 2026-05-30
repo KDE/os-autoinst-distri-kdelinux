@@ -63,6 +63,8 @@ install-system (previous build) -> upgrade-system -> sanity-test
 
 ### Running tests locally
 
+Nota bene: if you change anything in `extensions/`, you'll need to rerun your local worker/single-instance image so it can create a new sysext.
+
 #### Full local stack (worker + webui)
 
 Spins up a local OpenQA webui and worker together.
