@@ -16,7 +16,7 @@ class CalamaresTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         options = AppiumOptions()
-        options.set_capability("app", "/usr/local/bin/calamares")
+        options.set_capability("app", "/opt/local/bin/calamares")
         self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
         self.driver.implicitly_wait = 10
 
