@@ -67,32 +67,48 @@ podman-compose -f mocks/worker.yml up
 
 The worker will register with the remote server, upload assets via SSH/sftp, submit jobs, and stream results back.
 
-### Test Case Architecture(Todo: Guide)
-
 ### End-to-End testing scenarios
 We offer 2 E2E testing scenarios.
 
-1. Install the lastest raw file, which contains the live system, from KDE storage. Boot the live system up, and use it to install the full(complete) system. After installation, boot up and sanity check this installed system.
-2. Install the raw file produced by previously successful build(typically speaking a yesterday's raw file, in contrast to today's), which contains the live system, from KDE storage. Boot this live system up, and use it to install the full(complete) system. After installation, boot up and sanity check this installed system. Then try to update the system from yesterday's build to today's build.
+1. Install the latest raw file, which contains the live system, from KDE storage. Boot the live system up, and use it to install the full system. After installation, boot up and sanity check this installed system.
+2. Install the raw file produced by previously successful build (typically speaking yesterday's raw file, in contrast to today's), which contains the live system, from KDE storage. Boot this live system up, and use it to install the full system. After installation, boot up and sanity check this installed system. Then try to update the system from yesterday's build to today's build, and sanity check today's build.
 
 
-### Integrate with Gitlab CI
+### Integration with GitLab CI
 
-Currently, we offer two options for running CI jobs:
+The pipeline has three stages: `validate`, `test`, and `test-upgrade`.
 
-1. **An openQA instance** – an all-in-one, openSUSE-based image that includes the Web UI, a PostgreSQL database for storing test/job results and authentication/authorization data, the `openqa-worker` service, nginx, etc,.
-2. **A lightweight backend-only image** – Also an openSUSE-based image, but contains only the test execution engine (`isotovideo`).
+- **validate** — runs [REUSE](https://reuse.software/) licence compliance linting. This is skipped when the pipeline is triggered from another project.
+- **test** — runs the install + sanity-test suite (`worker.sh`) against the hosted openQA server.
+- **test-upgrade** — runs the upgrade suite (`worker.sh --upgrade`) against the hosted openQA server.
 
-### How to Mock test running locally(Todo: Guide)
+Both test jobs use the upstream `openqa_worker` container image.
 
-### Imperfections
+#### CI variables
 
-1. **Mock script redundancy** - The current mock scripts (`utils/mocks/`) contain significant code duplication across different job types (live+fullsystem, live+upgrade). The scripts lack reusability and should be refactored to use shared components or a common base script with configurable parameters.
+The following variables must be configured in the GitLab project settings, and should be marked as `masked` and `protected`:
 
-2. **TTY session implementation issues** - The implementation or even the existence of TTY session in `lib/sessions/syscore/tty.py` may have reliability problems, as I never used them.
+- `OPENQA_API_KEY` - API key from the openQA web UI
+- `OPENQA_API_SECRET` - Corresponding API secret
+- `OPENQA_SSH_PRIVATE_KEY` - Private key for sftp asset uploads to the openQA server (paste the key contents, not a file path)
 
-3. **Desktop file creation test verification** - The desktop file creation test (`tests/kdelinux/desktop/create_file.py`) currently only verifies the file creation through the GUI. It should be enhanced to confirm that the file actually exists on the filesystem by checking via konsole or TTY session using serial output.
+`OPENQA_HOST_ADDR` and `OPENQA_SSH_USER` are hardcoded in `.gitlab-ci.yml` and do not need to be set as variables.
 
-### Notes
-- needles directory needs permissions 755 for the WebUI needle editor to work.
+#### Triggering from another project
 
+The pipeline is designed to be triggered from the [kde-linux](https://invent.kde.org/kde-linux/kde-linux) CI after a successful image build. When triggered this way, the REUSE lint job is skipped and both test jobs run automatically.
+
+This works through a trigger job in KDE Linux's `.gitlab-ci.yml`:
+
+```yaml
+trigger-openqa:
+  stage: test
+  trigger:
+    project: kde-linux/os-autoinst-distri-kdelinux
+    branch: master
+    strategy: depend
+```
+
+#### Running manually on a merge request
+
+Test jobs have `when: manual` for merge request pipelines, so they won't consume runner resources automatically. They are to be triggered manually when you need to validate a change against the live openQA server.
