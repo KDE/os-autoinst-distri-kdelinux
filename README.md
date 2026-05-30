@@ -110,9 +110,11 @@ The worker will register with the remote server, upload assets via SSH/sftp, sub
 
 The pipeline has three stages: `validate`, `test`, and `test-upgrade`.
 
-- **validate** — runs [REUSE](https://reuse.software/) licence compliance linting. This is skipped when the pipeline is triggered from another project.
-- **test** — runs the install + sanity-test suite (`worker.sh`) against the hosted openQA server.
-- **test-upgrade** — runs the upgrade suite (`worker.sh --upgrade`) against the hosted openQA server.
+| Stage | What it does |
+|---|---|
+| validate | runs [REUSE](https://reuse.software/) license compliance linting. This is skipped when the pipeline is triggered from another project. |
+| test | runs the install + sanity-test suite (`worker.sh`) against the hosted openQA server. |
+| test-upgrade | runs the upgrade suite (`worker.sh --upgrade`) against the hosted openQA server. |
 
 Both test jobs use the upstream `openqa_worker` container image.
 
@@ -120,9 +122,11 @@ Both test jobs use the upstream `openqa_worker` container image.
 
 The following variables must be configured in the GitLab project settings, and should be marked as `masked` and `protected`:
 
-- `OPENQA_API_KEY` - API key from the openQA web UI
-- `OPENQA_API_SECRET` - Corresponding API secret
-- `OPENQA_SSH_PRIVATE_KEY` - Private key for sftp asset uploads to the openQA server (paste the key contents, not a file path)
+| Variable | What it's for |
+|---|---|
+| `OPENQA_API_KEY` | API key from the openQA web UI |
+| `OPENQA_API_SECRET` | Corresponding API secret |
+| `OPENQA_SSH_PRIVATE_KEY` | Private key for sftp asset uploads to the openQA server (paste the key contents, not a file path) |
 
 `OPENQA_HOST_ADDR` and `OPENQA_SSH_USER` are hardcoded in `.gitlab-ci.yml` and do not need to be set as variables.
 

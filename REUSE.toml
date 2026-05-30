@@ -11,11 +11,6 @@ SPDX-FileCopyrightText = "None"
 SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
-path = "img/README/**.png"
-SPDX-FileCopyrightText = "None"
-SPDX-License-Identifier = "CC0-1.0"
-
-[[annotations]]
 path = "README.md"
 SPDX-FileCopyrightText = [
   "2026 Thomas Duckworth <tduck@filotimoproject.org>",
