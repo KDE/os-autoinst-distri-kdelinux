@@ -17,8 +17,12 @@ def _cli_command(method):
     @functools.wraps(method)
     def wrapper(self, *args, user: user_manager.User | None = None, **kwargs) -> str:
         cmdline = method(self, *args, **kwargs)
-        output = self._run_transient(cmdline, user=user)
-        self._collect()
+        try:
+            output = self._run_transient(cmdline, user=user)
+        finally:
+            # Collect results even when the test failed; the SUT writes the JUnit XML
+            # before exiting non-zero, so we still want to pull it back for reporting.
+            self._collect()
         return output
     return wrapper
 
