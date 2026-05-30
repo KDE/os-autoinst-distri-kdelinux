@@ -6,3 +6,4 @@ appium_artifact*
 .env
 openqa-sysext.img
 OVMF_VARS.4m.fd
+*.pyc
