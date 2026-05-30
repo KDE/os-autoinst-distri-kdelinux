@@ -11,6 +11,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
+from lib.sut.atspi import find_pid_on_atspi_bus
 from lib import user_manager
 import sys
 import time
@@ -20,9 +21,8 @@ class PlasmaSetupTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         options = AppiumOptions()
-        options.set_capability("app", subprocess.run(['pgrep', '-n', 'plasma-setup'], capture_output=True, text=True).stdout.strip()) # get the pid because it will already be launched
+        options.set_capability("app", str(find_pid_on_atspi_bus('plasma-setup')))
         self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
-        self.driver.implicitly_wait = 10
 
     @classmethod
     def tearDownClass(self):
