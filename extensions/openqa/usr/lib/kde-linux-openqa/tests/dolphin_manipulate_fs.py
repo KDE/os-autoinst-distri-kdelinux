@@ -55,10 +55,10 @@ class DolphinManipulateFsTests(unittest.TestCase):
         ActionChains(self.driver).send_keys(Keys.RETURN).perform()
 
         # Confirm the file is present, then select it via type-ahead. This puts Dolphin in
-        # selection mode and the selection-mode bar exposes a clickable wastebin button.
+        # selection mode and the selection-mode bar exposes a clickable trash button.
         self.driver.find_element(AppiumBy.NAME, TEST_FILE_NAME)
         ActionChains(self.driver).send_keys(TEST_FILE_NAME).perform()
-        self.driver.find_element(AppiumBy.NAME, 'Move to Wastebin').click()
+        self.driver.find_element(AppiumBy.NAME, 'Move to Trash').click()
 
         # Verify it's gone and moved on disk
         WebDriverWait(self.driver, 15).until_not(
@@ -67,19 +67,19 @@ class DolphinManipulateFsTests(unittest.TestCase):
         self._wait_path(TEST_FILE_PATH, exists=False)
         self._wait_path(TRASHED_FILE_PATH, exists=True)
 
-        # Navigate to the wastebin through the Places panel
-        self.driver.find_element(AppiumBy.NAME, 'Wastebin').click()
-        self.driver.find_element(AppiumBy.NAME, 'Empty Wastebin').click()
+        # Navigate to the trash through the Places panel
+        self.driver.find_element(AppiumBy.NAME, 'Trash').click()
+        self.driver.find_element(AppiumBy.NAME, 'Empty Trash').click()
 
-        # Confirm the prompt and ensure the correct "Empty Wastebin" is clicked
+        # Confirm the prompt and ensure the correct "Empty Trash" is clicked
         WebDriverWait(self.driver, 10).until(
-            ec.element_to_be_clickable((AppiumBy.XPATH, '//dialog//*[@name="Empty Wastebin"]'))
+            ec.element_to_be_clickable((AppiumBy.XPATH, '//dialog//*[@name="Empty Trash"]'))
         ).click()
 
         # The file now should be gone from the trash view and from disk
         WebDriverWait(self.driver, 15).until_not(
             ec.presence_of_element_located((AppiumBy.NAME, TEST_FILE_NAME)),
-            message=f'{TEST_FILE_NAME!r} was still in the wastebin')
+            message=f'{TEST_FILE_NAME!r} was still in the trash')
         self._wait_path(TRASHED_FILE_PATH, exists=False)
 
 
