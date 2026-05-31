@@ -60,7 +60,6 @@ class PlasmaSetupTests(unittest.TestCase):
         next_button.click()
 
         ## User account page
-        # TODO source username/pw from some universal source of truth
         form = self.driver.find_element(AppiumBy.CLASS_NAME, '[form | ]')
 
         form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[0].send_keys('Testy McTestface')
@@ -83,14 +82,10 @@ class PlasmaSetupTests(unittest.TestCase):
         next_button.click()
 
         ## Timezone page
-        # Keep default selected for now, it causes error
-        #region_combo = self.driver.find_element(AppiumBy.XPATH, '//combo_box[@name="Timezone region selector"]')
-        #ActionChains(self.driver).move_to_element(region_combo).click().send_keys('Etc').send_keys(Keys.RETURN).perform()
+        region_combo = self.driver.find_element(AppiumBy.XPATH, '//combo_box[@name="Timezone region selector"]')
+        ActionChains(self.driver).move_to_element(region_combo).click().pause(0.5).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.RETURN).perform()
 
-        #tz_combo = self.driver.find_element(AppiumBy.XPATH, '//combo_box[@name="Timezone location selector"]')
-        #ActionChains(self.driver).move_to_element(tz_combo).click().send_keys('UTC').send_keys(Keys.RETURN).perform()
-
-        time.sleep(1)
+        time.sleep(2)
         next_button = wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
         )
