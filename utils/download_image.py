@@ -11,14 +11,15 @@ import glob
 base_url = "https://files.kde.org/kde-linux/"
 
 def download_file(download_url, filename):
-    print(f"Start downloading from: {download_url}")
+    print(f"Start downloading from: {download_url}", file=sys.stderr)
     with requests.get(download_url, stream=True) as req:
         req.raise_for_status()
         with open(filename, 'wb') as file:
             for chunk in req.iter_content(chunk_size=8192):
                 file.write(chunk)
-    print("Download completed")
-    print(f"Downloaded file: {filename}")
+    print("Download completed", file=sys.stderr)
+    print(f"Downloaded file: {filename}", file=sys.stderr)
+    print(f"{filename}")
 
 def download(build_index):
     url = base_url + "?C=M;O=D"
@@ -27,7 +28,6 @@ def download(build_index):
     soup = BeautifulSoup(resp.text, "html.parser")
     pattern = re.compile(r'kde-linux_\d+\.raw$')
     links = soup.find_all("a", href=pattern)
-    print(links)
     if links:
         latest_href = links[build_index]["href"]
         download_url = base_url + latest_href
