@@ -8,6 +8,16 @@ skip_suse_tests=1 skip_suse_specifics=1 /usr/share/openqa/script/openqa-bootstra
 echo "[INFO] Waiting for OpenQA bootstrap to complete..."
 until [[ -s /etc/openqa/client.conf ]]; do sleep 2; done
 
+cat > /etc/openqa/client.conf <<EOF
+[auth]
+# method name is case sensitive!
+method = Fake
+
+[localhost]
+key = 1234567890ABCDEF
+secret = 1234567890ABCDEF
+EOF
+
 echo "[INFO] Waiting for worker to start..."
 until ps -ef | grep -q "[o]penqa/script/worker"; do sleep 2; done
 
@@ -20,6 +30,12 @@ openqa-cli api jobs state=scheduled \
 
 export MOCK_MODE=1
 export CASEDIR=/casedir
+
+cat > /root/.bashrc <<EOF
+export MOCK_MODE=1
+export CASEDIR=/casedir
+EOF
+
 /casedir/worker.sh || true
 
 echo "[INFO] Jobs complete. To inspect results, run:"
