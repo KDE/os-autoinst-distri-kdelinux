@@ -54,6 +54,7 @@ sub test_kdelinux {
     # loadtest 'kdelinux/desktop/task_switcher.py';
     # loadtest 'kdelinux/desktop/create_file.py';
     loadtest 'kdelinux/app/dolphin_manipulate_fs.py';
+    loadtest 'kdelinux/desktop/drkonqi.py';
     loadtest 'kdelinux/app/firefox.py';
     loadtest 'kdelinux/app/clipboard.py';
     loadtest 'kdelinux/app/ensure_secret_service_provider.py';
