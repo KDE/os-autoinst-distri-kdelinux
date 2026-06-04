@@ -98,7 +98,7 @@ class CheckDefaultApplicationsTests(unittest.TestCase):
             # We don't actually install a calendar app
             ('Calendar:',          None),
             ('Phone Numbers:',     'KDE Connect'),
-            ('Image viewer:',      'Okular (Nightly)'),
+            ('Image viewer:',      'Gwenview (Nightly)'),
             ('Music player:',      'Haruna (Nightly)'),
             ('Video player:',      'Haruna (Nightly)'),
             ('Text editor:',       'Okular (Nightly)'),
