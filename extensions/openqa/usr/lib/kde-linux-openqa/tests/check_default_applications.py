@@ -101,7 +101,7 @@ class CheckDefaultApplicationsTests(unittest.TestCase):
             ('Image viewer:',      'Gwenview (Nightly)'),
             ('Music player:',      'Haruna (Nightly)'),
             ('Video player:',      'Haruna (Nightly)'),
-            ('Text editor:',       'Okular (Nightly)'),
+            ('Text editor:',       'KWrite'),
             ('PDF viewer:',        'Okular (Nightly)'),
             ('File manager:',      'Dolphin'),
             ('Terminal emulator:', 'Konsole'),
