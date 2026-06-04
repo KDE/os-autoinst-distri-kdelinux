@@ -52,7 +52,6 @@ class DrkonqiTests(unittest.TestCase):
             ec.element_to_be_clickable((AppiumBy.NAME, "Dolphin Closed Unexpectedly"))
         )
         drkonqi_button.click()
-        plasma_driver.quit()
         time.sleep(10)
 
         # Now we connect to drkoqni
