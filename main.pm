@@ -61,6 +61,7 @@ sub test_kdelinux {
     loadtest 'kdelinux/app/package_compatibility_helper.py';
     loadtest 'kdelinux/app/discover_install.py';
     loadtest 'kdelinux/system_settings/check_default_applications.py';
+    loadtest 'kdelinux/desktop/desktop_session_services.py';
     loadtest 'common/shutdown.py';
 }
 
