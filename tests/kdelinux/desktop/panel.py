@@ -5,5 +5,5 @@ from lib.openqa import cli_test
 from lib import user_manager
 
 def run(self):
-    test = cli_test.CliTest('system_tray')
+    test = cli_test.CliTest('panel')
     test.run_selenium(user=user_manager.installed())

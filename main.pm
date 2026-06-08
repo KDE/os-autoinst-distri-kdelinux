@@ -49,10 +49,9 @@ sub test_kdelinux {
     # TODO unimplemented stubs
     # loadtest 'kdelinux/desktop/kickoff.py';
     # loadtest 'kdelinux/desktop/krunner.py';
-    # loadtest 'kdelinux/desktop/system_tray.py';
-    # loadtest 'kdelinux/desktop/task_manager.py';
     # loadtest 'kdelinux/desktop/task_switcher.py';
     # loadtest 'kdelinux/desktop/create_file.py';
+    loadtest 'kdelinux/desktop/panel.py';
     loadtest 'kdelinux/app/dolphin_manipulate_fs.py';
     loadtest 'kdelinux/desktop/drkonqi.py';
     loadtest 'kdelinux/app/firefox.py';
