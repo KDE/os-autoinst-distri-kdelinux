@@ -12,6 +12,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 import sys
 
+# Installs the system through Calamares.
+
 class CalamaresTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -27,6 +29,7 @@ class CalamaresTests(unittest.TestCase):
         pass
 
     def test_install(self):
+        """Go through Calamares and install through the standard Erase Disk method."""
         ## Welcome page
         wait = WebDriverWait(self.driver, 20)
         next_button = wait.until(

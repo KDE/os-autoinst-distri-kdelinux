@@ -15,6 +15,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 import sys
 
+# Disables screen dimming and automatic screen-off in the Power Management KCM.
+
 class DisableScreenDimAndScreenOffTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -28,6 +30,7 @@ class DisableScreenDimAndScreenOffTests(unittest.TestCase):
         self.driver.quit()
 
     def test_disable_screen_dim_and_screen_off(self):
+        """Disable screen dimming and screen off from the Power Management KCM."""
         self.driver.find_element(by=AppiumBy.NAME, value="Search").send_keys("Power Management")
         self.driver.find_element(by=AppiumBy.XPATH, value="//list_item[@name='Power Management' and not(contains(@states, 'focused'))]")
         ActionChains(self.driver).send_keys(Keys.DOWN).perform()

@@ -13,6 +13,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 import subprocess
 
+# Verifies the set default applications, through mimetype and system settings.
+
 class CheckDefaultApplicationsTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -75,7 +77,7 @@ class CheckDefaultApplicationsTests(unittest.TestCase):
         ])
 
     def test_3_system_settings_defaults(self):
-        """Checks if the listed defaults in System Settings match the xdg-settings test."""
+        """Checks if the listed defaults in System Settings match the xdg-mime test."""
         # Go to the Default Applications page
         wait = WebDriverWait(self.driver, 5)
         self.driver.find_element(AppiumBy.NAME, "Search").send_keys("Default Applications")

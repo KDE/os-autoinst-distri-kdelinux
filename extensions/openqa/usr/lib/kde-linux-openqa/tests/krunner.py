@@ -7,6 +7,8 @@ from appium.options.common.base import AppiumOptions
 from lib.sut import openqa_junit_xml
 from lib.sut.atspi import find_pid_on_atspi_bus
 
+# Searches for and launches an application through KRunner.
+
 
 class KRunnerTests(unittest.TestCase):
     @classmethod
@@ -21,6 +23,7 @@ class KRunnerTests(unittest.TestCase):
         self.driver.quit()
 
     def test_search_and_launch_app(self):
+        """Search for an app in KRunner, launch it, and verify it started."""
         # TODO type an app name, verify result appears, press enter, verify app launched
         self.skipTest("not yet implemented")
 

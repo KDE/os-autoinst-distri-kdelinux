@@ -12,6 +12,8 @@ from selenium.webdriver.common.keys import Keys
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
 
+# Checks that text copies and pastes between an application and the system clipboard.
+
 CLIPBOARD_TO_APP = 'kde-linux-openqa clipboard into app'
 APP_TO_CLIPBOARD = 'kde-linux-openqa app into clipboard'
 KWRITE_APP_ID = 'org.kde.kwrite'

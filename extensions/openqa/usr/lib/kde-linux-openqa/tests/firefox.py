@@ -12,6 +12,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
 
+# Launches Firefox and checks page loading and that the Plasma Integration extension is active.
+
 URL = 'https://linux.kde.org'
 EXPECTED_PAGE_TITLE = 'KDE Linux'
 FIREFOX_APP_ID = 'org.mozilla.firefox'
@@ -32,12 +34,14 @@ class FirefoxTests(unittest.TestCase):
         flatpak.kill(FIREFOX_APP_ID)
 
     def test_1_navigate_to_kde_linux(self):
+        """Open the KDE Linux site in Firefox and ensure the page loads."""
         # The page is loaded enough once an element with the page title appears in the a11y tree.
         WebDriverWait(self.driver, 30).until(
             ec.presence_of_element_located((AppiumBy.NAME, EXPECTED_PAGE_TITLE)),
             message=f'page with title {EXPECTED_PAGE_TITLE!r} did not load')
 
     def test_2_plasma_integration_extension_active(self):
+        """Check that the Plasma Integration browser extension native host is running."""
         # The Plasma Integration extension is installed and working if its native host runs.
         WebDriverWait(self.driver, 30).until(
             lambda _: subprocess.run(

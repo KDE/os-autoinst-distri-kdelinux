@@ -27,6 +27,8 @@ import sys
 import time
 import subprocess
 
+# Enables automatic login for the installed user through System Settings.
+
 KDE_VERSION: Final = 6
 
 

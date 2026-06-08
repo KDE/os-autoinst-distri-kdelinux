@@ -13,6 +13,9 @@ from lib.sut import openqa_junit_xml
 import sys
 import subprocess
 
+# Goes through the Plasma Welcome app until completion.
+# Will become a bit more useful if we ship our own Welcome page, we can test its functionality.
+
 class PlasmaWelcomeTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -26,6 +29,7 @@ class PlasmaWelcomeTests(unittest.TestCase):
         self.driver.quit()
 
     def test_welcome(self):
+        """Click through each page of the Plasma Welcome tour to the end."""
         ## Welcome page
         wait = WebDriverWait(self.driver, 20)
         next_button = wait.until(

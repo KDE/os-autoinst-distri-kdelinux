@@ -7,6 +7,8 @@ from appium.options.common.base import AppiumOptions
 from lib.sut import openqa_junit_xml
 from lib.sut.atspi import find_pid_on_atspi_bus
 
+# Creates a new text file on the desktop and verifies it appears.
+
 
 class CreateFileTests(unittest.TestCase):
     @classmethod
@@ -21,6 +23,7 @@ class CreateFileTests(unittest.TestCase):
         self.driver.quit()
 
     def test_create_file_on_desktop(self):
+        """Create a new text file on the desktop and verify it appears."""
         # TODO right-click empty desktop, create new text file, verify it appears
         self.skipTest("not yet implemented")
 

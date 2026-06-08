@@ -22,6 +22,8 @@ import time
 import subprocess
 import signal
 
+# Crashes an application and checks that DrKonqi produces a useful crash report.
+
 class DrkonqiTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -32,6 +34,7 @@ class DrkonqiTests(unittest.TestCase):
         pass
 
     def test_drkonqi(self):
+        """Crash Dolphin and verify DrKonqi generates a useful backtrace."""
         # Launch dolphin
         p = subprocess.Popen("dolphin")
         time.sleep(5)

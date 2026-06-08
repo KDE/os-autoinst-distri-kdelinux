@@ -13,6 +13,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 import sys
 
+# Runs a system update through Discover.
+
 class DiscoverTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -29,6 +31,7 @@ class DiscoverTests(unittest.TestCase):
         self.driver.quit()
 
     def test_upgrade(self):
+        """Run a full system upgrade."""
         wait = WebDriverWait(self.driver, 60)
         # Send Alt+U to open updates page
         ActionChains(self.driver).key_down(Keys.ALT).send_keys('u').key_up(Keys.ALT).perform()

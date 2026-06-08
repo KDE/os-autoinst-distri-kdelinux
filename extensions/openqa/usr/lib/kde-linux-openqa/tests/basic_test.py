@@ -20,6 +20,7 @@ TIMEOUT       = 120
 class BasicTests(unittest.TestCase):
 
     def test_1_bless_file_appears(self):
+        """Wait for the session bless file to appear on successful boot."""
         elapsed = 0
         while elapsed < TIMEOUT:
             if BLESS_FILE.is_file():
@@ -29,6 +30,7 @@ class BasicTests(unittest.TestCase):
         self.fail(f'Timed out after {TIMEOUT}s waiting for bless file')
 
     def test_2_no_failed_units(self):
+        """Check that systemd reports no failed units once the boot is blessed."""
         self.assertTrue(BLESS_FILE.is_file(), 'Bless file not present — run test_1_bless_file_appears first')
         failed = json.loads(subprocess.check_output(['systemctl', '--failed', '--output=json']))
         if not failed:

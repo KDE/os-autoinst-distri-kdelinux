@@ -7,6 +7,8 @@ from appium.options.common.base import AppiumOptions
 from lib.sut import openqa_junit_xml
 from lib.sut.atspi import find_pid_on_atspi_bus
 
+# Switches between windows using the Alt+Tab task switcher.
+
 
 class TaskSwitcherTests(unittest.TestCase):
     @classmethod
@@ -21,6 +23,7 @@ class TaskSwitcherTests(unittest.TestCase):
         self.driver.quit()
 
     def test_alt_tab_switches_windows(self):
+        """Open two apps, Alt+Tab between them, and verify focus changes correctly."""
         # TODO open two apps, alt-tab between them, verify focus changes correctly
         self.skipTest("not yet implemented")
 

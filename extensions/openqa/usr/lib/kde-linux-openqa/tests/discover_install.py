@@ -16,6 +16,8 @@ import sys
 import subprocess
 import time
 
+# Installs, launches, and uninstalls an application through Discover.
+
 class DiscoverTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -28,10 +30,11 @@ class DiscoverTests(unittest.TestCase):
     def tearDownClass(self):
         self.driver.quit()
 
-    """
-    This test case installs the kolourpaint application, launches it and uninstalls it.
-    """
+
     def test_01_app_install(self):
+        """
+        This test case installs the kolourpaint application, launches it and uninstalls it.
+        """
         wait = WebDriverWait(self.driver, 120)
 
         data_label = wait.until(
@@ -69,6 +72,9 @@ class DiscoverTests(unittest.TestCase):
         subprocess.check_call(['kill', subprocess.run(['pgrep','-f', '-n', 'kolourpaint'], capture_output=True, text=True).stdout.strip()])
 
     def test_02_app_uninstall(self):
+        """
+        Uninstall KolourPaint through Discover and then clean up its leftover data.
+        """
         # For now disable, because Remove button trigger seems random
         self.skipTest("This is broken, skipping for now")
 

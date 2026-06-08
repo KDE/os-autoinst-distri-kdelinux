@@ -13,6 +13,8 @@ from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 from lib.sut.atspi import find_pid_on_atspi_bus
 
+# Checks the Package Compatibility Helper opens for an unsupported package type.
+
 
 class PackageCompatibilityHelperTests(unittest.TestCase):
     @classmethod
@@ -42,6 +44,7 @@ class PackageCompatibilityHelperTests(unittest.TestCase):
             os.remove(self.deb_path)
 
     def test_helper_opens_and_cancels(self):
+        """Open a fake .deb so Package Compatibility Helper appears, then exit."""
         cancel_button = WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Cancel"))
         )

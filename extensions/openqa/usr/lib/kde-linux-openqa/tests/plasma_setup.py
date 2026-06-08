@@ -17,6 +17,9 @@ import sys
 import time
 import subprocess
 
+# Walks through the Plasma Setup wizard to set up the SUT.
+# Fatal test - it's necessary for the system to work in later testing.
+
 class PlasmaSetupTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -31,6 +34,7 @@ class PlasmaSetupTests(unittest.TestCase):
         pass
 
     def test_setup(self):
+        """Go through and set up the system through Plasma Setup."""
         ## Welcome page
         wait = WebDriverWait(self.driver, 5)
         setup_button = self.driver.find_element(AppiumBy.NAME, 'Begin Setup')

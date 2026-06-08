@@ -13,6 +13,10 @@ from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
 from lib.sut.atspi import find_pid_on_atspi_bus
 
+# Checks if apps can be launched from Kickoff search, Kickoff favorites, and the task manager.
+# Checks if the correct apps are pinned to task manager.
+# Ensures that the system tray works and displays entries.
+
 FIREFOX_APP_ID = 'org.mozilla.firefox'
 
 

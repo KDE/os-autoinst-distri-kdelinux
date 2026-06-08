@@ -15,6 +15,8 @@ from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
 from lib import user_manager
 
+# Verifies the Secret Service provider is ksecretd and works through KeepSecret.
+
 SECRETS_BUS_NAME = 'org.freedesktop.secrets'
 KEEPSECRET_APP_ID = 'org.kde.keepsecret'
 

@@ -12,6 +12,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 
+# Does a smoke test for file management in Dolphin by creating a file, moving it to trash, then emptying trash.
+
 DOCUMENTS_DIR = os.path.join(os.path.expanduser('~'), 'Documents')
 TEST_FILE_NAME = 'kde-linux-openqa-testfile.txt'
 TEST_FILE_PATH = os.path.join(DOCUMENTS_DIR, TEST_FILE_NAME)
@@ -46,6 +48,7 @@ class DolphinManipulateFsTests(unittest.TestCase):
             message=f'{path} exists={os.path.exists(path)}, expected exists={exists}')
 
     def test_delete_file_and_empty_trash(self):
+        """Move a file to the trash in Dolphin then empty it."""
         # Navigate to the Documents folder. Ctrl+L focuses the location bar, insert path here.
         ActionChains(self.driver).key_down(Keys.CONTROL).send_keys('l').key_up(Keys.CONTROL).perform()
         entry = self.driver.find_element(
