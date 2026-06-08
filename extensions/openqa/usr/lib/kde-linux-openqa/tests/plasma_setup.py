@@ -87,8 +87,10 @@ class PlasmaSetupTests(unittest.TestCase):
         next_button.click()
 
         ## Timezone page
+        time.sleep(1)
         region_combo = self.driver.find_element(AppiumBy.XPATH, '//combo_box[@name="Timezone region selector"]')
-        ActionChains(self.driver).move_to_element(region_combo).click().pause(0.5).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.RETURN).perform()
+        region_combo.click()
+        ActionChains(self.driver).pause(0.5).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys(Keys.RETURN).perform()
 
         time.sleep(2)
         next_button = wait.until(
