@@ -108,6 +108,35 @@ podman-compose -f mocks/worker.yml up
 
 The worker will register with the remote server, upload assets via SSH/sftp, submit jobs, and stream results back.
 
+#### Running a SUT Python `unittest` on your own machine
+
+This assumes you're running KDE Linux, which will have `selenium-webdriver-at-spi` installed.
+
+Inside the repository, go into the sysext test directory:
+```
+cd ./extensions/openqa/usr/lib/kde-linux-openqa
+```
+
+Then, create a venv and download test dependencies:
+```
+python3 -m venv --system-site-packages --upgrade-deps ./venv
+source ./venv/bin/activate
+pip3 install -r ./requirements.txt
+```
+
+As root, create required directories that the tests will output files to:
+```
+mkdir -p /var/log/kde-linux-openqa
+chmod 777 /var/log/kde-linux-openqa
+```
+
+Then, run your test:
+```
+PYTHONPATH=. TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 \
+  KWIN_PID=$(pgrep -n kwin_wayland) \
+  selenium-webdriver-at-spi-run python3 tests/<name of test>.py
+```
+
 ### Integration with GitLab CI
 
 The pipeline has three stages: `validate`, `test`, and `test-upgrade`.
