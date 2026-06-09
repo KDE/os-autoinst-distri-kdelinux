@@ -46,11 +46,11 @@ sub test_live_image {
 sub test_kdelinux {
     loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
-    # TODO unimplemented stubs
-    # loadtest 'kdelinux/desktop/krunner.py';
+    # TODO unimplemented stub
     # loadtest 'kdelinux/desktop/create_file.py';
     loadtest 'kdelinux/desktop/task_switcher.py';
     loadtest 'kdelinux/desktop/panel.py';
+    loadtest 'kdelinux/desktop/krunner.py';
     loadtest 'kdelinux/app/dolphin_manipulate_fs.py';
     loadtest 'kdelinux/desktop/drkonqi.py';
     loadtest 'kdelinux/app/firefox.py';
