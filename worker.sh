@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
-set -euo pipefail
+set -eo pipefail
 
 # Parse cmdline to see if we're doing an upgrade job
 UPGRADE=0
@@ -89,7 +89,13 @@ done
 if [[ -n "${OPENQA_SSH_PRIVATE_KEY:-}" ]]; then
     mkdir -p ~/.ssh
     chmod 700 ~/.ssh
-    echo "$OPENQA_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    if [[ -f "${OPENQA_SSH_PRIVATE_KEY:-}" ]]; then
+        tr -d '\r' < "$OPENQA_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    else
+        printf '%s' "$OPENQA_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+    fi
+    # ensure trailing newline
+    [[ -n "$(tail -c1 ~/.ssh/id_ed25519)" ]] && echo >> ~/.ssh/id_ed25519
     chmod 600 ~/.ssh/id_ed25519
 fi
 

@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: BSD-2-Clause
 # SPDX-FileCopyrightText: None
-
 include:
   - project: sysadmin/ci-utilities
     file:
@@ -20,12 +19,14 @@ reuse:
     - when: always
 
 .test-base:
+  needs: []
+  image: storage.kde.org/vm-images/image-builder
+  tags:
+    - VM
+    - amd64
   variables:
     OPENQA_HOST_ADDR: openqa.kde-linux.haraldsitter.eu
     OPENQA_SSH_USER: root
-  tags:
-    - LargeVM
-    - amd64
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger"
       when: always
@@ -33,18 +34,29 @@ reuse:
       when: manual
     - when: always
   allow_failure: false
-  image:
-    name: registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
-    entrypoint: [""]
+  script:
+    - >
+      podman run --rm
+      --privileged
+      --entrypoint ""
+      --volume $CI_PROJECT_DIR:$CI_PROJECT_DIR
+      --volume "$(dirname "$OPENQA_SSH_PRIVATE_KEY")":"$(dirname "$OPENQA_SSH_PRIVATE_KEY")":ro
+      --workdir $CI_PROJECT_DIR
+      --env OPENQA_HOST_ADDR
+      --env OPENQA_SSH_USER
+      --env OPENQA_API_KEY
+      --env OPENQA_API_SECRET
+      --env OPENQA_SSH_PRIVATE_KEY
+      --env IMAGE_URL
+      registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
+      bash worker.sh $WORKER_ARGS
 
 test:
   extends: .test-base
   stage: test
-  script:
-    - bash worker.sh
 
 test-upgrade:
   extends: .test-base
   stage: test-upgrade
-  script:
-    - bash worker.sh --upgrade
+  variables:
+    WORKER_ARGS: --upgrade
