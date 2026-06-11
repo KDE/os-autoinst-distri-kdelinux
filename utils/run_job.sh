@@ -173,6 +173,11 @@ poll_openqa_job() {
 
     echo "[INFO] Job ${job_id} submitted. Polling for result..."
 
+    # If the job isn't immediately scheduled, the server has probably run out of space.
+    # It should immediately schedule as the worker basically submits its own job.
+    local scheduled_timeout=30
+    local scheduled_since=
+
     while true; do
         local job_data state
         job_data=$(openqa jobs/${job_id})
@@ -183,6 +188,18 @@ poll_openqa_job() {
         if [[ "${result}" =~ ^(passed|softfailed|failed|incomplete|timeout|user_cancelled|obsoleted|cancelled|skipped)$ ]]; then
             break
         fi
+
+        if [[ "${state}" == "scheduled" ]]; then
+            [[ -z "$scheduled_since" ]] && scheduled_since=$SECONDS
+            if (( SECONDS - scheduled_since > scheduled_timeout )); then
+                echo "[ERROR] Job ${job_id} stayed in the scheduled state for over ${scheduled_timeout}s." >&2
+                echo "[ERROR] Check that the server has enough free disk space for the test assets." >&2
+                exit 1
+            fi
+        else
+            scheduled_since=
+        fi
+
         sleep 5
     done
 
