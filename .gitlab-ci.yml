@@ -37,10 +37,10 @@ reuse:
   script:
     - >
       podman run --rm
-      --privileged
+      --device /dev/kvm
       --entrypoint ""
-      --volume $CI_PROJECT_DIR:$CI_PROJECT_DIR
-      --volume "$(dirname "$OPENQA_SSH_PRIVATE_KEY")":"$(dirname "$OPENQA_SSH_PRIVATE_KEY")":ro
+      --volume $CI_PROJECT_DIR:$CI_PROJECT_DIR:z
+      --volume "$(dirname "$OPENQA_SSH_PRIVATE_KEY")":"$(dirname "$OPENQA_SSH_PRIVATE_KEY")":ro,z
       --workdir $CI_PROJECT_DIR
       --env OPENQA_HOST_ADDR
       --env OPENQA_SSH_USER
