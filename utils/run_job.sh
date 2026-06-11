@@ -96,6 +96,20 @@ else
     NUMDISKS=2
 fi
 
+# Work out which staged assets are no longer needed once this job finishes,
+# so we can free up that space on the server.
+CLEANUP_ASSETS=()
+if [[ -n "$LIVE" ]]; then
+    # install-system: the live image is a one-shot boot medium, published qcow2 and sysext are used later.
+    CLEANUP_ASSETS+=("$(basename "$LIVE")")
+elif [[ "$UPGRADE" -eq 1 ]]; then
+    # upgrade-system: keep everything as it's an intermediate stage
+    :
+else
+    # sanity-test: clean everything up, we're done here
+    CLEANUP_ASSETS+=("$(basename "$HDD")" "$(basename "$SYSEXT")")
+fi
+
 openqa() {
     openqa-cli api --host "${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}" "$@"
 }
@@ -158,6 +172,14 @@ stage_asset() {
         name="$name" \
         type="hdd")
     echo "[INFO] Asset registration response for $name: $reg_response"
+}
+
+cleanup_assets() {
+    for name in "${CLEANUP_ASSETS[@]}"; do
+        echo "[INFO] Deleting asset $name from the server; it is no longer needed after this job, and we need to save storage space!"
+        openqa -X DELETE assets/hdd/"$name" \
+            || echo "[WARN] Could not delete asset $name from the server" >&2
+    done
 }
 
 if [[ -n "$LIVE" ]]; then
@@ -276,3 +298,8 @@ if [[ -z "$JOB_ID" || "$JOB_ID" == "null" ]]; then
 fi
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
+
+# Don't delete shared assets in a mock single-instance container.
+if [[ -z "${MOCK_MODE:-}" ]]; then
+    cleanup_assets
+fi
