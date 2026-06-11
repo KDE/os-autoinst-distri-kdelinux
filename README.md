@@ -24,6 +24,19 @@
 |---|---|
 | `common/bootup` | Powers on; checks Plymouth and desktop panel (kickoff icon) load |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `kdelinux/system_settings/check_default_applications` | Verifies the set default applications, through mimetype and system settings. |
+| `kdelinux/desktop/panel` | Checks if apps can be launched from Kickoff search, Kickoff favorites, and the task manager. Checks if the correct apps are pinned to task manager. Ensures that the system tray works and displays entries. |
+| `kdelinux/desktop/task_switcher` | Checks that Alt+Tab task switcher moves focus between windows. The switcher is not on the a11y bus and is a part of KWin, so check the active state of KDialog windows. |
+| `kdelinux/desktop/create_file` | Creates a new text file on the desktop and verifies it appears. |
+| `kdelinux/desktop/clipboard` | Checks that text copies and pastes between an application and the system clipboard. |
+| `kdelinux/desktop/krunner` | Searches for and launches an application through KRunner. |
+| `kdelinux/desktop/drkonqi` | Crashes an application and checks that DrKonqi produces a useful crash report. |
+| `kdelinux/app/dolphin_manipulate_fs` | Does a smoke test for file management in Dolphin by creating a file, moving it to trash, then emptying trash. |
+| `kdelinux/app/firefox` | Launches Firefox and checks page loading and that the Plasma Integration extension is active. |
+| `kdelinux/app/ensure_secret_service_provider` | Verifies the Secret Service provider is ksecretd and works through KeepSecret. |
+| `kdelinux/app/package_compatibility_helper` | Checks the Package Compatibility Helper opens for an unsupported package type. |
+| `kdelinux/app/discover_install` | Installs, launches, and uninstalls an application through Discover. |
+| `kdelinux/desktop/desktop_session_services` | Checks whether any essential process has ever crashed. Every crash that dumps core is recorded by systemd-coredump, so we ask coredumpctl and fail if any of the processes we care about show up. This test should be run at the very *end* of the test suite. |
 | `common/shutdown` | Executes `systemctl poweroff` and waits for shutdown |
 
 #### Upgrade test suite (`upgrade-system`)
@@ -40,12 +53,11 @@
 
 ### TODO
 
-- Bootability/upgradeability - UEFI boot menu shows both old and new system versions after an upgrade 
-- Panel tests - system tray popup, digital clock popup, create a file on the desktop, switch windows via the task manager, open an application from kickoff
-- Desktop tests - create file on desktop, switch windows via task manager
-- Firefox - basic browser functionality
-- Discover app install - install a package via Discover
-- Clipboard - Copy text in Firefox, paste into KWrite; Copy text in KWrite, paste into LibreOffice Calc; Copy a cell value in LibreOffice Calc, paste into Firefox address bar 
+- Bootability/upgradeability - UEFI boot menu shows both old and new system versions after an upgrade
+- Lock screen - lock the session and unlock it with the user's password
+- Clipboard - test outside of Qt apps and flatpaks (e.g. copy from Firefox, paste into LibreOffice Calc)
+- FDE and manual partitioning - test installation with these
+- Ensure a new build can upgrade to an even newer one - see https://invent.kde.org/kde-linux/os-autoinst-distri-kdelinux/-/work_items/11
 
 ### End-to-end test flows
 
