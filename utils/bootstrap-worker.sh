@@ -32,4 +32,12 @@ done
 
 rm -f /var/lib/openqa/cache/cache.sqlite
 
+# Start the worker with --no-cleanup so it preserves the pool after each job instead of
+# wiping it. install-system's published qcow2 then stays in the pool, and we don't have to
+# re-download it from the server. This isn't great, but the upstream script hardcodes the
+# OpenQA worker's arguments, and we shouldn't be reimplementing their code.
+sed -i 's#/usr/share/openqa/script/worker #&--no-cleanup #' /run_openqa_worker.sh
+grep -q -- '--no-cleanup' /run_openqa_worker.sh \
+    || { echo "[ERROR] Could not enable --no-cleanup on the openQA worker launcher" >&2; exit 1; }
+
 /run_openqa_worker.sh &

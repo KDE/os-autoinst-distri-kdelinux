@@ -120,9 +120,9 @@ stage_asset() {
     name=$(basename "$path")
 
     # If the file doesn't exist in the current execution workspace,
-    # it's an existing openQA asset. Skip staging entirely.
+    # it's already in the worker share. Skip staging entirely.
     if [[ ! -f "$path" ]]; then
-        echo "[INFO] $name not found locally. Assuming it is already an asset on the openQA server; skipping upload."
+        echo "[INFO] $name is a published asset already staged in the worker share; skipping upload."
         return 0
     fi
 
@@ -188,6 +188,34 @@ else
     stage_asset "$HDD"
 fi
 stage_asset "$SYSEXT"
+
+# install-system publishes the installed qcow2. The worker runs with --no-cleanup, so once the
+# job is done the disk is still in the pool. The worker and webui don't share storage, and the
+# next job resolves assets from the local share, so move the disk there. This saves us a download
+# round-trip. As we don't have a cacheservice set up, the worker believes it's sharing a filesystem
+# with the webui using NFS - it isn't, so we need to pre-seed it ourselves.
+retain_published_hdd() {
+    local name="$1"
+    local share=/var/lib/openqa/share/factory/hdd
+    [[ -e "$share/$name" ]] && return 0
+
+    local pool_copy
+    pool_copy=$(find /var/lib/openqa/pool -name "$name" -print -quit 2>/dev/null || true)
+    if [[ -z "$pool_copy" ]]; then
+        echo "[ERROR] Published $name not found in the worker pool; cannot stage it for the next job." >&2
+        exit 1
+    fi
+
+    mkdir -p "$share"
+    mv "$pool_copy" "$share/$name"
+    echo "[INFO] Moved published $name from the pool into the worker share for the next job."
+}
+
+# Clean up the pool ourselves, because we set `--no-cleanup` in the worker so we're able to
+# pre-seed the qcow2 image.
+clean_pool() {
+    rm -rf /var/lib/openqa/pool/*/* 2>/dev/null || true
+}
 
 poll_openqa_job() {
     local job_id="$1"
@@ -299,7 +327,14 @@ fi
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
 
-# Don't delete shared assets in a mock single-instance container.
+# The mock single-instance shares the webui filesystem and cleans up
+# the pool itself, so it doesn't need this. Otherwise, move install-system's
+# published qcow2 into the local share so the next job resolves it, then clear
+# the pool now that the job is done as the worker won't because we set --no-cleanup.
 if [[ -z "${MOCK_MODE:-}" ]]; then
+    if [[ -n "$LIVE" ]]; then
+        retain_published_hdd "$PUBLISH_HDD_1"
+    fi
+    clean_pool
     cleanup_assets
 fi
