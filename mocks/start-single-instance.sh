@@ -21,6 +21,16 @@ EOF
 echo "[INFO] Waiting for worker to start..."
 until ps -ef | grep -q "[o]penqa/script/worker"; do sleep 2; done
 
+# The bundled worker wipes its pool after each job. produce_installed_hdd takes the installed disk
+# from the pool to give to the next job, so the pool must survive the first job.
+# openqa-bootstrap starts the worker without --no-cleanup, so swap it for a --no-cleanup launched one.
+echo "[INFO] Restarting the worker with --no-cleanup so its pool survives between jobs..."
+worker_user=$(ps -o user= -p "$(pgrep -f 'openqa/script/worker' | head -n1)" 2>/dev/null | tr -d ' ')
+pkill -f 'openqa/script/worker' || true
+for _ in $(seq 1 10); do pgrep -f 'openqa/script/worker' >/dev/null || break; sleep 1; done
+su -s /bin/bash "${worker_user:-root}" -c '/usr/share/openqa/script/worker --no-cleanup --instance 1 --verbose' &
+until ps -ef | grep -q "[o]penqa/script/worker"; do sleep 2; done
+
 echo "[INFO] Cancelling stale scheduled jobs..."
 openqa-cli api jobs state=scheduled \
     | jq -r '.jobs[].id' \

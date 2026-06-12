@@ -17,7 +17,6 @@ services:
     environment:
       - OPENQA_HOST_ADDR=localhost
       - OPENQA_SCHEME=http
-      - OPENQA_SSH_USER=root
     volumes:
       - ..:/casedir
     entrypoint: ["/casedir/mocks/start-single-instance.sh"]

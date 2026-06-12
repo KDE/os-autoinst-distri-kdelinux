@@ -76,28 +76,14 @@ VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 
 # Check if all the required environment variables exist outside of a single-instance mock, where they aren't required
-required_vars=(OPENQA_HOST_ADDR OPENQA_SSH_USER)
-[[ -z "${MOCK_MODE:-}" ]] && required_vars+=(OPENQA_API_KEY OPENQA_API_SECRET OPENQA_SSH_PRIVATE_KEY)
+required_vars=(OPENQA_HOST_ADDR)
+[[ -z "${MOCK_MODE:-}" ]] && required_vars+=(OPENQA_API_KEY OPENQA_API_SECRET)
 for var in "${required_vars[@]}"; do
     if [[ -z "${!var}" ]]; then
         echo "[ERROR] $var is not set in environment" >&2
         exit 1
     fi
 done
-
-# Register the SSH private key for sftp
-if [[ -n "${OPENQA_SSH_PRIVATE_KEY:-}" ]]; then
-    mkdir -p ~/.ssh
-    chmod 700 ~/.ssh
-    if [[ -f "${OPENQA_SSH_PRIVATE_KEY:-}" ]]; then
-        tr -d '\r' < "$OPENQA_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-    else
-        printf '%s' "$OPENQA_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
-    fi
-    # ensure trailing newline
-    [[ -n "$(tail -c1 ~/.ssh/id_ed25519)" ]] && echo >> ~/.ssh/id_ed25519
-    chmod 600 ~/.ssh/id_ed25519
-fi
 
 # Run test jobs
 if [[ "$UPGRADE" -eq 1 ]]; then

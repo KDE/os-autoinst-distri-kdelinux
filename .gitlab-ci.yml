@@ -26,7 +26,6 @@ reuse:
     - amd64
   variables:
     OPENQA_HOST_ADDR: openqa.kde-linux.haraldsitter.eu
-    OPENQA_SSH_USER: root
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger"
       when: always
@@ -40,13 +39,10 @@ reuse:
       --device /dev/kvm
       --entrypoint ""
       --volume $CI_PROJECT_DIR:$CI_PROJECT_DIR:z
-      --volume "$(dirname "$OPENQA_SSH_PRIVATE_KEY")":"$(dirname "$OPENQA_SSH_PRIVATE_KEY")":ro,z
       --workdir $CI_PROJECT_DIR
       --env OPENQA_HOST_ADDR
-      --env OPENQA_SSH_USER
       --env OPENQA_API_KEY
       --env OPENQA_API_SECRET
-      --env OPENQA_SSH_PRIVATE_KEY
       --env IMAGE_URL
       registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
       bash worker.sh $WORKER_ARGS

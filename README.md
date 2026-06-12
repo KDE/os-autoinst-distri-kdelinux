@@ -100,14 +100,10 @@ To run only the worker locally while pointing it at an existing hosted OpenQA in
 
 ```ini
 OPENQA_HOST_ADDR=openqa.example.com
-OPENQA_SSH_USER=openqa_server_user
 OPENQA_API_KEY=<your key>
 OPENQA_API_SECRET=<your secret>
 OPENQA_SCHEME=https
-OPENQA_SSH_PRIVATE_KEY=<your private key, NOT the path to the file>
 ```
-`OPENQA_SSH_USER` must be the user running the OpenQA server, so assets can be sftp'd into the server.
-You'll also need to have a SSH key pair, and have uploaded your public key to the server.
 
 The API key and secret can be set up in the OpenQA web UI. 
 You'll need operator or admin permissions on the server, and once you have these, you can generate an API key and secret through the user menu on the top right. Don't commit these!
@@ -118,7 +114,7 @@ Then run the worker via Podman:
 podman-compose -f mocks/worker.yml up
 ```
 
-The worker will register with the remote server, upload assets via SSH/sftp, submit jobs, and stream results back.
+The worker will register with the remote server, submit jobs, and stream results back. It is a single worker that triggers and consumes every test asset itself, so nothing is uploaded to the server.
 
 #### Running a SUT Python `unittest` on your own machine
 
@@ -169,9 +165,8 @@ The following variables must be configured in the GitLab project settings, and s
 |---|---|
 | `OPENQA_API_KEY` | API key from the openQA web UI |
 | `OPENQA_API_SECRET` | Corresponding API secret |
-| `OPENQA_SSH_PRIVATE_KEY` | Private key for sftp asset uploads to the openQA server (paste the key contents, not a file path) |
 
-`OPENQA_HOST_ADDR` and `OPENQA_SSH_USER` are hardcoded in `.gitlab-ci.yml` and do not need to be set as variables.
+`OPENQA_HOST_ADDR` is hardcoded in `.gitlab-ci.yml` and does not need to be set as a variable.
 
 #### Triggering from another project
 

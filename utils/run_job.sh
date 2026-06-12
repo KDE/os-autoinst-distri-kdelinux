@@ -70,7 +70,7 @@ if [[ -n "$LIVE" && "$UPGRADE" -eq 1 ]]; then
     exit 1
 fi
 
-required_vars=(OPENQA_HOST_ADDR OPENQA_SSH_USER CASEDIR)
+required_vars=(OPENQA_HOST_ADDR CASEDIR)
 [[ -z "${MOCK_MODE:-}" ]] && required_vars+=(WORKER_CLASS)
 for var in "${required_vars[@]}"; do
     if [[ -z "${!var}" ]]; then
@@ -83,9 +83,7 @@ echo "[INFO] Running test job $TEST..."
 
 if [[ -n "$LIVE" ]]; then
     FLAVOR=live-system
-    # Installation disk is HDD_1 so the system boots into it after live install reboots.
-    # Live image goes to HDD_3 (boot medium).
-    PUBLISH_HDD_1="$(basename "$HDD")"
+    # HDD_1 is the blank install target, HDD_2 the sysext, and HDD_3 the live boot medium..
     HDD_2="$(basename "$SYSEXT")"
     HDD_3="$(basename "$LIVE")"
     NUMDISKS=3
@@ -94,20 +92,6 @@ else
     HDD_1="$(basename "$HDD")"
     HDD_2="$(basename "$SYSEXT")"
     NUMDISKS=2
-fi
-
-# Work out which staged assets are no longer needed once this job finishes,
-# so we can free up that space on the server.
-CLEANUP_ASSETS=()
-if [[ -n "$LIVE" ]]; then
-    # install-system: the live image is a one-shot boot medium, published qcow2 and sysext are used later.
-    CLEANUP_ASSETS+=("$(basename "$LIVE")")
-elif [[ "$UPGRADE" -eq 1 ]]; then
-    # upgrade-system: keep everything as it's an intermediate stage
-    :
-else
-    # sanity-test: clean everything up, we're done here
-    CLEANUP_ASSETS+=("$(basename "$HDD")" "$(basename "$SYSEXT")")
 fi
 
 openqa() {
@@ -119,67 +103,18 @@ stage_asset() {
     local name
     name=$(basename "$path")
 
-    # If the file doesn't exist in the current execution workspace,
-    # it's already in the worker share. Skip staging entirely.
+    # This will be the system disk, which has already been placed into the share.
     if [[ ! -f "$path" ]]; then
-        echo "[INFO] $name is a published asset already staged in the worker share; skipping upload."
+        echo "[INFO] $name is the installed disk, already in the worker share; skipping."
         return 0
     fi
 
-    # Move the asset into the worker share so we don't download something we already have.
-    echo "[INFO] Staging $name into worker share..."
+    # Actually stage the asset by dropping it in the local share.
+    # No assets are required to be uploaded to the server.
     local share=/var/lib/openqa/share/factory/hdd
     mkdir -p "$share"
     cp "$path" "$share/$name"
-    if [[ -n "${MOCK_MODE:-}" ]]; then
-        # If we're in a single-instance mock container, this is all we need to do.
-        return
-    fi
-
-    # Ensure the required factory directory on the WebUI exists
-    ssh -o StrictHostKeyChecking=accept-new \
-        "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
-        "mkdir -p /var/lib/openqa/factory/hdd && chmod 777 /var/lib/openqa/factory/hdd"
-
-    # Compare the hash of the asset on the worker to the asset on the server, upload if they're different
-    local local_hash remote_hash
-    local_hash=$(sha256sum "$path" | awk '{print $1}')
-    remote_hash=$(ssh -o StrictHostKeyChecking=accept-new \
-        "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
-        "sha256sum /var/lib/openqa/factory/hdd/$name 2>/dev/null | awk '{print \$1}'" || true)
-
-    if [[ "$local_hash" == "$remote_hash" ]]; then
-        echo "[INFO] $name is unchanged on server, skipping upload."
-    else
-        echo "[INFO] Uploading $name to server via sftp..."
-        printf 'put "%s" /var/lib/openqa/factory/hdd/\n' "$path" \
-            | sftp -o StrictHostKeyChecking=accept-new \
-                   "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}"
-
-        ssh -o StrictHostKeyChecking=accept-new \
-            "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
-            "ls -lh /var/lib/openqa/factory/hdd/$name" \
-            || { echo "[ERROR] $name not found on server after upload" >&2; exit 1; }
-
-        ssh -o StrictHostKeyChecking=accept-new \
-            "${OPENQA_SSH_USER}@${OPENQA_HOST_ADDR}" \
-            "chmod 644 /var/lib/openqa/factory/hdd/$name"
-    fi
-
-    # Explicitly register the asset on the WebUI
-    local reg_response
-    reg_response=$(openqa -X POST assets \
-        name="$name" \
-        type="hdd")
-    echo "[INFO] Asset registration response for $name: $reg_response"
-}
-
-cleanup_assets() {
-    for name in "${CLEANUP_ASSETS[@]}"; do
-        echo "[INFO] Deleting asset $name from the server; it is no longer needed after this job, and we need to save storage space!"
-        openqa -X DELETE assets/hdd/"$name" \
-            || echo "[WARN] Could not delete asset $name from the server" >&2
-    done
+    echo "[INFO] Staged $name into the worker share."
 }
 
 if [[ -n "$LIVE" ]]; then
@@ -189,26 +124,25 @@ else
 fi
 stage_asset "$SYSEXT"
 
-# install-system publishes the installed qcow2. The worker runs with --no-cleanup, so once the
-# job is done the disk is still in the pool. The worker and webui don't share storage, and the
-# next job resolves assets from the local share, so move the disk there. This saves us a download
-# round-trip. As we don't have a cacheservice set up, the worker believes it's sharing a filesystem
-# with the webui using NFS - it isn't, so we need to pre-seed it ourselves.
-retain_published_hdd() {
+# Since we purposefully don't PUBLISH_HDD_1, flatten the install disk straight into the share.
+# This would otherwise have been done by PUBLISH_HDD_1, but then we have a wasteful upload rigamarole
+# to the server, even while all assets are completely self-contained within the worker.
+produce_installed_hdd() {
     local name="$1"
     local share=/var/lib/openqa/share/factory/hdd
     [[ -e "$share/$name" ]] && return 0
 
-    local pool_copy
-    pool_copy=$(find /var/lib/openqa/pool -name "$name" -print -quit 2>/dev/null || true)
-    if [[ -z "$pool_copy" ]]; then
-        echo "[ERROR] Published $name not found in the worker pool; cannot stage it for the next job." >&2
+    local pool_disk
+    pool_disk=$(find /var/lib/openqa/pool -path '*/raid/hd0' -print -quit 2>/dev/null || true)
+    if [[ -z "$pool_disk" ]]; then
+        echo "[ERROR] Install target disk not found in the worker pool. Pool contents:" >&2
+        find /var/lib/openqa/pool -maxdepth 3 >&2 || true
         exit 1
     fi
 
     mkdir -p "$share"
-    mv "$pool_copy" "$share/$name"
-    echo "[INFO] Moved published $name from the pool into the worker share for the next job."
+    qemu-img convert -O qcow2 "$pool_disk" "$share/$name"
+    echo "[INFO] Flattened the installed disk ($pool_disk) into $share/$name, for the next job."
 }
 
 # Clean up the pool ourselves, because we set `--no-cleanup` in the worker so we're able to
@@ -223,8 +157,7 @@ poll_openqa_job() {
 
     echo "[INFO] Job ${job_id} submitted. Polling for result..."
 
-    # If the job isn't immediately scheduled, the server has probably run out of space.
-    # It should immediately schedule as the worker basically submits its own job.
+    # Jobs should immediately schedule as the worker basically submits its own job.
     local scheduled_timeout=30
     local scheduled_since=
 
@@ -243,7 +176,6 @@ poll_openqa_job() {
             [[ -z "$scheduled_since" ]] && scheduled_since=$SECONDS
             if (( SECONDS - scheduled_since > scheduled_timeout )); then
                 echo "[ERROR] Job ${job_id} stayed in the scheduled state for over ${scheduled_timeout}s." >&2
-                echo "[ERROR] Check that the server has enough free disk space for the test assets." >&2
                 exit 1
             fi
         else
@@ -296,7 +228,6 @@ JOB_RESPONSE=$(openqa -X POST jobs \
     MACHINE=general_64bit \
     $( [[ -z "$LIVE" ]] && echo HDD_1="$HDD_1" ) \
     HDD_2="$HDD_2" \
-    $( [[ -n "$LIVE" ]] && echo PUBLISH_HDD_1="$PUBLISH_HDD_1" ) \
     $( [[ -n "$LIVE" ]] && echo HDD_3="$HDD_3" ) \
     $( [[ -n "$LIVE" ]] && echo DO_INSTALL=1 ) \
     $( [[ -n "$LIVE" ]] && echo HDDSIZEGB=20 ) \
@@ -327,14 +258,9 @@ fi
 
 poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
 
-# The mock single-instance shares the webui filesystem and cleans up
-# the pool itself, so it doesn't need this. Otherwise, move install-system's
-# published qcow2 into the local share so the next job resolves it, then clear
-# the pool now that the job is done as the worker won't because we set --no-cleanup.
-if [[ -z "${MOCK_MODE:-}" ]]; then
-    if [[ -n "$LIVE" ]]; then
-        retain_published_hdd "$PUBLISH_HDD_1"
-    fi
-    clean_pool
-    cleanup_assets
+# Move installed disk out of the pool into the share so the next job resolves
+# it, then clear the pool now that the job is done - since this isn't done automatically.
+if [[ -n "$LIVE" ]]; then
+    produce_installed_hdd "$(basename "$HDD")"
 fi
+clean_pool
