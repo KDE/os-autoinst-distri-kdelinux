@@ -90,8 +90,16 @@ Spins up a local OpenQA webui and worker together.
    ```bash
    ./mock.sh up
    ```
-3. The web UI is available at http://localhost:1080 once the container is ready. The worker connects automatically and submits jobs.
-4. Tear down when done (this cleans up volumes):
+3. The web UI is available at http://localhost:1080 once the container is ready. The container sets
+   up the worker and test assets but does not submit jobs automatically. You must do this yourself.
+4. Open a shell in the container and submit jobs:
+   ```bash
+   podman exec -it openqa-single-instance bash
+   bash utils/jobs.sh            # add --upgrade for the upgrade flow
+   ```
+   You can also edit `utils/jobs.sh` to comment out jobs and run only the ones you want. Note that
+   `sanity-test` needs `install-system` to have run first, because it installs the system to a virtual disk.
+5. Tear down when done (this cleans up volumes):
    ```bash
    ./mock.sh down -v
    ```

@@ -43,8 +43,10 @@ export MOCK_MODE=1
 export CASEDIR=/casedir
 EOF
 
+# Don't auto submit jobs in the mock. Let the user choose what jobs to run.
 /casedir/worker.sh || true
 
-echo "[INFO] Jobs complete. To inspect results, run:"
+echo "[INFO] Open a shell in the container to run jobs:"
 echo "    podman exec -it openqa-single-instance bash"
+echo "[INFO] Refer to README.md for instructions."
 sleep infinity

@@ -85,6 +85,11 @@ for var in "${required_vars[@]}"; do
     fi
 done
 
+# In the single-instance mock users should submit jobs themselves.
+if [[ -n "${MOCK_MODE:-}" ]]; then
+    exit 0
+fi
+
 # Run test jobs
 if [[ "$UPGRADE" -eq 1 ]]; then
     bash "$CASEDIR/utils/jobs.sh" --upgrade
