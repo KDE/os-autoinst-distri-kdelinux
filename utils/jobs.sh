@@ -29,7 +29,18 @@ OUTPUT=${IMG%.raw}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 
-RUN_JOB="$CASEDIR/utils/run_job.sh"
+# retcode 0 = passed, retcode 2 = non-fatal tests failed.
+# Everything else means that there was a fatal failure, so fail fast.
+TESTS_FAILED=0
+run_job() {
+    local retcode=0
+    bash "$CASEDIR"/utils/run_job.sh "$@" || retcode=$?
+    case "$retcode" in
+        0) ;;
+        2) TESTS_FAILED=1 ;;
+        *) exit "$retcode" ;;
+    esac
+}
 
 if [[ "$UPGRADE" -eq 1 ]]; then
     echo "[INFO] Downloading previous image for upgrade test..."
@@ -42,7 +53,7 @@ fi
 # In a mock single-instance container, comment out any of the below test jobs you don't want to run if you aim to test a specific one.
 # Then you'll be able to run utils/jobs.sh in the shell that you get dropped into after the single-instance test suites are done.
 # The install job will at least have to have run before you're able to do this. This will happen on first mock container run.
-bash "$RUN_JOB" \
+run_job \
     --name install-system \
     --live "$INSTALL_LIVE" \
     --hdd "$DISK" \
@@ -50,7 +61,7 @@ bash "$RUN_JOB" \
     --build "$VERSION"
 
 if [[ "$UPGRADE" -eq 1 ]]; then
-    bash "$RUN_JOB" \
+    run_job \
         --name upgrade-system \
         --hdd "$DISK" \
         --sysext "$SYSEXT_IMG" \
@@ -58,8 +69,13 @@ if [[ "$UPGRADE" -eq 1 ]]; then
         --upgrade
 fi
 
-bash "$RUN_JOB" \
+run_job \
     --name sanity-test \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
     --build "$VERSION"
+
+if [[ "$TESTS_FAILED" -ne 0 ]]; then
+    echo "[ERROR] One or more jobs had failing tests." >&2
+    exit 1
+fi

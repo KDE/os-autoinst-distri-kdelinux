@@ -98,6 +98,22 @@ openqa() {
     openqa-cli api --host "${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}" "$@"
 }
 
+banner() {
+    local level="$1" message="$2"
+    local rule color out=1
+    case "$level" in
+        ERROR) rule='\e[1;91m'; color='\e[1;91m'; out=2 ;;  # red
+        WARN)  rule='\e[1;93m'; color='\e[1;93m'; out=2 ;;  # yellow
+        *)     rule='\e[1;95m'; color='\e[1;96m'         ;;  # magenta rule, cyan text
+    esac
+    local line='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    {
+        printf '\n%b%s\e[0m\n' "$rule" "$line"
+        printf '%-9s %b%s\e[0m\n' "[$level]" "$color" "$message"
+        printf '%b%s\e[0m\n\n' "$rule" "$line"
+    } >&"$out"
+}
+
 stage_asset() {
     local path="$1"
     local name
@@ -153,7 +169,6 @@ clean_pool() {
 
 poll_openqa_job() {
     local job_id="$1"
-    local result
 
     echo "[INFO] Job ${job_id} submitted. Polling for result..."
 
@@ -161,12 +176,25 @@ poll_openqa_job() {
     local scheduled_timeout=30
     local scheduled_since=
 
+    banner INFO "View the running job here:  ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}/tests/${job_id}"
+
+    local result=
+    local state=
+
     while true; do
-        local job_data state
+        local job_data new_state new_result
         job_data=$(openqa jobs/${job_id})
-        result=$(echo "$job_data" | jq -r '.job.result // empty')
-        state=$(echo "$job_data" | jq -r '.job.state // empty')
-        echo -e "[INFO] Job state: ${state}\t Job result: ${result}"
+
+        new_state="$(echo "$job_data" | jq -r '.job.state // empty')"
+        new_result="$(echo "$job_data" | jq -r '.job.result // empty')"
+
+        if [[ "${state}" != "${new_state}" \
+        || "${result}" != "${new_result}" ]]; then
+            state="$new_state"
+            result="$new_result"
+            echo -e "[INFO] Job state changed to: ${state}\t Job result changed to: ${result}"
+        fi
+
 
         if [[ "${result}" =~ ^(passed|softfailed|failed|incomplete|timeout|user_cancelled|obsoleted|cancelled|skipped)$ ]]; then
             break
@@ -175,8 +203,8 @@ poll_openqa_job() {
         if [[ "${state}" == "scheduled" ]]; then
             [[ -z "$scheduled_since" ]] && scheduled_since=$SECONDS
             if (( SECONDS - scheduled_since > scheduled_timeout )); then
-                echo "[ERROR] Job ${job_id} stayed in the scheduled state for over ${scheduled_timeout}s." >&2
-                exit 1
+                banner ERROR "Job ${job_id} stayed in the scheduled state for over ${scheduled_timeout}s."
+                return 1
             fi
         else
             scheduled_since=
@@ -185,16 +213,14 @@ poll_openqa_job() {
         sleep 5
     done
 
-    echo "[INFO] Job URL: ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}/tests/${job_id}"
-
     if [[ "${result}" == "passed" || "${result}" == "softfailed" ]]; then
-        echo "[INFO] Job ${job_id} completed with result: ${result}"
-        return
+        banner INFO "Job ${job_id} completed with result: ${result}"
+        return 0
     fi
 
     if [[ "${result}" != "failed" ]]; then
-        echo "[ERROR] Job ${job_id} ended with unexpected result: ${result}" >&2
-        exit 1
+        banner ERROR "Job ${job_id} ended with unexpected result: ${result}"
+        return 1
     fi
 
     # Job failed; check whether a fatal-flagged module caused the failure.
@@ -208,11 +234,12 @@ poll_openqa_job() {
     ')
 
     if [[ -n "$fatal_failures" ]]; then
-        echo "[ERROR] Job ${job_id} aborted; fatal module(s) failed: $(echo "$fatal_failures" | tr '\n' ' ')" >&2
-        exit 1
+        banner ERROR "Job ${job_id} aborted; fatal module(s) failed: $(echo "$fatal_failures" | tr '\n' ' ')"
+        return 1
     fi
 
-    echo "[WARN] Job ${job_id} failed; no fatal modules involved, continuing to next job."
+    banner WARN "Job ${job_id} failed; no fatal modules involved."
+    return 2
 }
 
 GROUP_ARG=()
@@ -252,15 +279,21 @@ JOB_RESPONSE=$(openqa -X POST jobs \
 echo "[INFO] Job creation response: $JOB_RESPONSE"
 JOB_ID=$(echo "$JOB_RESPONSE" | jq -r .id)
 if [[ -z "$JOB_ID" || "$JOB_ID" == "null" ]]; then
-    echo "[ERROR] Job creation failed" >&2
+    banner ERROR "Job creation failed"
     exit 1
 fi
 
-poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR"
+poll_retcode=0
+poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR" || poll_retcode=$?
 
 # Move installed disk out of the pool into the share so the next job resolves
 # it, then clear the pool now that the job is done - since this isn't done automatically.
-if [[ -n "$LIVE" ]]; then
-    produce_installed_hdd "$(basename "$HDD")"
+# A fatal failure is marked by retcode 1. In this case fail fast.
+if [[ "$poll_retcode" -ne 1 ]]; then
+    if [[ -n "$LIVE" ]]; then
+        produce_installed_hdd "$(basename "$HDD")"
+    fi
+    clean_pool
 fi
-clean_pool
+
+exit "$poll_retcode"
