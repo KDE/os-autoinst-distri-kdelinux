@@ -57,7 +57,11 @@
 - Lock screen - lock the session and unlock it with the user's password
 - Clipboard - test outside of Qt apps and flatpaks (e.g. copy from Firefox, paste into LibreOffice Calc)
 - FDE and manual partitioning - test installation with these
-- Ensure a new build can upgrade to an even newer one - see https://invent.kde.org/kde-linux/os-autoinst-distri-kdelinux/-/work_items/11
+  - This will need some scheduler changes. We need to add a setting to main.pm for INSTALL_TYPE, which can be default|fde|manual
+  - Then we need distinct named test-suites - install-system\[-fde|-manual\]
+  - Then do some fancy combinatorics in CI, use matrices. This is because we don't do things the "normal" OpenQA way with persistent hosted runners (our way is better!).
+  - The caveat with this is we'd be downloading an image many times. We should have some kind of cache for this or shared volume.
+- Ensure a new build can upgrade to an even newer one - see https://invent.kde.org/kde-linux/os-autoinst-distri-kdelinux/-/work_items/11. This is going to be weird to implement.
 
 ### End-to-end test flows
 
@@ -167,6 +171,19 @@ The following variables must be configured in the GitLab project settings, and s
 | `OPENQA_API_SECRET` | Corresponding API secret |
 
 `OPENQA_HOST_ADDR` is hardcoded in `.gitlab-ci.yml` and does not need to be set as a variable.
+
+#### Job groups
+
+Each flow is assigned to its own job group so it gets a separate build overview and the dependency chain stays together. 
+These groups should created on the server beforehand, under a `KDE Linux` folder:
+
+| Group | Used by |
+|---|---|
+| `KDE Linux Installation` | standard install and sanity test flow |
+| `KDE Linux Upgrade` | upgradeability flow |
+
+The names are matched server-side by `utils/jobs.sh`. If a group doesn't exist, openQA will simply leave them ungrouped
+without any errors.
 
 #### Triggering from another project
 

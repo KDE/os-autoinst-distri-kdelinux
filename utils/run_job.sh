@@ -11,6 +11,9 @@ SYSEXT=
 BUILD=
 TEST=
 UPGRADE=0
+FLAVOR=
+AFTER=
+GROUP=
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -32,6 +35,20 @@ while [[ $# -gt 0 ]]; do
             ;;
         --name)
             TEST="$2"
+            shift 2
+            ;;
+        --flavor)
+            FLAVOR="$2"
+            shift 2
+            ;;
+        --group)
+            GROUP="$2"
+            shift 2
+            ;;
+        # Have a chained dependency on an already-submitted job so webui links them
+        # in its dependency graph.
+        --after)
+            AFTER="$2"
             shift 2
             ;;
         --upgrade)
@@ -65,6 +82,11 @@ if [[ -z "$SYSEXT" ]]; then
     exit 1
 fi
 
+if [[ -z "$FLAVOR" ]]; then
+    echo "[ERROR] --flavor is required" >&2
+    exit 1
+fi
+
 if [[ -n "$LIVE" && "$UPGRADE" -eq 1 ]]; then
     echo "[ERROR] --live and --upgrade are mutually exclusive" >&2
     exit 1
@@ -82,13 +104,11 @@ done
 echo "[INFO] Running test job $TEST..."
 
 if [[ -n "$LIVE" ]]; then
-    FLAVOR=live-system
     # HDD_1 is the blank install target, HDD_2 the sysext, and HDD_3 the live boot medium..
     HDD_2="$(basename "$SYSEXT")"
     HDD_3="$(basename "$LIVE")"
     NUMDISKS=3
 else
-    FLAVOR=full-system
     HDD_1="$(basename "$HDD")"
     HDD_2="$(basename "$SYSEXT")"
     NUMDISKS=2
@@ -243,7 +263,7 @@ poll_openqa_job() {
 }
 
 GROUP_ARG=()
-[[ -z "${MOCK_MODE:-}" ]] && GROUP_ARG=("_GROUP=KDE Linux")
+[[ -n "$GROUP" ]] && GROUP_ARG=("_GROUP=$GROUP")
 
 JOB_RESPONSE=$(openqa -X POST jobs \
     DISTRI=KDE-Linux \
@@ -273,6 +293,7 @@ JOB_RESPONSE=$(openqa -X POST jobs \
     TIMEOUT_SCALE=3 \
     VIRTIO_CONSOLE=1 \
     NICTYPE_USER_OPTIONS="hostfwd=tcp::2222-:22" \
+    $( [[ -n "$AFTER" ]] && echo _START_AFTER_JOBS="$AFTER" ) \
     "${GROUP_ARG[@]}" \
     $( [[ -z "${MOCK_MODE:-}" ]] && echo WORKER_CLASS="$WORKER_CLASS" ) )
 
@@ -281,6 +302,11 @@ JOB_ID=$(echo "$JOB_RESPONSE" | jq -r .id)
 if [[ -z "$JOB_ID" || "$JOB_ID" == "null" ]]; then
     banner ERROR "Job creation failed"
     exit 1
+fi
+
+# Emit the job id on fd 3 so jobs.sh can chain the next job, only if fd 3 was created.
+if { true >&3; } 2>/dev/null; then
+    echo "$JOB_ID" >&3
 fi
 
 poll_retcode=0

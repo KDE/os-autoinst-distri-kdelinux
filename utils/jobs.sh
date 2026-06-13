@@ -29,15 +29,19 @@ OUTPUT=${IMG%.raw}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 
-# retcode 0 = passed, retcode 2 = non-fatal tests failed.
-# Everything else means that there was a fatal failure, so fail fast.
+# Chain each job onto the previous one, so we get a nice dependency graph.
+# retcode 0 = passed, retcode 2 = non-fatal tests failed
+# Everything else is a fatal failure, so fail fast.
+# Created job id is emitted through fd 3 and stdout goes into fd 4 so PARENT doesn't
+# eat the logs. A bit of weird plumbing.
 TESTS_FAILED=0
+PARENT=
+exec 4>&1
 run_job() {
     local retcode=0
-    bash "$CASEDIR"/utils/run_job.sh "$@" || retcode=$?
+    PARENT=$(bash "$CASEDIR"/utils/run_job.sh "$@" --group "$GROUP" --after "$PARENT" 3>&1 1>&4) || retcode=$?
     case "$retcode" in
-        0) ;;
-        2) TESTS_FAILED=1 ;;
+        0|2) [[ "$retcode" -eq 2 ]] && TESTS_FAILED=1 ;;
         *) exit "$retcode" ;;
     esac
 }
@@ -50,15 +54,32 @@ else
     INSTALL_LIVE="$IMG_PATH"
 fi
 
-# Otherwise we aren't able to tell tests in the upgrade path and normal path apart, and things get confusing.
-SUFFIX=
-[[ "$UPGRADE" -eq 1 ]] && SUFFIX="-upgrade"
+# The upgrade flow uses install-system and sanity-test as well, so these jobs get their own flavor.
+if [[ "$UPGRADE" -eq 1 ]]; then
+    INSTALL_FLAVOR=live-upgrade
+    SANITY_FLAVOR=installed-upgrade
+else
+    INSTALL_FLAVOR=live
+    SANITY_FLAVOR=installed
+fi
+
+# Put the whole flow in its own job group so each flow gets its own build overview,
+# and the dependency chain stays within one group. Mock doesn't have any groups, so don't set it here.
+GROUP=
+if [[ -z "${MOCK_MODE:-}" ]]; then
+    if [[ "$UPGRADE" -eq 1 ]]; then
+        GROUP="KDE Linux Upgrade"
+    else
+        GROUP="KDE Linux Installation"
+    fi
+fi
 
 # In a mock single-instance container, comment out any of the below test jobs you don't want to run if you aim to test a specific one.
 # Then you'll be able to run utils/jobs.sh in the shell that you get dropped into after the single-instance test suites are done.
 # The install job will at least have to have run before you're able to do this. This will happen on first mock container run.
 run_job \
-    --name "install-system${SUFFIX}" \
+    --name install-system \
+    --flavor "$INSTALL_FLAVOR" \
     --live "$INSTALL_LIVE" \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
@@ -67,6 +88,7 @@ run_job \
 if [[ "$UPGRADE" -eq 1 ]]; then
     run_job \
         --name upgrade-system \
+        --flavor upgrade \
         --hdd "$DISK" \
         --sysext "$SYSEXT_IMG" \
         --build "$VERSION" \
@@ -74,7 +96,8 @@ if [[ "$UPGRADE" -eq 1 ]]; then
 fi
 
 run_job \
-    --name "sanity-test${SUFFIX}" \
+    --name sanity-test \
+    --flavor "$SANITY_FLAVOR" \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
     --build "$VERSION"
