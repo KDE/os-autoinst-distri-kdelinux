@@ -41,7 +41,8 @@ run_job() {
     local retcode=0
     PARENT=$(bash "$CASEDIR"/utils/run_job.sh "$@" --group "$GROUP" --after "$PARENT" 3>&1 1>&4) || retcode=$?
     case "$retcode" in
-        0|2) [[ "$retcode" -eq 2 ]] && TESTS_FAILED=1 ;;
+        0) ;;
+        2) TESTS_FAILED=1 ;;
         *) exit "$retcode" ;;
     esac
 }
