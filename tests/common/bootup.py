@@ -3,6 +3,9 @@
 
 from testapi import *
 
+def test_flags(self):
+    return {'fatal': 1}
+
 def run(self):
     power('on')
     # check if we see plymouth
