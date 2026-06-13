@@ -50,11 +50,15 @@ else
     INSTALL_LIVE="$IMG_PATH"
 fi
 
+# Otherwise we aren't able to tell tests in the upgrade path and normal path apart, and things get confusing.
+SUFFIX=
+[[ "$UPGRADE" -eq 1 ]] && SUFFIX="-upgrade"
+
 # In a mock single-instance container, comment out any of the below test jobs you don't want to run if you aim to test a specific one.
 # Then you'll be able to run utils/jobs.sh in the shell that you get dropped into after the single-instance test suites are done.
 # The install job will at least have to have run before you're able to do this. This will happen on first mock container run.
 run_job \
-    --name install-system \
+    --name "install-system${SUFFIX}" \
     --live "$INSTALL_LIVE" \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
@@ -70,7 +74,7 @@ if [[ "$UPGRADE" -eq 1 ]]; then
 fi
 
 run_job \
-    --name sanity-test \
+    --name "sanity-test${SUFFIX}" \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
     --build "$VERSION"
