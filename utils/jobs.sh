@@ -56,11 +56,11 @@ fi
 
 # The upgrade flow uses install-system and sanity-test as well, so these jobs get their own flavor.
 if [[ "$UPGRADE" -eq 1 ]]; then
-    INSTALL_FLAVOR=live-upgrade
-    SANITY_FLAVOR=installed-upgrade
+    LIVE_FLAVOR=live-upgrade
+    INSTALLED_FLAVOR=installed-upgrade
 else
-    INSTALL_FLAVOR=live
-    SANITY_FLAVOR=installed
+    LIVE_FLAVOR=live
+    INSTALLED_FLAVOR=installed
 fi
 
 # Put the whole flow in its own job group so each flow gets its own build overview,
@@ -79,7 +79,7 @@ fi
 # The install job will at least have to have run before you're able to do this. This will happen on first mock container run.
 run_job \
     --name install-system \
-    --flavor "$INSTALL_FLAVOR" \
+    --flavor "$LIVE_FLAVOR" \
     --live "$INSTALL_LIVE" \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
@@ -88,7 +88,7 @@ run_job \
 if [[ "$UPGRADE" -eq 1 ]]; then
     run_job \
         --name upgrade-system \
-        --flavor upgrade \
+        --flavor "$INSTALLED_FLAVOR" \
         --hdd "$DISK" \
         --sysext "$SYSEXT_IMG" \
         --build "$VERSION" \
@@ -97,7 +97,7 @@ fi
 
 run_job \
     --name sanity-test \
-    --flavor "$SANITY_FLAVOR" \
+    --flavor "$INSTALLED_FLAVOR" \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
     --build "$VERSION"
