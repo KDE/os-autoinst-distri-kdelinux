@@ -9,6 +9,8 @@ from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.common.base import AppiumOptions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
 
@@ -35,6 +37,8 @@ class FirefoxTests(unittest.TestCase):
 
     def test_1_navigate_to_kde_linux(self):
         """Open the KDE Linux site in Firefox and ensure the page loads."""
+        # Need to get through the initial dialogue.
+        ActionChains(self.driver).send_keys(Keys.RETURN).perform()
         # The page is loaded enough once an element with the page title appears in the a11y tree.
         WebDriverWait(self.driver, 30).until(
             ec.presence_of_element_located((AppiumBy.NAME, EXPECTED_PAGE_TITLE)),
