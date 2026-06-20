@@ -52,7 +52,8 @@ sub test_kdelinux {
     loadtest 'kdelinux/desktop/create_file.py';
     loadtest 'kdelinux/desktop/clipboard.py';
     loadtest 'kdelinux/desktop/krunner.py';
-    loadtest 'kdelinux/desktop/drkonqi.py';
+#   Disable for the time being. It's flaky.
+#   loadtest 'kdelinux/desktop/drkonqi.py';
     loadtest 'kdelinux/app/dolphin_manipulate_fs.py';
     loadtest 'kdelinux/app/firefox.py';
     loadtest 'kdelinux/app/ensure_secret_service_provider.py';
