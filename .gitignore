@@ -7,3 +7,6 @@ appium_artifact*
 openqa-sysext.img
 OVMF_VARS.4m.fd
 *.pyc
+
+# Generated at build by worker.sh, copied from top level ./lib.
+/extensions/openqa/usr/lib/kde-linux-openqa/lib/*.py

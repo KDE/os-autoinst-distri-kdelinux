@@ -54,7 +54,13 @@ for pkg in "${DEPS[@]}"; do
 done
 [[ ${#MISSING[@]} -gt 0 ]] && zypper --non-interactive --gpg-auto-import-keys install "${MISSING[@]}" || true
 
-# Build the openqa sysext for the SUT
+# Build the openqa sysext for the SUT.
+# The top-level files in ./lib are shared between the host and the SUT, so copy them in at sysext build time.
+# These are in .gitignore.
+SYSEXT_LIB="$CASEDIR/extensions/openqa/usr/lib/kde-linux-openqa/lib"
+mkdir -p "$SYSEXT_LIB"
+find -L "$CASEDIR/lib" -maxdepth 1 -type f -exec cp -f {} "$SYSEXT_LIB/" \;
+
 SYSEXT_IMG="openqa-sysext.img"
 mkfs.erofs -L "kde-openqa-ext" "$SYSEXT_IMG" "$CASEDIR/extensions/openqa"
 
