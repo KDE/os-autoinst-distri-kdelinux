@@ -23,7 +23,7 @@ TRASHED_FILE_PATH = os.path.join(
     'Trash', 'files', TEST_FILE_NAME)
 
 
-class DolphinManipulateFsTests(unittest.TestCase):
+class DolphinTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         os.makedirs(DOCUMENTS_DIR, exist_ok=True)
@@ -87,4 +87,4 @@ class DolphinManipulateFsTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    openqa_junit_xml.run(DolphinManipulateFsTests, "dolphin_manipulate_fs")
+    openqa_junit_xml.run(DolphinTests, "dolphin")

@@ -20,7 +20,7 @@ from lib import user_manager
 SECRETS_BUS_NAME = 'org.freedesktop.secrets'
 KEEPSECRET_APP_ID = 'org.kde.keepsecret'
 
-class EnsureSecretServiceProviderTests(unittest.TestCase):
+class SecretServiceTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.keepsecret, pid = flatpak.launch(KEEPSECRET_APP_ID, 'keepsecret')
@@ -139,4 +139,4 @@ class EnsureSecretServiceProviderTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    openqa_junit_xml.run(EnsureSecretServiceProviderTests, "ensure_secret_service_provider")
+    openqa_junit_xml.run(SecretServiceTests, "secret_service")

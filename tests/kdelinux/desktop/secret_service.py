@@ -5,5 +5,5 @@ from lib.openqa import cli_test
 from lib import user_manager
 
 def run(self):
-    test = cli_test.CliTest('ensure_secret_service_provider')
+    test = cli_test.CliTest('secret_service')
     test.run_selenium(user=user_manager.installed())

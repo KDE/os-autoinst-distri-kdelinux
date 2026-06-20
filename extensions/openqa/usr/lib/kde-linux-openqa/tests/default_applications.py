@@ -15,7 +15,7 @@ import subprocess
 
 # Verifies the set default applications, through mimetype and system settings.
 
-class CheckDefaultApplicationsTests(unittest.TestCase):
+class DefaultApplicationsTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         options = AppiumOptions()
@@ -128,4 +128,4 @@ class CheckDefaultApplicationsTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    openqa_junit_xml.run(CheckDefaultApplicationsTests, "check_default_applications")
+    openqa_junit_xml.run(DefaultApplicationsTests, "default_applications")

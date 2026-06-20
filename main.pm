@@ -46,17 +46,17 @@ sub test_live_image {
 sub test_kdelinux {
     loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
-    loadtest 'kdelinux/system_settings/check_default_applications.py';
+    loadtest 'kdelinux/system_settings/default_applications.py';
     loadtest 'kdelinux/desktop/panel.py';
     loadtest 'kdelinux/desktop/task_switcher.py';
     loadtest 'kdelinux/desktop/create_file.py';
     loadtest 'kdelinux/desktop/clipboard.py';
     loadtest 'kdelinux/desktop/krunner.py';
+    loadtest 'kdelinux/desktop/secret_service.py';
 #   Disable for the time being. It's flaky.
 #   loadtest 'kdelinux/desktop/drkonqi.py';
-    loadtest 'kdelinux/app/dolphin_manipulate_fs.py';
+    loadtest 'kdelinux/app/dolphin.py';
     loadtest 'kdelinux/app/firefox.py';
-    loadtest 'kdelinux/app/ensure_secret_service_provider.py';
     loadtest 'kdelinux/app/package_compatibility_helper.py';
     loadtest 'kdelinux/app/discover_install.py';
     loadtest 'kdelinux/desktop/desktop_session_services.py';
