@@ -6,5 +6,7 @@ from lib.openqa.cli_session import session
 from lib import user_manager
 
 def run(self):
-    session.run('systemctl reboot', wait_result=False)
+    try:
+        session.run('systemctl reboot', wait_result=False)
+    except RuntimeError: pass
     session.reset()

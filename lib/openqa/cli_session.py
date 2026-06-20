@@ -31,7 +31,12 @@ class CliSession:
 
     def reset(self):
         if self._conn:
-            self._conn.close()
+            try:
+                self._conn.close()
+            except EOFError:
+                # We can't handshake if the system is shut down!
+                # Doesn't matter anyway.
+                pass
         self._conn = None
 
     def run(self, cmdline: str, timeout: int = 90, wait_result: bool = True) -> str | None:
