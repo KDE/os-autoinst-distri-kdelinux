@@ -9,5 +9,5 @@ from lib import paths
 from lib import user_manager
 
 def run(self):
-    test = cli_test.CliTest('drkonqi')
+    test = cli_test.CliTest('drkonqi', timeout=120)
     test.run_selenium(user=user_manager.installed())
