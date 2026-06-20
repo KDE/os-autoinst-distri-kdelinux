@@ -14,10 +14,10 @@ from selenium.webdriver.common.keys import Keys
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
 
-# Launches Firefox and checks page loading and that the Plasma Integration extension is active.
+# Launches Firefox and checks page loading, and that the Plasma Integration extension is active.
 
 URL = 'https://linux.kde.org'
-EXPECTED_PAGE_TITLE = 'KDE Linux'
+EXPECTED_ELEMENT_NAME = 'KDE Linux — Mozilla Firefox'
 FIREFOX_APP_ID = 'org.mozilla.firefox'
 
 
@@ -37,12 +37,10 @@ class FirefoxTests(unittest.TestCase):
 
     def test_1_navigate_to_kde_linux(self):
         """Open the KDE Linux site in Firefox and ensure the page loads."""
-        # Need to get through the initial dialogue.
-        ActionChains(self.driver).send_keys(Keys.RETURN).perform()
-        # The page is loaded enough once an element with the page title appears in the a11y tree.
+        # The page is loaded enough once we can see the frame named "KDE Linux — Mozilla Firefox".
         WebDriverWait(self.driver, 30).until(
-            ec.presence_of_element_located((AppiumBy.NAME, EXPECTED_PAGE_TITLE)),
-            message=f'page with title {EXPECTED_PAGE_TITLE!r} did not load')
+            ec.presence_of_element_located((AppiumBy.NAME, EXPECTED_ELEMENT_NAME)),
+            message=f'element named {EXPECTED_ELEMENT_NAME!r} did not load')
 
     def test_2_plasma_integration_extension_active(self):
         """Check that the Plasma Integration browser extension native host is running."""
