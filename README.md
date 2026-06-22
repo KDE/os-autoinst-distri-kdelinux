@@ -85,7 +85,7 @@ Nota bene: if you change anything in `extensions/`, you'll need to rerun your lo
 
 Spins up a local OpenQA webui and worker together.
 
-1. Place a KDE Linux `.raw` image in the repo root (the worker finds it automatically). Otherwise, it will try to download the latest one.
+1. Place a KDE Linux `.iso` image in the repo root (the worker finds it automatically). Otherwise, it will try to download the latest one.
 2. Start the stack:
    ```bash
    ./mock.sh up

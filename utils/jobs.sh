@@ -19,13 +19,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 SYSEXT_IMG="openqa-sysext.img"
-IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.raw' | head -n1)
+IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.iso' | head -n1)
 if [[ -z "$IMG_PATH" ]]; then
-    echo "[ERROR] No .raw image found in $CASEDIR" >&2
+    echo "[ERROR] No .iso image found in $CASEDIR" >&2
     exit 1
 fi
 IMG=$(basename "$IMG_PATH")
-OUTPUT=${IMG%.raw}
+OUTPUT=${IMG%.iso}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 
