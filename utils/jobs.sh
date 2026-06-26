@@ -29,6 +29,13 @@ OUTPUT=${IMG%.raw}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 
+# Copy test cases to the directory where openQA expcets so that needle editor works
+if [[ -n "${MOCK_MODE:-}" ]]; then
+    mkdir -p /var/lib/openqa/tests/kde-linux
+    rsync -av --delete --exclude '*.raw' --exclude '*.img' "$CASEDIR"/* /var/lib/openqa/tests/kde-linux
+    chown -R geekotest:geekotest /var/lib/openqa/tests/kde-linux
+fi
+
 # Chain each job onto the previous one, so we get a nice dependency graph.
 # retcode 0 = passed, retcode 2 = non-fatal tests failed
 # Everything else is a fatal failure, so fail fast.
