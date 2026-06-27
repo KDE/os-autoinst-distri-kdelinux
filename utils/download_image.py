@@ -26,18 +26,18 @@ def download(build_index):
     resp = requests.get(url)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
-    pattern = re.compile(r'kde-linux_\d+\.raw$')
+    pattern = re.compile(r'kde-linux_\d+\.iso$')
     links = soup.find_all("a", href=pattern)
     if links:
         latest_href = links[build_index]["href"]
         download_url = base_url + latest_href
         download_file(download_url, latest_href)
     else:
-        print("Raw files not found")
+        print(".iso files not found")
         sys.exit(1)
 
 def download_specific(build_version):
-    filename = f"kde-linux_{build_version}.raw"
+    filename = f"kde-linux_{build_version}.iso"
     download_url = base_url + filename
     try:
         resp = requests.head(download_url)

@@ -64,20 +64,20 @@ find -L "$CASEDIR/lib" -maxdepth 1 -type f -exec cp -f {} "$SYSEXT_LIB/" \;
 SYSEXT_IMG="openqa-sysext.img"
 mkfs.erofs -L "kde-openqa-ext" "$SYSEXT_IMG" "$CASEDIR/extensions/openqa"
 
-# Download and set up .raw live image
-IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.raw' | head -n1)
+# Download and set up .iso live image
+IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.iso' | head -n1)
 if [[ -z "$IMG_PATH" ]]; then
     if [[ -n "${IMAGE_URL:-}" ]]; then
         echo "[INFO] Downloading image from $IMAGE_URL..."
         IMG_PATH="$CASEDIR/$(basename "$IMAGE_URL")"
         curl -L -o "$IMG_PATH" "$IMAGE_URL"
     else
-        echo "[INFO] No .raw image found, downloading latest..."
+        echo "[INFO] No .iso image found, downloading latest..."
         IMG_PATH=$(python3 "$CASEDIR/utils/download_image.py" --latest)
     fi
 fi
 IMG=$(basename "$IMG_PATH")
-OUTPUT=${IMG%.raw}
+OUTPUT=${IMG%.iso}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 

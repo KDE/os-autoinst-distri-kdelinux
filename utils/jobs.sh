@@ -19,20 +19,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 SYSEXT_IMG="openqa-sysext.img"
-IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.raw' | head -n1)
+IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.iso' | head -n1)
 if [[ -z "$IMG_PATH" ]]; then
-    echo "[ERROR] No .raw image found in $CASEDIR" >&2
+    echo "[ERROR] No .iso image found in $CASEDIR" >&2
     exit 1
 fi
 IMG=$(basename "$IMG_PATH")
-OUTPUT=${IMG%.raw}
+OUTPUT=${IMG%.iso}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 
 # Copy test cases to the directory where openQA expcets so that needle editor works
 if [[ -n "${MOCK_MODE:-}" ]]; then
     mkdir -p /var/lib/openqa/tests/kde-linux
-    rsync -av --delete --exclude '*.raw' --exclude '*.img' "$CASEDIR"/* /var/lib/openqa/tests/kde-linux
+    rsync -av --delete --exclude '*.iso' --exclude '*.img' "$CASEDIR"/* /var/lib/openqa/tests/kde-linux
     chown -R geekotest:geekotest /var/lib/openqa/tests/kde-linux
 fi
 
