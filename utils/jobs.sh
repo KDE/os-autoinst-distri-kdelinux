@@ -6,7 +6,7 @@ set -euo pipefail
 # Submits and polls all test jobs for a build.
 
 if [[ -z "${CASEDIR:-}" ]]; then
-    echo "[ERROR] CASEDIR is not set; run from a worker shell or source worker.sh first" >&2
+    echo "[ERROR] CASEDIR is not set. Wait until the worker has fully initialised itself before entering this shell." >&2
     exit 1
 fi
 
