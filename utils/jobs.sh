@@ -29,10 +29,10 @@ OUTPUT=${IMG%.iso}
 VERSION=${OUTPUT##*_}
 DISK=${OUTPUT}.qcow2
 
-# Copy test cases to the directory where openQA expcets so that needle editor works
+# Copy test cases to the directory where openQA expects so that needle editor works
 if [[ -n "${MOCK_MODE:-}" ]]; then
     mkdir -p /var/lib/openqa/tests/kde-linux
-    rsync -av --delete --exclude '*.iso' --exclude '*.img' "$CASEDIR"/* /var/lib/openqa/tests/kde-linux
+    rsync -a --delete --exclude '*.iso' --exclude '*.img' "$CASEDIR"/* /var/lib/openqa/tests/kde-linux
     chown -R geekotest:geekotest /var/lib/openqa/tests/kde-linux
 fi
 

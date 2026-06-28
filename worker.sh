@@ -62,7 +62,7 @@ mkdir -p "$SYSEXT_LIB"
 find -L "$CASEDIR/lib" -maxdepth 1 -type f -exec cp -f {} "$SYSEXT_LIB/" \;
 
 SYSEXT_IMG="openqa-sysext.img"
-mkfs.erofs -L "kde-openqa-ext" "$SYSEXT_IMG" "$CASEDIR/extensions/openqa"
+mkfs.erofs --quiet -L "kde-openqa-ext" "$SYSEXT_IMG" "$CASEDIR/extensions/openqa"
 
 # Download and set up .iso live image
 IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.iso' | head -n1)
