@@ -96,7 +96,10 @@ class PlasmaSetupTests(unittest.TestCase):
 
         ## Finished page
         time.sleep(2)
-        wait.until(ec.element_to_be_clickable(next_button)).click()
+        finish_button = wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Finish"))
+        )
+        finish_button.click()
 
 
 if __name__ == "__main__":
