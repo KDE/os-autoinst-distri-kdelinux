@@ -61,6 +61,20 @@ SYSEXT_LIB="$CASEDIR/extensions/openqa/usr/lib/kde-linux-openqa/lib"
 mkdir -p "$SYSEXT_LIB"
 find -L "$CASEDIR/lib" -maxdepth 1 -type f -exec cp -f {} "$SYSEXT_LIB/" \;
 
+if [[ -n "${STAGING_CHANNEL_URL:-}" ]]; then
+    # Create sysupdate.d dropins to redirect updates to our staged S3 image in CI.
+    mkdir -p "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-caibx.transfer.d/"
+    mkdir -p "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-erofs.transfer.d/"
+    mkdir -p "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/60-esp.transfer.d/"
+
+    tee "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-caibx.transfer.d/99-openqa-override.conf" \
+        "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-erofs.transfer.d/99-openqa-override.conf" \
+        "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/60-esp.transfer.d/99-openqa-override.conf" > /dev/null <<EOF
+[Source]
+Path=${STAGING_CHANNEL_URL}
+EOF
+fi
+
 SYSEXT_IMG="openqa-sysext.img"
 mkfs.erofs --quiet -L "kde-openqa-ext" "$SYSEXT_IMG" "$CASEDIR/extensions/openqa"
 
