@@ -33,6 +33,11 @@ class PanelTests(unittest.TestCase):
         ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
         flatpak.kill(FIREFOX_APP_ID)
 
+    def setUp(self):
+        # Close any Firefox we launch at the end of each test. Otherwise a lingering
+        # Firefox steals focus and dismisses the next test's kickoff popup.
+        self.addCleanup(flatpak.kill, FIREFOX_APP_ID)
+
     def _panel_child(self, name):
         """Locator for a named element under the panel."""
         return (AppiumBy.XPATH,
