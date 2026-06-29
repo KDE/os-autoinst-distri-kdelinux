@@ -54,7 +54,7 @@ run_job() {
     esac
 }
 
-if [[ "$UPGRADE" -eq 1 && -n "${MOCK_MODE:-}" ]]; then
+if [[ "$UPGRADE" -eq 1 && "${USE_LATEST_IMAGE_UPGRADE:-0}" -ne 1 ]]; then
     echo "[INFO] Downloading previous image for upgrade test..."
     PREV_IMG_PATH=$(python3 "$CASEDIR/utils/download_image.py" --previous-image)
     INSTALL_LIVE="$PREV_IMG_PATH"

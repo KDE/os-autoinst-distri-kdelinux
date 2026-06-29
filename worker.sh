@@ -62,6 +62,8 @@ mkdir -p "$SYSEXT_LIB"
 find -L "$CASEDIR/lib" -maxdepth 1 -type f -exec cp -f {} "$SYSEXT_LIB/" \;
 
 if [[ -n "${STAGING_CHANNEL_URL:-}" ]]; then
+    # Ensure we aren't downloading an older image when we don't need to.
+    export USE_LATEST_IMAGE_UPGRADE=1
     # Create sysupdate.d dropins to redirect updates to our staged S3 image in CI.
     mkdir -p "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-caibx.transfer.d/"
     mkdir -p "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-erofs.transfer.d/"
