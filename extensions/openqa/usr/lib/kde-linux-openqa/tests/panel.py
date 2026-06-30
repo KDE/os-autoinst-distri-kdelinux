@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
+from lib.sut import systemtray
 from lib.sut.atspi import find_pid_on_atspi_bus
 
 # Checks if apps can be launched from Kickoff search, Kickoff favorites, and the task manager.
@@ -56,20 +57,10 @@ class PanelTests(unittest.TestCase):
 
     def test_1_system_tray_present(self):
         """The panel must have a system tray, and its arrow must open the tray popup."""
-        wait = WebDriverWait(self.driver, 10)
-        # Open the collapsed system tray.
-        arrow = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Show hidden icons")),
-            message='system tray expander arrow not found on the panel')
-        arrow.click()
-
-        # Once open, check for Vaults, which should reliably be present.
-        wait.until(
-            ec.presence_of_element_located((AppiumBy.NAME, "Vaults")),
-            message='system tray popup did not show its contents')
-
-        # Close the system tray.
-        ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
+        systemtray.expand(self.driver)
+        # Vaults should reliably be present in the tray.
+        systemtray.entry(self.driver, "Vaults")
+        systemtray.collapse(self.driver)
 
     def test_2_task_manager_pinned_apps(self):
         """The task manager must have the expected apps pinned."""
