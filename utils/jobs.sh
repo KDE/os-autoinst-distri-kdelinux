@@ -54,10 +54,21 @@ run_job() {
     esac
 }
 
-if [[ "$UPGRADE" -eq 1 && "${USE_LATEST_IMAGE_UPGRADE:-0}" -ne 1 ]]; then
-    echo "[INFO] Downloading previous image for upgrade test..."
-    PREV_IMG_PATH=$(python3 "$CASEDIR/utils/download_image.py" --previous-image)
-    INSTALL_LIVE="$PREV_IMG_PATH"
+if [[ "$UPGRADE" -eq 1 ]]; then
+    # The upgrade flow installs an older base, then upgrades it to the build under test.
+    # Hence, if we have an image staged, we CANNOT be using that same one as the installed image
+    # which will be upgraded from our staging repo.
+    # We also shouldn't be using some older image, we should be using the latest publicly available
+    # image as the upgrade base, since we're testing incremental upgrades.
+    if [[ "${USE_LATEST_IMAGE_UPGRADE:-0}" -eq 1 ]]; then
+        # The build under test is an unpublished staged image so install the latest published image.
+        echo "[INFO] Downloading latest published image as the upgrade base..."
+        INSTALL_LIVE=$(python3 "$CASEDIR/utils/download_image.py" --latest)
+    else
+        # The build under test is the latest published image, so install the previous one.
+        echo "[INFO] Downloading previous image for upgrade test..."
+        INSTALL_LIVE=$(python3 "$CASEDIR/utils/download_image.py" --previous-image)
+    fi
 else
     INSTALL_LIVE="$IMG_PATH"
 fi
