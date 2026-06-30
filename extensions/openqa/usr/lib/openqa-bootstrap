@@ -37,5 +37,8 @@ if compgen -G "/usr/lib/sysupdate.d/*.transfer.d/99-openqa-override.conf" > /dev
     systemctl disable kde-linux-sysupdated.socket
 fi
 
+# Ensure TZ is set consistently, so plasma-setup works
+timedatectl set-timezone Etc/UTC
+
 # Enable sshd
 systemctl enable --now sshd

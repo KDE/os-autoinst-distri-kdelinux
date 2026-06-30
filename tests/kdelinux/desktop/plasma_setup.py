@@ -11,9 +11,6 @@ def test_flags(self):
     return {'fatal': 1}
 
 def run(self):
-    # Pre-set this because the timezone page in plasma-setup is very crap to hack around
-    session.run('timedatectl set-timezone Etc/UTC')
-
     test = cli_test.CliTest('plasma_setup')
     test.run_selenium(user=user_manager.plasma_setup())
 
