@@ -30,6 +30,7 @@ sub test_live_image {
     loadtest 'kdelinux-live/bootup.py';
     loadtest 'common/system_settings/disable_screen_dim_and_screen_off.py';
     loadtest 'common/basic_test.py';
+    loadtest 'common/network.py';
     loadtest 'kdelinux-live/calamares_install.py';
     loadtest 'common/reboot.py';
     loadtest 'kdelinux-live/bootup_setup.py';
@@ -46,6 +47,7 @@ sub test_live_image {
 sub test_kdelinux {
     loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
+    loadtest 'common/network.py';
     loadtest 'kdelinux/system_settings/default_applications.py';
     loadtest 'kdelinux/desktop/panel.py';
     loadtest 'kdelinux/desktop/task_switcher.py';
@@ -66,6 +68,7 @@ sub test_kdelinux {
 sub test_system_upgrade {
     loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
+    loadtest 'common/network.py';
     loadtest 'kdelinux/app/discover_upgrade.py';
     loadtest 'common/reboot.py';
     loadtest 'common/bootup.py';

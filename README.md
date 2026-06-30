@@ -10,6 +10,7 @@
 | `kdelinux-live/bootup` | Powers on, checks UEFI screen, Plymouth, and live desktop loads |
 | `common/system_settings/disable_screen_dim_and_screen_off` | Disables screen dim/off via kconfig so subsequent tests aren't interrupted |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `common/network` | Checks that networking works; a non-loopback link is up with a routable IP and a default route, DNS resolves, and HTTPS to the internet works |
 | `kdelinux-live/calamares_install` | Runs the Calamares installer and installs the system, fatal |
 | `kdelinux-live/bootup_setup` | Powers on after install, checks Plymouth and Plasma Welcome screen appear |
 | `kdelinux/desktop/plasma_setup` | Completes the Plasma initial setup wizard |
@@ -24,6 +25,7 @@
 |---|---|
 | `common/bootup` | Powers on; checks Plymouth and desktop panel (kickoff icon) load |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `common/network` | Checks that networking works; a non-loopback link is up with a routable IP and a default route, DNS resolves, and HTTPS to the internet works  |
 | `kdelinux/system_settings/default_applications` | Verifies the set default applications, through mimetype and system settings. |
 | `kdelinux/desktop/panel` | Checks if apps can be launched from Kickoff search, Kickoff favorites, and the task manager. Checks if the correct apps are pinned to task manager. Ensures that the system tray works and displays entries. |
 | `kdelinux/desktop/task_switcher` | Checks that Alt+Tab task switcher moves focus between windows. The switcher is not on the a11y bus and is a part of KWin, so check the active state of KDialog windows. |
@@ -33,7 +35,7 @@
 | `kdelinux/desktop/secret_service` | Verifies the Secret Service provider is ksecretd and works through KeepSecret. |
 | `kdelinux/desktop/drkonqi` | Crashes an application and checks that DrKonqi produces a useful crash report. |
 | `kdelinux/app/dolphin` | Does a smoke test for file management in Dolphin by creating a file, moving it to trash, then emptying trash. |
-| `kdelinux/app/firefox` | Launches Firefox and checks page loading and that the Plasma Integration extension is active. |
+| `kdelinux/app/firefox` | Launches Firefox and checks that the Plasma Integration extension is active. |
 | `kdelinux/app/package_compatibility_helper` | Checks the Package Compatibility Helper opens for an unsupported package type. |
 | `kdelinux/app/discover_install` | Installs, launches, and uninstalls an application through Discover. |
 | `kdelinux/desktop/desktop_session_services` | Checks whether any essential process has ever crashed. Every crash that dumps core is recorded by systemd-coredump, so we ask coredumpctl and fail if any of the processes we care about show up. This test should be run at the very *end* of the test suite. |
@@ -45,6 +47,7 @@
 |---|---|
 | `common/bootup` | Powers on previous build; checks Plymouth and panel load |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `common/network` | Checks that networking works; a non-loopback link is up with a routable IP and a default route, DNS resolves, and HTTPS to the internet works, fatal |
 | `kdelinux/app/discover_upgrade` | Upgrades the system via Discover, fatal |
 | `common/reboot` | Executes `systemctl reboot` |
 | `common/bootup` | Checks new build boots correctly after upgrade |
