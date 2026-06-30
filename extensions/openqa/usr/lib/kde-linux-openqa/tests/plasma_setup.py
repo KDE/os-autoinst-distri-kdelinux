@@ -87,7 +87,7 @@ class PlasmaSetupTests(unittest.TestCase):
         next_button.click()
 
         ## Timezone page
-        time.sleep(1)
+        time.sleep(2)
         # Timezone is pre-set because the TZ page is very flakey and hard to code around. Just skip it.
         next_button = wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
