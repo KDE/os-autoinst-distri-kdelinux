@@ -23,6 +23,12 @@ chmod 777 /var/log/kde-linux-openqa
 passwd -d root
 passwd -u root
 
+# Let the test user elevate without a password
+cat > /etc/sudoers.d/99-kde-linux-openqa <<EOF
+user ALL=(ALL) NOPASSWD: ALL
+EOF
+chmod 0440 /etc/sudoers.d/99-kde-linux-openqa
+
 # Configure SSH for passwordless root login
 mkdir -p /etc/ssh/sshd_config.d
 cat > /etc/ssh/sshd_config.d/99-kde-linux-openqa.conf <<EOF
