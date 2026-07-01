@@ -11,6 +11,7 @@ from lib.sut.polkit import PolkitAgent
 
 # Tests collect-logs, which creates a .tar.zst archive of system information.
 
+# So we get one polkit prompt for the whole app.
 COLLECT_LOGS = '/usr/bin/collect-logs'
 
 
@@ -23,19 +24,17 @@ class CollectLogsTests(unittest.TestCase):
     def tearDownClass(self):
         self.polkit.quit()
 
-    def test_1_collect_logs_present(self):
-        """collect-logs must be installed and executable."""
+    def test_1_produces_redacted_tarball(self):
+        """collect-logs must exist, and running collect-logs must create a .tar.zst in the CWD."""
         self.assertTrue(
             os.access(COLLECT_LOGS, os.X_OK),
             f'{COLLECT_LOGS} is missing or not executable')
 
-    def test_2_produces_redacted_tarball(self):
-        """Running collect-logs must create a .tar.zst in the CWD."""
         work_dir = tempfile.mkdtemp()
         proc = subprocess.Popen(
-            [COLLECT_LOGS], cwd=work_dir,
+            ['run0','--empower',COLLECT_LOGS], cwd=work_dir,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        self.polkit.answer_prompts(proc)
+        self.polkit.authenticate()
         try:
             stdout, stderr = proc.communicate(timeout=300)
         except subprocess.TimeoutExpired:

@@ -10,15 +10,20 @@ from lib.sut.polkit import PolkitAgent
 
 # Tests the dev tools shipped in the image, toggle-developer-mode and set-up-system-development.
 
+# So we always get one single polkit prompt at the start, instead of multiple inconsistently throughout.
 TOGGLE_DEVELOPER_MODE     = '/usr/bin/toggle-developer-mode'
 SET_UP_SYSTEM_DEVELOPMENT = '/usr/bin/set-up-system-development'
 OPT_APPS = Path('/opt/local/share/applications')
+
+# run0 --empower sanitises the environment to a minimal PATH without ~/.local/bin, which the script needs.
+LOCAL_BIN_PATH = (
+    f'--setenv=PATH={Path.home() / ".local" / "bin"}'
+    ':/usr/local/sbin:/usr/local/bin:/usr/bin')
 
 
 class SystemDevelopmentTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        # toggle-developer-mode elevates via polkit, so we attach to the agent to answer it.
         self.polkit = PolkitAgent()
 
     @classmethod
@@ -30,15 +35,15 @@ class SystemDevelopmentTests(unittest.TestCase):
 
     def _toggle(self):
         proc = subprocess.Popen(
-            [TOGGLE_DEVELOPER_MODE],
+            ['run0','--empower',TOGGLE_DEVELOPER_MODE],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        self.polkit.answer_prompts(proc)
+        self.polkit.authenticate()
         try:
             _, stderr = proc.communicate(timeout=30)
         except subprocess.TimeoutExpired:
             proc.kill()
             _, stderr = proc.communicate()
-            self.fail(f'{TOGGLE_DEVELOPER_MODE} timed out, was the polkit prompt unanswered?: {stderr.strip()}')
+            self.fail(f'{TOGGLE_DEVELOPER_MODE} timed out: {stderr.strip()}')
         self.assertEqual(
             proc.returncode, 0,
             f'{TOGGLE_DEVELOPER_MODE} failed: {stderr.strip()}')
@@ -87,24 +92,42 @@ class SystemDevelopmentTests(unittest.TestCase):
             f'{SET_UP_SYSTEM_DEVELOPMENT} is missing or not executable')
 
         # Downloads and installs kde-builder, so it needs network and some time.
-        result = subprocess.run(
-            [SET_UP_SYSTEM_DEVELOPMENT], capture_output=True, text=True, timeout=300)
+        first_run = subprocess.Popen(
+            ['run0','--empower',LOCAL_BIN_PATH,SET_UP_SYSTEM_DEVELOPMENT],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        self.polkit.authenticate()
+        try:
+            _, stderr = first_run.communicate(timeout=60)
+        except subprocess.TimeoutExpired:
+            first_run.kill()
+            _, stderr = first_run.communicate()
+            self.fail(f'{TOGGLE_DEVELOPER_MODE} timed out: {stderr.strip()}')
         self.assertEqual(
-            result.returncode, 0,
-            f'{SET_UP_SYSTEM_DEVELOPMENT} failed: {result.stderr.strip()}')
+            first_run.returncode, 0,
+            f'{SET_UP_SYSTEM_DEVELOPMENT} failed: {stderr.strip()}')
+
         kde_builder = Path.home() / '.local' / 'bin' / 'kde-builder'
         config = Path.home() / '.config' / 'kde-builder.yaml'
         self.assertTrue(kde_builder.is_file(), f'{kde_builder} was not installed')
         self.assertTrue(config.is_file(), f'{config} was not created')
 
         # A second run must find everything already in place and do nothing.
-        rerun = subprocess.run(
-            [SET_UP_SYSTEM_DEVELOPMENT], capture_output=True, text=True, timeout=300)
+        second_run = subprocess.Popen(
+            ['run0','--empower',LOCAL_BIN_PATH,SET_UP_SYSTEM_DEVELOPMENT],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        self.polkit.authenticate()
+        try:
+            stdout, stderr = second_run.communicate(timeout=60)
+        except subprocess.TimeoutExpired:
+            second_run.kill()
+            _, stderr = second_run.communicate()
+            self.fail(f'{TOGGLE_DEVELOPER_MODE} timed out: {stderr.strip()}')
         self.assertEqual(
-            rerun.returncode, 0,
-            f'second {SET_UP_SYSTEM_DEVELOPMENT} run failed: {rerun.stderr.strip()}')
+            second_run.returncode, 0,
+            f'second {SET_UP_SYSTEM_DEVELOPMENT} run failed: {stderr.strip()}')
+
         self.assertIn(
-            'Nothing to do!', rerun.stdout,
+            'Nothing to do!', stdout,
             'set-up-system-development was not idempotent on a second run')
 
 
