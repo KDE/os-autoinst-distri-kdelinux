@@ -18,7 +18,8 @@ import time
 import subprocess
 
 # Walks through the Plasma Setup wizard to set up the SUT.
-# Fatal test - it's necessary for the system to work in later testing.
+# Fatal test as it's necessary for the system to work in later testing.
+
 
 class PlasmaSetupTests(unittest.TestCase):
     @classmethod
@@ -33,73 +34,37 @@ class PlasmaSetupTests(unittest.TestCase):
         self.driver.quit()
         pass
 
+    def _fill_account(self, form):
+        """Fill the account page's form."""
+        form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[0].send_keys('Testy McTestface')
+        username = form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[1]
+        username.clear()
+        username.send_keys(user_manager.installed().name)
+        for field in form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]'):
+            field.send_keys(user_manager.installed().pw)
+
     def test_setup(self):
         """Go through and set up the system through Plasma Setup."""
-        ## Welcome page
-        wait = WebDriverWait(self.driver, 5)
-        setup_button = self.driver.find_element(AppiumBy.NAME, 'Begin Setup')
-        setup_button.click()
+        wait = WebDriverWait(self.driver, 60)
+        wait.until(ec.element_to_be_clickable((AppiumBy.NAME, "Begin Setup"))).click()
 
-        ## Language page
-        search = self.driver.find_element(AppiumBy.NAME, 'Search')
-        search.send_keys('American English')
-        time.sleep(1) # animations race with our test
-        ActionChains(self.driver).move_to_element(self.driver.find_element(AppiumBy.NAME, 'American English (United States)')).click().perform()
-        next_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
-        )
-        next_button.click()
+        account_filled = False
+        while True:
+            # We're on the final page, so finish up.
+            finish = self.driver.find_elements(AppiumBy.NAME, "Finish")
+            if finish and finish[0].is_displayed():
+                wait.until(ec.element_to_be_clickable((AppiumBy.NAME, "Finish"))).click()
+                return
 
-        ## Keyboard layout page
-        time.sleep(1)
-        next_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
-        )
-        next_button.click()
+            # The account page is the only step that disables Next until we input something into it (for obvious reasons), so fill it out.
+            if not account_filled:
+                form = self.driver.find_elements(AppiumBy.CLASS_NAME, '[form | ]')
+                if form:
+                    self._fill_account(form[0])
+                    account_filled = True
 
-        ## Dark mode page
-        time.sleep(1)
-        next_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
-        )
-        next_button.click()
-
-        ## User account page
-        form = self.driver.find_element(AppiumBy.CLASS_NAME, '[form | ]')
-
-        form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[0].send_keys('Testy McTestface')
-        # clear out auto-generated username testymctestface
-        form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[1].clear()
-        form.find_elements(AppiumBy.CLASS_NAME, '[text | ]')[1].send_keys(user_manager.installed().name)
-        form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]')[0].send_keys(user_manager.installed().pw)
-        form.find_elements(AppiumBy.CLASS_NAME, '[password text | ]')[1].send_keys(user_manager.installed().pw)
-
-        next_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
-        )
-        next_button.click()
-
-        ## Hostname page
-        time.sleep(1)
-        next_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
-        )
-        next_button.click()
-
-        ## Timezone page
-        time.sleep(2)
-        # Timezone is pre-set because the TZ page is very flakey and hard to code around. Just skip it.
-        next_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Next"))
-        )
-        next_button.click()
-
-        ## Finished page
-        time.sleep(2)
-        finish_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Finish"))
-        )
-        finish_button.click()
+            # Now just keep spamming next after all these checks to progress quickly.
+            wait.until(ec.element_to_be_clickable((AppiumBy.NAME, "Next"))).click()
 
 
 if __name__ == "__main__":
