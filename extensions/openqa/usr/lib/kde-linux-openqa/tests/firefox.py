@@ -1,48 +1,55 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
-import os
+import json
+import time
 import unittest
-import subprocess
-from appium import webdriver
-from appium.webdriver.common.appiumby import AppiumBy
-from appium.options.common.base import AppiumOptions
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
+from pathlib import Path
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
+from lib import user_manager
 
-# Launches Firefox and checks that the Plasma Integration extension is active.
+# Check if Firefox's Plasma Integration addon is installed and enabled.
 
 FIREFOX_APP_ID = 'org.mozilla.firefox'
+ADDON_ID = 'plasma-browser-integration@kde.org'
+INSTALL_TIMEOUT = 120
 
 
 class FirefoxTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.firefox, pid = flatpak.launch(FIREFOX_APP_ID, 'Firefox')
-        options = AppiumOptions()
-        options.set_capability("app", str(pid))
-        self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
-        self.driver.implicitly_wait = 10
+        # Launching Firefox triggers the policy-driven download and install of the add-on.
+        self.firefox, _ = flatpak.launch(FIREFOX_APP_ID, 'Firefox')
 
     @classmethod
     def tearDownClass(self):
-        self.driver.quit()
         flatpak.kill(FIREFOX_APP_ID)
 
-    def test_plasma_integration_extension_active(self):
-        """Check that the Plasma Integration browser extension native host is running."""
-        # The Plasma Integration extension is installed and working if its native host runs.
-        WebDriverWait(self.driver, 60).until(
-            lambda _: subprocess.run(
-                ['pgrep', '-u', str(os.getuid()), '-f', '/usr/bin/plasma-browser-integration-host'],
-                capture_output=True).returncode == 0,
-            message='plasma-browser-integration-host is not running; '
-                    'the Plasma Integration extension is missing or disabled')
+    def _addon(self):
+        """Return the Plasma Integration addon entry, or None if not present yet."""
+        home = Path('/home') / "tduck"#user_manager.installed().name
+        profiles = home / '.var/app/org.mozilla.firefox/config/mozilla/firefox'
+        matches = list(profiles.glob('*/extensions.json'))
+        if not matches:
+            return None
+        addons = json.loads(matches[0].read_text()).get('addons', [])
+        return next((a for a in addons if a.get('id') == ADDON_ID), None)
+
+    def test_plasma_integration_installed_and_enabled(self):
+        """The Plasma Integration add-on must be installed and enabled in Firefox."""
+        deadline = time.monotonic() + INSTALL_TIMEOUT
+        addon = self._addon()
+        while addon is None and time.monotonic() < deadline:
+            time.sleep(2)
+            addon = self._addon()
+
+        self.assertIsNotNone(
+            addon, f'{ADDON_ID} was not installed within {INSTALL_TIMEOUT}s of launch')
+        self.assertTrue(addon.get('active'), f'{ADDON_ID} is installed but not active')
+        self.assertFalse(addon.get('userDisabled'), f'{ADDON_ID} is disabled by the user')
+        self.assertFalse(addon.get('appDisabled'), f'{ADDON_ID} is disabled by Firefox')
 
 
-if __name__ == "__main__":
-    openqa_junit_xml.run(FirefoxTests, "firefox")
+if __name__ == '__main__':
+    openqa_junit_xml.run(FirefoxTests, 'firefox')

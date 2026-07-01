@@ -5,5 +5,7 @@ from lib.openqa import cli_test
 from lib import user_manager
 
 def run(self):
-    test = cli_test.CliTest('firefox')
+    # Launches Firefox to trigger the policy-driven add-on install, so it needs the
+    # AT-SPI/Selenium harness and enough time for the AMO download to complete.
+    test = cli_test.CliTest('firefox', timeout=180)
     test.run_selenium(user=user_manager.installed())
