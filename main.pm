@@ -55,13 +55,16 @@ sub test_kdelinux {
     loadtest 'kdelinux/desktop/clipboard.py';
     loadtest 'kdelinux/desktop/krunner.py';
     loadtest 'kdelinux/desktop/secret_service.py';
+    loadtest 'kdelinux/desktop/vaults.py';
 #   Disable for the time being. It's flaky.
 #   loadtest 'kdelinux/desktop/drkonqi.py';
     loadtest 'kdelinux/app/dolphin.py';
     loadtest 'kdelinux/app/firefox.py';
     loadtest 'kdelinux/app/package_compatibility_helper.py';
     loadtest 'kdelinux/app/discover_install.py';
-    loadtest 'kdelinux/desktop/desktop_session_services.py';
+    loadtest 'kdelinux/system/system_development.py';
+    loadtest 'kdelinux/system/collect_logs.py';
+    loadtest 'kdelinux/system/desktop_session_services.py';
     loadtest 'common/shutdown.py';
 }
 

@@ -21,7 +21,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 
 from lib.sut import openqa_junit_xml
-from lib import user_manager
+from lib.sut.polkit import PolkitAgent
 
 import sys
 import time
@@ -38,7 +38,7 @@ class AutoLoginTest(unittest.TestCase):
     """
     # This is main driver
     driver: webdriver.Remote
-    polkit_driver: webdriver.Remote
+    polkit: PolkitAgent
 
     @classmethod
     def setUpClass(self) -> None:
@@ -52,11 +52,7 @@ class AutoLoginTest(unittest.TestCase):
         self.driver = webdriver.Remote(command_executor='http://127.0.0.1:4723', options=options)
         self.driver.implicitly_wait = 10
 
-        # TODO extract in helper
-        polkit_options = AppiumOptions()
-        polkit_options.set_capability("app", subprocess.run(['pgrep','-f', '-n', 'polkit-kde-authentication-agent-1'], capture_output=True, text=True).stdout.strip()) # get the pid because it will already be launched
-        polkit_options.set_capability("timeouts", {'implicit': 10000})
-        self.polkit_driver = webdriver.Remote(command_executor='http://127.0.0.1:4723', options=polkit_options)
+        self.polkit = PolkitAgent()
 
     @classmethod
     def tearDownClass(self) -> None:
@@ -64,7 +60,7 @@ class AutoLoginTest(unittest.TestCase):
         Make sure to terminate the driver again, lest it dangles.
         """
         subprocess.check_call([f"kquitapp{KDE_VERSION}", "systemsettings"])
-        self.polkit_driver.quit()
+        self.polkit.quit()
         self.driver.quit()
 
     def test_1_enable_autologin(self) -> None:
@@ -104,9 +100,8 @@ class AutoLoginTest(unittest.TestCase):
         )
         finish_button.click()
 
-        # Enter password in polkit dialog
-        time.sleep(2)
-        ActionChains(self.polkit_driver).send_keys(user_manager.installed().pw).send_keys(Keys.RETURN).perform()
+        # Authenticate the polkit prompt raised by Apply.
+        self.polkit.authenticate()
 
         time.sleep(5)
 

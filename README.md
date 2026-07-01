@@ -33,12 +33,15 @@
 | `kdelinux/desktop/clipboard` | Checks that text copies and pastes between an application and the system clipboard. |
 | `kdelinux/desktop/krunner` | Searches for and launches an application through KRunner. |
 | `kdelinux/desktop/secret_service` | Verifies the Secret Service provider is ksecretd and works through KeepSecret. |
+| `kdelinux/desktop/vaults` | Creates an encrypted Plasma Vault through its system tray applet. |
 | `kdelinux/desktop/drkonqi` | Crashes an application and checks that DrKonqi produces a useful crash report. |
 | `kdelinux/app/dolphin` | Does a smoke test for file management in Dolphin by creating a file, moving it to trash, then emptying trash. |
 | `kdelinux/app/firefox` | Launches Firefox and checks that the Plasma Integration extension is active. |
 | `kdelinux/app/package_compatibility_helper` | Checks the Package Compatibility Helper opens for an unsupported package type. |
 | `kdelinux/app/discover_install` | Installs, launches, and uninstalls an application through Discover. |
-| `kdelinux/desktop/desktop_session_services` | Checks whether any essential process has ever crashed. Every crash that dumps core is recorded by systemd-coredump, so we ask coredumpctl and fail if any of the processes we care about show up. This test should be run at the very *end* of the test suite. |
+| `kdelinux/system/system_development` | Toggles developer mode and runs set-up-system-development to install kde-builder, checking each works. |
+| `kdelinux/system/collect_logs` | Runs collect-logs and checks it produces a redacted `.tar.zst` archive. |
+| `kdelinux/system/desktop_session_services` | Checks whether any essential process has ever crashed. Every crash that dumps core is recorded by systemd-coredump, so we ask coredumpctl and fail if any of the processes we care about show up. This test should be run at the very *end* of the test suite. |
 | `common/shutdown` | Executes `systemctl poweroff` and waits for shutdown |
 
 #### Upgrade test suite (`upgrade-system`)
