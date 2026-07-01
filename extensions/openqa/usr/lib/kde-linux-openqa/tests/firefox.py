@@ -40,15 +40,16 @@ class FirefoxTests(unittest.TestCase):
         """The Plasma Integration add-on must be installed and enabled in Firefox."""
         deadline = time.monotonic() + INSTALL_TIMEOUT
         addon = self._addon()
-        while addon is None and time.monotonic() < deadline:
+        while not (addon and addon.get('active')) and time.monotonic() < deadline:
             time.sleep(2)
             addon = self._addon()
 
         self.assertIsNotNone(
             addon, f'{ADDON_ID} was not installed within {INSTALL_TIMEOUT}s of launch')
-        self.assertTrue(addon.get('active'), f'{ADDON_ID} is installed but not active')
-        self.assertFalse(addon.get('userDisabled'), f'{ADDON_ID} is disabled by the user')
-        self.assertFalse(addon.get('appDisabled'), f'{ADDON_ID} is disabled by Firefox')
+        self.assertTrue(
+            addon.get('active'),
+            f'{ADDON_ID} did not become active within {INSTALL_TIMEOUT}s '
+            f'(userDisabled={addon.get("userDisabled")}, appDisabled={addon.get("appDisabled")})')
 
 
 if __name__ == '__main__':
