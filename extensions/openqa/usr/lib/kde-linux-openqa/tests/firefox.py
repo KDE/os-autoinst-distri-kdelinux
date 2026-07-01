@@ -28,7 +28,7 @@ class FirefoxTests(unittest.TestCase):
 
     def _addon(self):
         """Return the Plasma Integration addon entry, or None if not present yet."""
-        home = Path('/home') / "tduck"#user_manager.installed().name
+        home = Path('/home') / user_manager.installed().name
         profiles = home / '.var/app/org.mozilla.firefox/config/mozilla/firefox'
         matches = list(profiles.glob('*/extensions.json'))
         if not matches:
