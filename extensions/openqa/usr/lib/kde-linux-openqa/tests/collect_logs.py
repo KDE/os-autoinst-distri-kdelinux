@@ -8,7 +8,6 @@ import tempfile
 import unittest
 from lib.sut import openqa_junit_xml
 from lib.sut.polkit import PolkitAgent
-from lib import user_manager
 
 # Tests collect-logs, which creates a .tar.zst archive of system information.
 
@@ -72,8 +71,8 @@ class CollectLogsTests(unittest.TestCase):
         env_txt = glob.glob(os.path.join(extract_dir, '*', 'env.txt'))[0]
         with open(env_txt) as f:
             env_contents = f.read()
-        self.assertNotIn(
-            user_manager.installed().name, env_contents,
+        self.assertIn(
+            '<user-redacted>', env_contents,
             'collect-logs did not redact the username from env.txt')
 
 
