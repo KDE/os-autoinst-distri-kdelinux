@@ -12,6 +12,20 @@ def launch(app_id: str, atspi_name: str, *args: str, timeout: int = 30):
     return process, pid
 
 
+def quit(app_id: str):
+    """Send SIGTERM to a Flatpak, gracefully quitting it."""
+    ps = subprocess.run(['flatpak', 'ps', '--columns=application,child-pid'],
+                        capture_output=True, text=True)
+    for line in ps.stdout.splitlines():
+        fields = line.split()
+        if len(fields) == 2 and fields[0] == app_id:
+            # Flatpak is weird. child-pid is the host PID of the sandbox's init
+            # and the kernel drops SIGTERM sent to a namespace's init
+            # from outside it. So we SIGTERM its children instead which should
+            # kill the actual app that's running.
+            subprocess.run(['pkill', '-TERM', '-P', fields[1]])
+
+
 def kill(app_id: str):
-    """Terminate a running Flatpak app."""
+    """Send SIGKILL to a Flatpak, forcibly quitting it."""
     subprocess.run(['flatpak', 'kill', app_id], capture_output=True)

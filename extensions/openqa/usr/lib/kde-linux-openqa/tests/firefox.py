@@ -24,7 +24,7 @@ class FirefoxTests(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        flatpak.kill(FIREFOX_APP_ID)
+        flatpak.quit(FIREFOX_APP_ID)
 
     def _addon(self):
         """Return the Plasma Integration addon entry, or None if not present yet."""

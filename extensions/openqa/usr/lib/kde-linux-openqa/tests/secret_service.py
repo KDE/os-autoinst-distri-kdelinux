@@ -32,7 +32,7 @@ class SecretServiceTests(unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         self.driver.quit()
-        flatpak.kill(KEEPSECRET_APP_ID)
+        flatpak.quit(KEEPSECRET_APP_ID)
         # Delete the test entry we created.
         subprocess.run(
             ['secret-tool', 'clear',
