@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 SYSEXT_IMG="openqa-sysext.img"
-IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.iso' | head -n1)
+IMG_PATH=$(find . -maxdepth 1 -name '*.iso' -print -quit)
 if [[ -z "$IMG_PATH" && "$UPGRADE" -ne 1 ]]; then
     echo "[ERROR] No .iso image found in $CASEDIR" >&2
     exit 1
@@ -31,12 +31,17 @@ if [[ -n "$IMG_PATH" ]]; then
     VERSION=${OUTPUT##*_}
 else
     if [[ -z "${IMAGE_URL:-}" ]]; then
-        echo "[ERROR] Upgrade jobs without a local .iso require IMAGE_URL for the build label." >&2
-        exit 1
+        VERSION=$(curl -fsSL "https://storage.kde.org/kde-linux/testing/sysupdate/v2/SHA256SUMS" | sed -nE 's/.*kde-linux_([0-9]{12}).*/\1/p' | head -n1)
+        if [[ -z "$VERSION" ]]; then
+            echo "[ERROR] Could not determine staged version from upstream SHA256SUMS." >&2
+            exit 1
+        fi
+        OUTPUT=kde-linux_$VERSION
+    else
+        IMG=$(basename "$IMAGE_URL")
+        OUTPUT=${IMG%.iso}
+        VERSION=${OUTPUT##*_}
     fi
-    IMG=$(basename "$IMAGE_URL")
-    OUTPUT=${IMG%.iso}
-    VERSION=${OUTPUT##*_}
 fi
 DISK=${OUTPUT}.qcow2
 
