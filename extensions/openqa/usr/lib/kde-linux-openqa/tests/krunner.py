@@ -12,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 from lib.sut.atspi import find_pid_on_atspi_bus
 
-# Searches for and launches an application through KRunner.
+# Checks if KRunner appears and has sane output through basic calculation (i.e. plugins load).
 
 
 class KRunnerTests(unittest.TestCase):
