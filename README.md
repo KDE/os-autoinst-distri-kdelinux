@@ -85,7 +85,12 @@ install-system (previous build) -> upgrade-system -> sanity-test
 
 ### Running tests locally
 
-Nota bene: if you change anything in `extensions/`, you'll need to rerun your local worker/single-instance image so it can create a new sysext.
+Nota bene: if you change anything in `extensions/`, to re-create sysext image without restarting worker, run following,
+
+```
+podman exec -it openqa-single-instance bash
+mkfs.erofs --quiet -L "kde-openqa-ext" openqa-sysext.img "$CASEDIR/extensions/openqa"
+```
 
 #### Full local stack (worker + webui)
 
