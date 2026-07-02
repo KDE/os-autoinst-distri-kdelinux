@@ -20,13 +20,24 @@ done
 
 SYSEXT_IMG="openqa-sysext.img"
 IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.iso' | head -n1)
-if [[ -z "$IMG_PATH" ]]; then
+if [[ -z "$IMG_PATH" && "$UPGRADE" -ne 1 ]]; then
     echo "[ERROR] No .iso image found in $CASEDIR" >&2
     exit 1
 fi
-IMG=$(basename "$IMG_PATH")
-OUTPUT=${IMG%.iso}
-VERSION=${OUTPUT##*_}
+
+if [[ -n "$IMG_PATH" ]]; then
+    IMG=$(basename "$IMG_PATH")
+    OUTPUT=${IMG%.iso}
+    VERSION=${OUTPUT##*_}
+else
+    if [[ -z "${IMAGE_URL:-}" ]]; then
+        echo "[ERROR] Upgrade jobs without a local .iso require IMAGE_URL for the build label." >&2
+        exit 1
+    fi
+    IMG=$(basename "$IMAGE_URL")
+    OUTPUT=${IMG%.iso}
+    VERSION=${OUTPUT##*_}
+fi
 DISK=${OUTPUT}.qcow2
 
 # Copy test cases to the directory where openQA expects so that needle editor works

@@ -80,9 +80,10 @@ fi
 SYSEXT_IMG="openqa-sysext.img"
 mkfs.erofs --quiet -L "kde-openqa-ext" "$SYSEXT_IMG" "$CASEDIR/extensions/openqa"
 
-# Download and set up .iso live image
+# Download and set up .iso live image. Upgrade jobs install from a published
+# image and upgrade through STAGING_CHANNEL_URL, so they do not need IMAGE_URL.
 IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.iso' | head -n1)
-if [[ -z "$IMG_PATH" ]]; then
+if [[ -z "$IMG_PATH" && "$UPGRADE" -ne 1 ]]; then
     if [[ -n "${IMAGE_URL:-}" ]]; then
         echo "[INFO] Downloading image from $IMAGE_URL..."
         IMG_PATH="$CASEDIR/$(basename "$IMAGE_URL")"
@@ -92,10 +93,6 @@ if [[ -z "$IMG_PATH" ]]; then
         IMG_PATH=$(python3 "$CASEDIR/utils/download_image.py" --latest)
     fi
 fi
-IMG=$(basename "$IMG_PATH")
-OUTPUT=${IMG%.iso}
-VERSION=${OUTPUT##*_}
-DISK=${OUTPUT}.qcow2
 
 # Check if all the required environment variables exist outside of a single-instance mock, where they aren't required
 required_vars=(OPENQA_HOST_ADDR)
