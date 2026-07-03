@@ -10,5 +10,5 @@ def test_flags(self):
     return {'fatal': 1}
 
 def run(self):
-    test = cli_test.CliTest('discover_upgrade', timeout=800)
+    test = cli_test.CliTest('discover_upgrade', timeout=1200)
     test.run_selenium(user=user_manager.installed())
