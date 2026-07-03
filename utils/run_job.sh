@@ -166,7 +166,6 @@ stage_asset "$SYSEXT"
 produce_installed_hdd() {
     local name="$1"
     local share=/var/lib/openqa/share/factory/hdd
-    [[ -e "$share/$name" ]] && return 0
 
     local pool_disk
     pool_disk=$(find /var/lib/openqa/pool -path '*/raid/hd0' -print -quit 2>/dev/null || true)
