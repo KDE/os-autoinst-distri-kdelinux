@@ -38,6 +38,18 @@ PermitEmptyPasswords yes
 UsePAM no
 EOF
 
+# Disable screen dim and screen off systemwide
+cat > /etc/xdg/powerdevilrc <<EOF
+[AC][Display]
+DimDisplayIdleTimeoutSec=-1
+DimDisplayWhenIdle=false
+TurnOffDisplayIdleTimeoutSec=-1
+TurnOffDisplayWhenIdle=false
+
+[AC][SuspendAndShutdown]
+AutoSuspendAction=0
+EOF
+
 # Ensure updating with kde-linux-sysupdated is disabled when we override the update source. TODO implement it!
 if compgen -G "/usr/lib/sysupdate.d/*.transfer.d/99-openqa-override.conf" > /dev/null; then
     systemctl disable kde-linux-sysupdated.socket
