@@ -168,16 +168,21 @@ produce_installed_hdd() {
     local share=/var/lib/openqa/share/factory/hdd
 
     local pool_disk
-    pool_disk=$(find /var/lib/openqa/pool -path '*/raid/hd0' -print -quit 2>/dev/null || true)
+    pool_disk=$(find /var/lib/openqa/pool -path '*/raid/hd0*' -print -quit 2>/dev/null || true)
     if [[ -z "$pool_disk" ]]; then
         echo "[ERROR] Install target disk not found in the worker pool. Pool contents:" >&2
         find /var/lib/openqa/pool -maxdepth 3 >&2 || true
         exit 1
     fi
 
+    echo "[INFO] Flattening the installed disk ($pool_disk) into $share/$name, for the next job."
     mkdir -p "$share"
-    qemu-img convert -O qcow2 "$pool_disk" "$share/$name"
-    echo "[INFO] Flattened the installed disk ($pool_disk) into $share/$name, for the next job."
+    local pool_diskname="$(basename "$pool_disk")"
+    if [[ "$pool_diskname" == "hd0-overlay0" ]]; then
+        qemu-img commit $pool_disk
+    else
+        qemu-img convert -O qcow2 "$pool_disk" "$share/$name"
+    fi
 }
 
 # Clean up the pool ourselves, because we set `--no-cleanup` in the worker so we're able to
