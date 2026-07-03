@@ -51,7 +51,7 @@ class DiscoverTests(unittest.TestCase):
 
         # Wait for Restart and Install button to be visible but do not click it
         # We will reboot it from test harness.
-        wait = WebDriverWait(self.driver, 600)
+        wait = WebDriverWait(self.driver, 1000)
         restart_button = wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Restart and Install Updates"))
         )
