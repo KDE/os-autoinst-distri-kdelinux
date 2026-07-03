@@ -316,7 +316,7 @@ poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR" || poll_retcode=$?
 # it, then clear the pool now that the job is done - since this isn't done automatically.
 # A fatal failure is marked by retcode 1. In this case fail fast.
 if [[ "$poll_retcode" -ne 1 ]]; then
-    if [[ -n "$LIVE" ]]; then
+    if [[ -n "$LIVE" || "$UPGRADE" -eq 1 ]]; then
         produce_installed_hdd "$(basename "$HDD")"
     fi
     clean_pool
