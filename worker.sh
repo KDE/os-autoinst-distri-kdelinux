@@ -34,6 +34,7 @@ DEPS=(
     dos2unix
     vim
     erofs-utils
+    gpg2
     python3-fabric
     perl-Inline-Python
 )
@@ -73,6 +74,11 @@ if [[ -n "${STAGING_CHANNEL_URL:-}" ]]; then
 [Source]
 Path=${STAGING_CHANNEL_URL}
 EOF
+    # Give it an ephemeral signing key, generated in CI, so it can verify updates from a staging channel outside of master upstream.
+    if [[ -n "${SYSUPDATE_PUBKEY_B64:-}" ]]; then
+        mkdir -p "$CASEDIR/extensions/openqa/usr/lib/systemd"
+        echo "$SYSUPDATE_PUBKEY_B64" | base64 -d | gpg --dearmor > "$CASEDIR/extensions/openqa/usr/lib/systemd/import-pubring.pgp"
+    fi
 fi
 
 export SYSEXT_IMG="openqa-sysext.img"

@@ -45,6 +45,7 @@ reuse:
       --env OPENQA_API_SECRET
       --env IMAGE_URL
       --env STAGING_CHANNEL_URL
+      --env SYSUPDATE_PUBKEY_B64
       registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
       bash worker.sh $WORKER_ARGS
 

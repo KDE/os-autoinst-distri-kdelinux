@@ -11,4 +11,6 @@ OVMF_VARS.4m.fd
 # Generated at build by worker.sh.
 # Copied from top level ./lib.
 /extensions/openqa/usr/lib/kde-linux-openqa/lib/*.py
+# Generated for updates from a staging channel.
 /extensions/openqa/usr/lib/sysupdate.d/*.transfer.d
+/extensions/openqa/usr/lib/systemd/
