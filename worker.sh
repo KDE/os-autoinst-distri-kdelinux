@@ -62,6 +62,16 @@ SYSEXT_LIB="$CASEDIR/extensions/openqa/usr/lib/kde-linux-openqa/lib"
 mkdir -p "$SYSEXT_LIB"
 find -L "$CASEDIR/lib" -maxdepth 1 -type f -exec cp -f {} "$SYSEXT_LIB/" \;
 
+# Clean up before creating the sysext.
+if [[ -z "${STAGING_CHANNEL_URL:-}" && -d "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/" ]]; then
+    # If we haven't been passed a URL, clean up any dropins that may point to one from a previous run.
+    rm -rf "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/"
+fi
+if [[ -z "${SYSUPDATE_PUBKEY_B64:-}" && -f "$CASEDIR/extensions/openqa/usr/lib/systemd/import-pubring.pgp" ]]; then
+    # If we haven't been passed a signing key, clean up any that exist from a previous run.
+    rm -f "$CASEDIR/extensions/openqa/usr/lib/systemd/import-pubring.pgp"
+fi
+
 if [[ -n "${STAGING_CHANNEL_URL:-}" ]]; then
     # Create sysupdate.d dropins to redirect updates to our staged S3 image in CI.
     mkdir -p "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-caibx.transfer.d/"
