@@ -18,31 +18,96 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-SYSEXT_IMG="openqa-sysext.img"
-IMG_PATH=$(find . -maxdepth 1 -name '*.iso' -print -quit)
-if [[ -z "$IMG_PATH" && "$UPGRADE" -ne 1 ]]; then
-    echo "[ERROR] No .iso image found in $CASEDIR" >&2
-    exit 1
-fi
+SYSEXT_IMG="${SYSEXT_IMG:-openqa-sysext.img}"
 
-if [[ -n "$IMG_PATH" ]]; then
-    IMG=$(basename "$IMG_PATH")
-    OUTPUT=${IMG%.iso}
+find_local_iso() {
+    find "$CASEDIR" -maxdepth 1 -name '*.iso' -print -quit
+}
+
+download_public_image() {
+    local image_arg="$1"
+    local image_name
+
+    image_name=$(cd "$CASEDIR" && python3 "$CASEDIR/utils/download_image.py" "$image_arg")
+    printf '%s/%s\n' "$CASEDIR" "$image_name"
+}
+
+download_image_url() {
+    local image_url="$1"
+    local image_name
+    local image_path
+
+    image_name=$(basename "$image_url")
+    image_path="$CASEDIR/$image_name"
+
+    echo "[INFO] Downloading image from $image_url..." >&2
+    curl -L -o "$image_path" "$image_url"
+    printf '%s\n' "$image_path"
+}
+
+set_build_from_image_name() {
+    local image_name="$1"
+
+    OUTPUT=${image_name%.iso}
     VERSION=${OUTPUT##*_}
-else
-    if [[ -z "${IMAGE_URL:-}" ]]; then
-        VERSION=$(curl -fsSL "https://storage.kde.org/kde-linux/testing/sysupdate/v2/SHA256SUMS" | sed -nE 's/.*kde-linux_([0-9]{12}).*/\1/p' | head -n1)
-        if [[ -z "$VERSION" ]]; then
-            echo "[ERROR] Could not determine staged version from upstream SHA256SUMS." >&2
-            exit 1
-        fi
-        OUTPUT=kde-linux_$VERSION
-    else
-        IMG=$(basename "$IMAGE_URL")
-        OUTPUT=${IMG%.iso}
-        VERSION=${OUTPUT##*_}
+}
+
+latest_public_version() {
+    local version
+
+    version=$(curl -fsSL "https://storage.kde.org/kde-linux/testing/sysupdate/v2/SHA256SUMS" | sed -nE 's/.*kde-linux_([0-9]{12}).*/\1/p' | head -n1)
+    if [[ -z "$version" ]]; then
+        echo "[ERROR] Could not determine public version from upstream SHA256SUMS." >&2
+        exit 1
     fi
-fi
+
+    printf '%s\n' "$version"
+}
+
+resolve_build_under_test() {
+    IMG_PATH=$(find_local_iso)
+
+    if [[ -z "$IMG_PATH" && "$UPGRADE" -ne 1 ]]; then
+        if [[ -n "${IMAGE_URL:-}" ]]; then
+            IMG_PATH=$(download_image_url "$IMAGE_URL")
+        else
+            echo "[INFO] No .iso image found, downloading latest..."
+            IMG_PATH=$(download_public_image --latest)
+        fi
+    fi
+
+    if [[ -n "$IMG_PATH" ]]; then
+        set_build_from_image_name "$(basename "$IMG_PATH")"
+    elif [[ -n "${IMAGE_URL:-}" ]]; then
+        set_build_from_image_name "$(basename "$IMAGE_URL")"
+    else
+        VERSION=$(latest_public_version)
+        OUTPUT="kde-linux_$VERSION"
+    fi
+}
+
+resolve_install_live() {
+    if [[ "$UPGRADE" -ne 1 ]]; then
+        INSTALL_LIVE="$IMG_PATH"
+        return
+    fi
+
+    # The upgrade flow installs an older base, then upgrades it to the build under test.
+    # Staged builds should start from the latest published image; published builds should start
+    # from the previous one.
+    if [[ -n "${STAGING_CHANNEL_URL:-}" ]]; then
+        # The build under test is an unpublished staged image so install the latest published image.
+        echo "[INFO] Downloading latest published image as the upgrade base..."
+        INSTALL_LIVE=$(download_public_image --latest)
+    else
+        # The build under test is the latest published image, so install the previous one.
+        echo "[INFO] Downloading previous image for upgrade test..."
+        INSTALL_LIVE=$(download_public_image --previous-image)
+    fi
+}
+
+resolve_build_under_test
+resolve_install_live
 DISK=${OUTPUT}.qcow2
 
 # Copy test cases to the directory where openQA expects so that needle editor works
@@ -69,25 +134,6 @@ run_job() {
         *) exit "$retcode" ;;
     esac
 }
-
-if [[ "$UPGRADE" -eq 1 ]]; then
-    # The upgrade flow installs an older base, then upgrades it to the build under test.
-    # Hence, if we have an image staged, we CANNOT be using that same one as the installed image
-    # which will be upgraded from our staging repo.
-    # We also shouldn't be using some older image, we should be using the latest publicly available
-    # image as the upgrade base, since we're testing incremental upgrades.
-    if [[ "${USE_LATEST_IMAGE_UPGRADE:-0}" -eq 1 ]]; then
-        # The build under test is an unpublished staged image so install the latest published image.
-        echo "[INFO] Downloading latest published image as the upgrade base..."
-        INSTALL_LIVE=$(python3 "$CASEDIR/utils/download_image.py" --latest)
-    else
-        # The build under test is the latest published image, so install the previous one.
-        echo "[INFO] Downloading previous image for upgrade test..."
-        INSTALL_LIVE=$(python3 "$CASEDIR/utils/download_image.py" --previous-image)
-    fi
-else
-    INSTALL_LIVE="$IMG_PATH"
-fi
 
 # The upgrade flow uses install-system and sanity-test as well, so these jobs get their own flavor.
 if [[ "$UPGRADE" -eq 1 ]]; then

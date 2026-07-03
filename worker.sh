@@ -62,8 +62,6 @@ mkdir -p "$SYSEXT_LIB"
 find -L "$CASEDIR/lib" -maxdepth 1 -type f -exec cp -f {} "$SYSEXT_LIB/" \;
 
 if [[ -n "${STAGING_CHANNEL_URL:-}" ]]; then
-    # Ensure we aren't downloading an older image when we don't need to.
-    export USE_LATEST_IMAGE_UPGRADE=1
     # Create sysupdate.d dropins to redirect updates to our staged S3 image in CI.
     mkdir -p "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-caibx.transfer.d/"
     mkdir -p "$CASEDIR/extensions/openqa/usr/lib/sysupdate.d/50-root-x86-64-erofs.transfer.d/"
@@ -77,22 +75,8 @@ Path=${STAGING_CHANNEL_URL}
 EOF
 fi
 
-SYSEXT_IMG="openqa-sysext.img"
+export SYSEXT_IMG="openqa-sysext.img"
 mkfs.erofs --quiet -L "kde-openqa-ext" "$SYSEXT_IMG" "$CASEDIR/extensions/openqa"
-
-# Download and set up .iso live image. Upgrade jobs install from a published
-# image and upgrade through STAGING_CHANNEL_URL, so they do not need IMAGE_URL.
-IMG_PATH=$(find "$CASEDIR" -maxdepth 1 -name '*.iso' | head -n1)
-if [[ -z "$IMG_PATH" && "$UPGRADE" -ne 1 ]]; then
-    if [[ -n "${IMAGE_URL:-}" ]]; then
-        echo "[INFO] Downloading image from $IMAGE_URL..."
-        IMG_PATH="$CASEDIR/$(basename "$IMAGE_URL")"
-        curl -L -o "$IMG_PATH" "$IMAGE_URL"
-    else
-        echo "[INFO] No .iso image found, downloading latest..."
-        IMG_PATH=$(python3 "$CASEDIR/utils/download_image.py" --latest)
-    fi
-fi
 
 # Check if all the required environment variables exist outside of a single-instance mock, where they aren't required
 required_vars=(OPENQA_HOST_ADDR)
