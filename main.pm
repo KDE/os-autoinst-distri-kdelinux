@@ -73,6 +73,7 @@ sub test_system_upgrade {
     loadtest 'common/reboot.py';
     loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
+    loadtest 'kdelinux/system/verify_upgrade.py';
     loadtest 'common/shutdown.py';
 }
 
