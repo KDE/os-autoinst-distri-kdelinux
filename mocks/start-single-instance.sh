@@ -20,16 +20,6 @@ while ! curl -o /dev/null -w "%{http_code}" -sIL http://localhost/ | grep 200; d
     sleep 3
 done
 
-cat > /etc/openqa/client.conf <<EOF
-[auth]
-# method name is case sensitive!
-method = Fake
-
-[localhost]
-key = 1234567890ABCDEF
-secret = 1234567890ABCDEF
-EOF
-
 echo "[INFO] Waiting for worker to start..."
 until ps -ef | grep -q "[o]penqa/script/worker"; do sleep 2; done
 
