@@ -10,10 +10,15 @@ sed -i 's#OPENQA_DIR/script/worker #&--no-cleanup #' /usr/share/openqa/script/op
 grep -q -- '--no-cleanup' /usr/share/openqa/script/openqa-bootstrap \
     || { echo "[ERROR] Could not enable --no-cleanup on the openQA worker launcher" >&2; exit 1; }
 
+mkdir -p /var/log/apache2
+mkdir -p /srv/www/htdocs
+
 skip_suse_tests=1 skip_suse_specifics=1 /usr/share/openqa/script/openqa-bootstrap &
 
-echo "[INFO] Waiting for OpenQA bootstrap to complete..."
-until [[ -s /etc/openqa/client.conf ]]; do sleep 2; done
+echo "[INFO] Waiting for OpenQA WebUI to start..."
+while ! curl -o /dev/null -w "%{http_code}" -sIL http://localhost/ | grep 200; do
+    sleep 3
+done
 
 cat > /etc/openqa/client.conf <<EOF
 [auth]
