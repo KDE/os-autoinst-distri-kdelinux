@@ -6,6 +6,7 @@ import unittest
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.common.base import AppiumOptions
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -38,9 +39,8 @@ class PanelTests(unittest.TestCase):
         self.addCleanup(subprocess.run, ['pkill', 'dolphin'])
 
     def _panel_child(self, name):
-        """Locator for a named element under the panel."""
-        return (AppiumBy.XPATH,
-                f'//*[@accessibility-id="QApplication.PanelView"]//*[@name="{name}"]')
+        """Finds a named element under the panel."""
+        return self.driver.find_element(AppiumBy.ACCESSIBILITY_ID, "QApplication.PanelView").find_element(AppiumBy.NAME, name)
 
     def _favorites_entry(self, name):
         """Locator for a favorites entry."""
@@ -63,8 +63,12 @@ class PanelTests(unittest.TestCase):
     def test_2_task_manager_pinned_apps(self):
         """The task manager must have the expected apps pinned."""
         expected = ["System Settings", "Discover", "Dolphin", "Firefox"]
-        missing = [name for name in expected
-                   if not self.driver.find_elements(*self._panel_child(name))]
+        missing = []
+        for name in expected:
+            try:
+                self._panel_child(name)
+            except NoSuchElementException:
+                missing.append(name)
         self.assertFalse(
             missing, f'apps not pinned to the task manager: {", ".join(missing)}')
 
@@ -102,7 +106,7 @@ class PanelTests(unittest.TestCase):
         """Launch Dolphin from its pinned entry in the task manager."""
         wait = WebDriverWait(self.driver, 10)
         wait.until(
-            ec.element_to_be_clickable(self._panel_child("Dolphin")),
+            lambda _: self._panel_child('Dolphin'),
             message='Dolphin is not pinned to the task manager').click()
         self._assert_dolphin_launched()
 
