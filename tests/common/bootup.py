@@ -8,6 +8,8 @@ def test_flags(self):
 
 def run(self):
     power('on')
+    assert_screen('uefi_screen', 'timeout', 30)
+    send_key('ret')
     # check if we see plymouth
     assert_screen('booting_screen', 'timeout', 30)
     # wait for kick-off icon on panel to show up
