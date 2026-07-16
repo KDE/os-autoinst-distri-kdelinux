@@ -17,6 +17,7 @@ def _cli_command(method):
     @functools.wraps(method)
     def wrapper(self, *args, user: user_manager.User | None = None, **kwargs) -> str:
         cmdline = method(self, *args, **kwargs)
+        diag(f'Running {cmdline} on SUT')
         try:
             output = self._run_transient(cmdline, user=user)
         finally:
@@ -76,10 +77,10 @@ class CliTest:
         return f'source {VENV_DIR}/bin/activate && python3 {script_path}'
 
     @_cli_command
-    def run_selenium(self, script_name: str = None, directory: str = None) -> str:
+    def run_selenium(self, script_name: str = None, directory: str = None, args: str = "") -> str:
         script_name = script_name or f"{self.name}.py"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
-        return f'source {VENV_DIR}/bin/activate && {LIB_DIR}/openqa-selenium-webdriver-at-spi-run {script_path}'
+        return f'source {VENV_DIR}/bin/activate && {LIB_DIR}/openqa-selenium-webdriver-at-spi-run {script_path} {args}'
 
     def _collect(self):
         try:
