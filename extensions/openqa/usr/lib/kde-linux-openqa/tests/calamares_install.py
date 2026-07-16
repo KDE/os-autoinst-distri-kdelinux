@@ -6,10 +6,13 @@ from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.common.base import AppiumOptions
 import selenium.common.exceptions
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from lib import user_manager
 from lib.sut import openqa_junit_xml
+import subprocess
 import sys
 
 # Installs the system through Calamares.
@@ -28,6 +31,19 @@ class CalamaresTests(unittest.TestCase):
         # fails because calamares is root? TODO
         pass
 
+    def _set_text(self, text, element=None):
+        # QML text fields seem to not implement AT-SPI EditableText in QT versions older than 6.11
+        # and synthesised keystrokes get garbled, so we fall back to using the clipboard here.
+        # https://qt-project.atlassian.net/browse/QTBUG-142132
+        # With no element (e.g. an external dialog not in our a11y tree) paste blind into
+        # whatever currently has focus.
+        subprocess.run(['wl-copy', text], check=True)
+        if element is not None:
+            element.click()
+            WebDriverWait(self.driver, 10).until(
+                lambda _: element.is_selected(), message='field never gained focus')
+        ActionChains(self.driver).key_down(Keys.CONTROL).pause(0.5).send_keys('v').pause(0.5).key_up(Keys.CONTROL).perform()
+
     def test_install(self):
         """Go through Calamares and install through the standard Erase Disk method."""
         ## Welcome page
@@ -38,7 +54,23 @@ class CalamaresTests(unittest.TestCase):
         next_button.click()
         ## Partitions page
         self.driver.find_element(by=AppiumBy.XPATH, value="//*[contains(@name, 'Erase disk')]").click()
+
+        if "--encrypted" in sys.argv[1:]:
+            ## Enable encrypted install
+            self.driver.find_element(by=AppiumBy.XPATH, value="//*[contains(@name, 'Encrypt system')]").click()
+
+            ## Set FDE passphrase
+            password = user_manager.installed().pw
+
+            field = WebDriverWait(self.driver, 10).until(ec.presence_of_element_located((AppiumBy.XPATH, "//*[contains(@description, 'Passphrase')]")))
+            self._set_text(password, field)
+
+            field = WebDriverWait(self.driver, 10).until(ec.presence_of_element_located((AppiumBy.XPATH, "//*[contains(@description, 'Confirm passphrase')]")))
+            self._set_text(password, field)
+
+        # Start install
         next_button.click()
+
         ## Finished page
         wait = WebDriverWait(self.driver, 300)
         wait.until(

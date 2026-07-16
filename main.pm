@@ -27,12 +27,12 @@ sub loadtest {
 }
 
 sub test_live_image {
-    loadtest 'kdelinux-live/bootup.py';
+    loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
     loadtest 'common/network.py';
     loadtest 'kdelinux-live/calamares_install.py';
     loadtest 'common/reboot.py';
-    loadtest 'kdelinux-live/bootup_setup.py';
+    loadtest 'common/bootup.py';
     loadtest 'kdelinux/desktop/plasma_setup.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'kdelinux/desktop/plasma_welcome.py';
