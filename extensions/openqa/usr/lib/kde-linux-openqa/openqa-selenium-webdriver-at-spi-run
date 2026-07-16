@@ -21,4 +21,4 @@ gsettings set org.gnome.desktop.interface toolkit-accessibility true
 # This can happen when a test times out in OpenQA, and it gets killed.
 fuser -k 4723/tcp || true
 
-KWIN_PID="$(pgrep -n kwin_wayland)" TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 selenium-webdriver-at-spi-run python3 "$1"
+KWIN_PID="$(pgrep -n kwin_wayland)" TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 selenium-webdriver-at-spi-run python3 "$@"
