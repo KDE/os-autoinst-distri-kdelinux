@@ -11,9 +11,11 @@ if [[ -z "${CASEDIR:-}" ]]; then
 fi
 
 UPGRADE=0
+FDE=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --upgrade) UPGRADE=1; shift ;;
+        --encrypt) FDE=1; shift ;;
         *) echo "[ERROR] Unknown argument: $1" >&2; exit 1 ;;
     esac
 done
@@ -144,6 +146,11 @@ else
     INSTALLED_FLAVOR=installed
 fi
 
+if [[ "$FDE" -eq 1 ]]; then
+    LIVE_FLAVOR+="-encrypted"
+    INSTALLED_FLAVOR+="-encrypted"
+fi
+
 # Put the whole flow in its own job group so each flow gets its own build overview,
 # and the dependency chain stays within one group. Mock doesn't have any groups, so don't set it here.
 GROUP=
@@ -164,7 +171,8 @@ run_job \
     --live "$INSTALL_LIVE" \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
-    --build "$VERSION"
+    --build "$VERSION" \
+    $( [[ "$FDE" -eq 1 ]] && echo "--encrypt" )
 
 if [[ "$UPGRADE" -eq 1 ]]; then
     run_job \
@@ -173,7 +181,8 @@ if [[ "$UPGRADE" -eq 1 ]]; then
         --hdd "$DISK" \
         --sysext "$SYSEXT_IMG" \
         --build "$VERSION" \
-        --upgrade
+        --upgrade \
+        $( [[ "$FDE" -eq 1 ]] && echo "--encrypt" )
 fi
 
 run_job \
@@ -181,7 +190,8 @@ run_job \
     --flavor "$INSTALLED_FLAVOR" \
     --hdd "$DISK" \
     --sysext "$SYSEXT_IMG" \
-    --build "$VERSION"
+    --build "$VERSION" \
+    $( [[ "$FDE" -eq 1 ]] && echo "--encrypt" )
 
 if [[ "$TESTS_FAILED" -ne 0 ]]; then
     echo "[ERROR] One or more jobs had failing tests." >&2

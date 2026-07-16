@@ -57,6 +57,10 @@ while [[ $# -gt 0 ]]; do
             UPGRADE=1
             shift
             ;;
+        --encrypt)
+            FDE=1
+            shift
+            ;;
         *)
             echo "[ERROR] Unknown argument: $1" >&2
             exit 1
@@ -275,6 +279,7 @@ JOB_RESPONSE=$(openqa -X POST jobs \
     $( [[ -n "$LIVE" ]] && echo DO_INSTALL=1 ) \
     $( [[ -n "$LIVE" ]] && echo HDDSIZEGB=30 ) \
     $( [[ "$UPGRADE" -eq 1 ]] && echo DO_UPGRADE=1 ) \
+    $( [[ "$FDE" -eq 1 ]] && echo FDE_INSTALL=1 ) \
     BOOT_HDD_IMAGE=1 \
     BACKEND=qemu \
     UEFI=1 \
