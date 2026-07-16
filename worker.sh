@@ -7,11 +7,14 @@ set -eo pipefail
 export CASEDIR="$(git rev-parse --show-toplevel)"
 
 source "$CASEDIR"/utils/banner.sh
-# Parse cmdline to see if we're doing an upgrade job
+
+# Parse cmdline to see if we're doing an upgrade and/or encryption job
 UPGRADE=0
+FDE=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --upgrade) UPGRADE=1; shift ;;
+        --encrypt) FDE=1; shift ;;
         *) echo "[ERROR] Unknown argument: $1" >&2; exit 1 ;;
     esac
 done
@@ -113,13 +116,13 @@ fi
 # Run test jobs
 jobs_status=0
 if [[ "$UPGRADE" -eq 1 ]]; then
-    if bash "$CASEDIR/utils/jobs.sh" --upgrade; then
+    if bash "$CASEDIR/utils/jobs.sh" --upgrade $( [[ "$FDE" -eq 1 ]] && echo "--encrypt" ); then
         :
     else
         jobs_status=$?
     fi
 else
-    if bash "$CASEDIR/utils/jobs.sh"; then
+    if bash "$CASEDIR/utils/jobs.sh" $( [[ "$FDE" -eq 1 ]] && echo "--encrypt" ); then
         :
     else
         jobs_status=$?

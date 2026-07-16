@@ -69,3 +69,16 @@ test-upgrade:
   stage: test-upgrade
   variables:
     WORKER_ARGS: --upgrade
+
+test-encrypt:
+  extends: .test-base
+  stage: test
+  variables:
+    WORKER_ARGS: --encrypt
+
+test-upgrade-encrypt:
+  extends: .test-base
+  stage: test-upgrade
+  variables:
+    WORKER_ARGS: --upgrade --encrypt
+

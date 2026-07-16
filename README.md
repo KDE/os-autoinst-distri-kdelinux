@@ -7,12 +7,12 @@
 
 | Test | What it does |
 |---|---|
-| `kdelinux-live/bootup` | Powers on, checks UEFI screen, Plymouth, and live desktop loads |
+| `common/bootup` | Powers on, checks UEFI screen, Plymouth, and live desktop loads |
 | `common/system_settings/disable_screen_dim_and_screen_off` | Disables screen dim/off via kconfig so subsequent tests aren't interrupted |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
 | `common/network` | Checks that networking works; a non-loopback link is up with a routable IP and a default route, DNS resolves, and HTTPS to the internet works |
 | `kdelinux-live/calamares_install` | Runs the Calamares installer and installs the system, fatal |
-| `kdelinux-live/bootup_setup` | Powers on after install, checks Plymouth and Plasma Welcome screen appear |
+| `common/bootup` | Powers on after install, checks Plymouth and Plasma Welcome screen appear |
 | `kdelinux/desktop/plasma_setup` | Completes the Plasma initial setup wizard |
 | `kdelinux/sddm/sddm_password_login` | Types password at SDDM, checks desktop or welcome screen loads |
 | `kdelinux/desktop/plasma_welcome` | Runs through the Plasma Welcome screen via Selenium |
@@ -83,6 +83,8 @@ The upgrade flow, verifies the current build can be upgraded to from the previou
 install-system (previous build) -> upgrade-system -> sanity-test
 ```
 
+Both of these flows are also offered in encrypted install variant too.
+
 ### Running tests locally
 
 Nota bene: if you change anything in `extensions/`, to re-create sysext image without restarting worker, run following,
@@ -106,7 +108,7 @@ Spins up a local OpenQA webui and worker together.
 4. Open a shell in the container and submit jobs:
    ```bash
    podman exec -it openqa-single-instance bash
-   bash utils/jobs.sh            # add --upgrade for the upgrade flow
+   bash utils/jobs.sh            # add --upgrade for the upgrade flow, add --encrypt to test with full-disk-encryption
    ```
    You can also edit `utils/jobs.sh` to comment out jobs and run only the ones you want. Note that
    `sanity-test` needs `install-system` to have run first, because it installs the system to a virtual disk.
