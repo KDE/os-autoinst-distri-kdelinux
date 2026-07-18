@@ -179,6 +179,11 @@ clean_pool() {
 
 poll_openqa_job() {
     local job_id="$1"
+    local openqa_web_host="$OPENQA_HOST_ADDR"
+
+    if [[ "$openqa_web_host" == "localhost" ]]; then
+        openqa_web_host+=":1080"
+    fi
 
     echo "[INFO] Job ${job_id} submitted. Polling for result..."
 
@@ -187,7 +192,7 @@ poll_openqa_job() {
     local scheduled_since=
 
     banner INFO "${TEST} test job is now running.
-View the running job - along with logs - here:  ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}/tests/${job_id}"
+View the running job - along with logs - here:  ${OPENQA_SCHEME:-https}://${openqa_web_host}/tests/${job_id}"
 
     local result=
     local state=
