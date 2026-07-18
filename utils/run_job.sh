@@ -192,7 +192,7 @@ poll_openqa_job() {
     local scheduled_since=
 
     banner INFO "${TEST} test job is now running.
-View the running job - along with logs - here:  ${OPENQA_SCHEME:-https}://${openqa_web_host}/tests/${job_id}"
+View the running job, along with its logs, here: ${OPENQA_SCHEME:-https}://${openqa_web_host}/tests/${job_id}"
 
     local result=
     local state=
