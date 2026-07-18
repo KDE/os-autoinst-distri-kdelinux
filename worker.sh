@@ -3,6 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 set -eo pipefail
 
+# Set the casedir to the git repo
+export CASEDIR="$(git rev-parse --show-toplevel)"
+
+source "$CASEDIR"/utils/banner.sh
 # Parse cmdline to see if we're doing an upgrade job
 UPGRADE=0
 while [[ $# -gt 0 ]]; do
@@ -11,9 +15,6 @@ while [[ $# -gt 0 ]]; do
         *) echo "[ERROR] Unknown argument: $1" >&2; exit 1 ;;
     esac
 done
-
-# Set the casedir to the git repo
-export CASEDIR="$(git rev-parse --show-toplevel)"
 
 # Get environment variables
 if [[ -z "${MOCK_MODE:-}" && -f "$CASEDIR/.env" ]]; then
@@ -110,8 +111,26 @@ if [[ -n "${MOCK_MODE:-}" ]]; then
 fi
 
 # Run test jobs
+jobs_status=0
 if [[ "$UPGRADE" -eq 1 ]]; then
-    bash "$CASEDIR/utils/jobs.sh" --upgrade
+    if bash "$CASEDIR/utils/jobs.sh" --upgrade; then
+        :
+    else
+        jobs_status=$?
+    fi
 else
-    bash "$CASEDIR/utils/jobs.sh"
+    if bash "$CASEDIR/utils/jobs.sh"; then
+        :
+    else
+        jobs_status=$?
+    fi
 fi
+
+# Send a message to maintainers to tell them where to inspect built images that have been staged.
+if [[ -z "${MOCK_MODE:-}" && -n "${IMAGE_URL:-}" ]]; then
+    URL="https://qoomon.github.io/aws-s3-bucket-browser/index.html?bucket=${IMAGE_URL%/*}"
+    banner INFO "In case of failure, you can inspect and download the .iso image and sysupdate tree at:
+$URL"
+fi
+
+exit "$jobs_status"

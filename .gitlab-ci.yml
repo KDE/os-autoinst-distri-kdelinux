@@ -40,6 +40,7 @@ reuse:
       --entrypoint ""
       --volume $CI_PROJECT_DIR:$CI_PROJECT_DIR:z
       --workdir $CI_PROJECT_DIR
+      --env CI_PROJECT_DIR
       --env OPENQA_HOST_ADDR
       --env OPENQA_API_KEY
       --env OPENQA_API_SECRET
@@ -48,6 +49,14 @@ reuse:
       --env SYSUPDATE_PUBKEY_B64
       registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
       bash worker.sh $WORKER_ARGS
+
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - gitlab-artifacts/*-results.xml
+    paths:
+      - gitlab-artifacts/
 
 test:
   extends: .test-base

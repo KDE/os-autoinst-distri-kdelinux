@@ -89,8 +89,15 @@ class CliTest:
             session.get(self._remote_results, local_results)
 
             upname = f'{self.name}-results.xml'
+
             Path('ulogs').mkdir(exist_ok=True)
-            shutil.copy(local_results, f'ulogs/{upname}')
+            shutil.copy2(local_results, Path('ulogs') / upname)
+
+            ci_project_dir = os.environ.get("CI_PROJECT_DIR")
+            if ci_project_dir:
+                gitlab_artifact_dir = Path(ci_project_dir) / "gitlab-artifacts"
+                gitlab_artifact_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(local_results, gitlab_artifact_dir / upname)
 
             # There's no nice testapi function to do this in python, so we have to call the underlying perl
             perl.eval(f"""

@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 set -euo pipefail
 
+source "$CASEDIR"/utils/banner.sh
+
 # Run an OpenQA job from within a worker.
 
 HDD=
@@ -118,22 +120,6 @@ openqa() {
     openqa-cli api --host "${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}" "$@"
 }
 
-banner() {
-    local level="$1" message="$2"
-    local rule color out=1
-    case "$level" in
-        ERROR) rule='\e[1;91m'; color='\e[1;91m'; out=2 ;;  # red
-        WARN)  rule='\e[1;93m'; color='\e[1;93m'; out=2 ;;  # yellow
-        *)     rule='\e[1;95m'; color='\e[1;96m'         ;;  # magenta rule, cyan text
-    esac
-    local line='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
-    {
-        printf '\n%b%s\e[0m\n' "$rule" "$line"
-        printf '%-9s %b%s\e[0m\n' "[$level]" "$color" "$message"
-        printf '%b%s\e[0m\n\n' "$rule" "$line"
-    } >&"$out"
-}
-
 stage_asset() {
     local path="$1"
     local name
@@ -200,7 +186,8 @@ poll_openqa_job() {
     local scheduled_timeout=30
     local scheduled_since=
 
-    banner INFO "View the running job here:  ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}/tests/${job_id}"
+    banner INFO "${TEST} test job is now running.
+View the running job - along with logs - here:  ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}/tests/${job_id}"
 
     local result=
     local state=
