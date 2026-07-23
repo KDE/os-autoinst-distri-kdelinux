@@ -50,7 +50,7 @@ class AutoLoginTest(unittest.TestCase):
             "QT_LOGGING_RULES": "qt.accessibility.atspi.warning=false;qt.qpa.wayland.warning=false;kf.auth.warning=false;kf.plasma.core.warning=false;kf.windowsystem.warning=false;kf.kirigami.platform.warning=false;org.kde.plasma.kcm_feedback.warning=false;qt.qpa.services.warning=false",
         })
         self.driver = webdriver.Remote(command_executor='http://127.0.0.1:4723', options=options)
-        self.driver.implicitly_wait = 10
+        self.driver.implicitly_wait(0)
 
         self.polkit = PolkitAgent()
 

@@ -27,7 +27,7 @@ class KRunnerTests(unittest.TestCase):
 
         options.set_capability("app", krunner_pid if krunner_pid else "krunner")
         self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
-        self.driver.implicitly_wait = 10
+        self.driver.implicitly_wait(0)
 
     @classmethod
     def tearDownClass(self):
