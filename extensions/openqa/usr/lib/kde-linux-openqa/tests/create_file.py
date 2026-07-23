@@ -82,7 +82,7 @@ class CreateFileTests(unittest.TestCase):
 
         # Check if we now have an entry on the desktop
         wait.until(
-            ec.presence_of_element_located((AppiumBy.XPATH, f"//canvas[@name='{TEST_FILE_NAME}']"))
+            ec.presence_of_element_located((AppiumBy.CLASS_NAME, f"[canvas | {TEST_FILE_NAME}]"))
         )
 
     def test_2_verify_file_existence(self):
