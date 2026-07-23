@@ -131,7 +131,8 @@ fi
 
 # Send a message to maintainers to tell them where to inspect built images that have been staged.
 if [[ -z "${MOCK_MODE:-}" && -n "${IMAGE_URL:-}" ]]; then
-    URL="https://qoomon.github.io/aws-s3-bucket-browser/index.html?bucket=${IMAGE_URL%/*}"
+    BUCKET_URL="${IMAGE_URL%/*}"
+    URL="https://qoomon.github.io/aws-s3-bucket-browser/index.html?bucket=${BUCKET_URL/\/ci-artifacts\//\/ci-artifacts\/#}"
     banner INFO "In case of failure, you can inspect and download the .iso image and sysupdate tree at:
 $URL"
 fi
