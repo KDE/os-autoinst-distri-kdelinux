@@ -14,7 +14,7 @@ def run(self):
     encrypted = get_var('FDE_INSTALL', '0')
     install_mode = '--encrypted' if encrypted == '1' else '--default'
 
-    test = cli_test.CliTest('calamares_install', timeout=300)
+    test = cli_test.CliTest('calamares_install', artifacts=['/tmp/calamares-session.log'], timeout=300)
     test.run_selenium(user=user_manager.live(), args=install_mode)
     # After install is run we set FIRST_BOOT so follow up code
     # knows that this is first boot

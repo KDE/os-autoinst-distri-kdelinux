@@ -38,6 +38,7 @@ sub test_live_image {
     loadtest 'kdelinux/desktop/plasma_welcome.py';
     # loadtest 'common/system_settings/disable_screen_lock.py';
     loadtest 'kdelinux/system_settings/configure_automatic_login.py';
+    loadtest 'kdelinux/system/collect_logs.py';
     loadtest 'common/shutdown.py';
 }
 
@@ -74,6 +75,7 @@ sub test_system_upgrade {
     loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
     loadtest 'kdelinux/system/verify_upgrade.py';
+    loadtest 'kdelinux/system/collect_logs.py';
     loadtest 'common/shutdown.py';
 }
 
