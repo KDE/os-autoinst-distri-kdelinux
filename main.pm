@@ -71,6 +71,12 @@ sub test_system_upgrade {
     loadtest 'common/network.py';
     loadtest 'kdelinux/app/discover_upgrade.py';
     loadtest 'common/reboot.py';
+    # Check if we booted in upgraded build
+    loadtest 'common/bootup.py';
+    loadtest 'common/basic_test.py';
+    loadtest 'kdelinux/system/verify_upgrade.py';
+    loadtest 'common/reboot.py';
+    # Verify that we are able to boot in old build
     loadtest 'common/bootup.py';
     loadtest 'common/basic_test.py';
     loadtest 'kdelinux/system/verify_upgrade.py';

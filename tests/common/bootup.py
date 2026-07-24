@@ -16,6 +16,15 @@ def run(self):
 
     # Verify that KDE Linux UEFI screen is visible
     assert_screen('uefi_screen', 'timeout', 30)
+
+    # If we are asked to boot into previous boot by upgrade testcase
+    # press "down", wait for 1 second
+    boot_prev = get_var('BOOT_PREVIOUS', '0')
+    if boot_prev == '1':
+        send_key('down')
+        time.sleep(1)
+
+    # Start the selected image.
     send_key('ret')
 
     # FDE_INSTALL=1 indicates full-disk-encryption
