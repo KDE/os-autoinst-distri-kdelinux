@@ -4,6 +4,9 @@ from testapi import *
 from lib.openqa import cli_test
 from lib import user_manager
 
+def test_flags(self):
+    return {'always_run': 1}
+
 def run(self):
-    test = cli_test.CliTest('collect_logs', timeout=400)
+    test = cli_test.CliTest('collect_logs', artifacts=['/tmp/kde-linux-collected-logs.tar.zst'], timeout=400)
     test.run_selenium(user=user_manager.installed())

@@ -3,6 +3,7 @@
 
 import glob
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -74,6 +75,8 @@ class CollectLogsTests(unittest.TestCase):
             '<user-redacted>', env_contents,
             'collect-logs did not redact the username from env.txt')
 
+        # Move file to path where openQA archives it
+        shutil.move(bundle, '/tmp/kde-linux-collected-logs.tar.zst')
 
 if __name__ == '__main__':
     openqa_junit_xml.run(CollectLogsTests, 'collect_logs')

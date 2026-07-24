@@ -27,9 +27,10 @@ class CalamaresTests(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        #self.driver.quit()
         # fails because calamares is root? TODO
-        pass
+        # self.driver.quit()
+        # Copy logs so that test can archive that
+        subprocess.run(['run0', '--empower', 'cp', '/root/.cache/calamares/session.log', '/tmp/calamares-session.log'], check=True)
 
     def _set_text(self, text, element=None):
         # QML text fields seem to not implement AT-SPI EditableText in QT versions older than 6.11
