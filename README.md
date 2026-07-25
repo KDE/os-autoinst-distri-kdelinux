@@ -157,6 +157,11 @@ source ./venv/bin/activate
 pip3 install -r ./requirements.txt
 ```
 
+Copy the required shared Python libs from the toplevel repo into the sysext:
+```
+find -L "$(git rev-parse --show-toplevel)/lib" -maxdepth 1 -type f -exec cp -f {} ./lib/ \;
+```
+
 As root, create required directories that the tests will output files to:
 ```
 mkdir -p /var/log/kde-linux-openqa
