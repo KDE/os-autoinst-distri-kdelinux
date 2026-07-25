@@ -5,6 +5,7 @@ import unittest
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.common.base import AppiumOptions
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
@@ -39,8 +40,15 @@ class PlasmaSetupTests(unittest.TestCase):
 
         def reached_next_page(driver):
             # A prior click was accepted once the heading changes.
-            if driver.find_elements(AppiumBy.NAME, next_page_title):
-                return True
+            try:
+                if driver.find_elements(AppiumBy.NAME, next_page_title):
+                    return True
+            except WebDriverException as error:
+                # Catch this transient backend error and ignore it.
+                if "'NoneType' object is not iterable" in error.msg:
+                    return False
+                raise
+
             driver.find_element(AppiumBy.NAME, "Next").click()
             return False
 
