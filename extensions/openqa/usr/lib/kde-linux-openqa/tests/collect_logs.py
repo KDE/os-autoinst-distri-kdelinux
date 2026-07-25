@@ -32,7 +32,7 @@ class CollectLogsTests(unittest.TestCase):
 
         work_dir = tempfile.mkdtemp()
         proc = subprocess.Popen(
-            ['run0','--empower',COLLECT_LOGS], cwd=work_dir,
+            [COLLECT_LOGS], cwd=work_dir,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.polkit.authenticate()
         try:
