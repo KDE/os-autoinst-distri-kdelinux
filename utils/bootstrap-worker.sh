@@ -8,11 +8,14 @@ set -euo pipefail
 
 export WORKER_CLASS="kde-linux-worker-$(cat /proc/sys/kernel/random/uuid)"
 
+# Setting CRITICAL_LOAD_AVG_THRESHOLD might prevent jobs getting stuck in the scheduled
+# state, see https://gitlab.gnome.org/GNOME/openqa-tests/-/work_items/126
 cat > /etc/openqa/workers.ini <<EOF
 [global]
 HOST = ${OPENQA_SCHEME:-https}://${OPENQA_HOST_ADDR}
 BACKEND = qemu
 WORKER_CLASS = ${WORKER_CLASS}
+CRITICAL_LOAD_AVG_THRESHOLD = 100
 EOF
 
 cat > /etc/openqa/client.conf <<EOF
