@@ -4,6 +4,7 @@
 
 from testapi import *
 from lib import user_manager
+import time
 
 def test_flags(self):
     return {'fatal': 1}
@@ -14,23 +15,26 @@ def run(self):
     # this does nothing
     power('on')
 
-    # Verify that KDE Linux UEFI screen is visible
-    assert_screen('uefi_screen', 'timeout', 30)
-
-    # If we are asked to boot into previous boot by upgrade testcase
-    # press "down", wait for 1 second
-    boot_prev = get_var('BOOT_PREVIOUS', '0')
-    if boot_prev == '1':
-        send_key('down')
-        time.sleep(1)
-
-    # Start the selected image.
-    send_key('ret')
-
     # FDE_INSTALL=1 indicates full-disk-encryption
     encrypted = get_var('FDE_INSTALL', '0')
+    # live mode
     do_install = get_var('DO_INSTALL', '0')
+    # First boot after installation
     first_boot = get_var('FIRST_BOOT', '0')
+    # This selects the previous boot entry
+    boot_prev = get_var('BOOT_PREVIOUS', '0')
+
+    if '1' in (first_boot, do_install, boot_prev):
+        # Verify that KDE Linux UEFI screen is visible
+        assert_screen('uefi_screen', 'timeout', 30)
+
+        # If we are asked to boot into previous boot by upgrade testcase press "down", wait for 1 second
+        if boot_prev == '1':
+            send_key('down')
+            time.sleep(1)
+
+        # Start the selected image.
+        send_key('ret')
 
     if encrypted == '1' and (first_boot == '1' or do_install == '0'):
         # Enter password for the FDE
