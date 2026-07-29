@@ -17,6 +17,7 @@ FDE=
 FLAVOR=
 AFTER=
 GROUP=
+PFLASH_PATH=/usr/share/qemu/ovmf-x86_64-4m-vars.bin
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -146,6 +147,7 @@ stage_asset() {
 
 if [[ -n "$LIVE" ]]; then
     stage_asset "$LIVE"
+    stage_asset "$PFLASH_PATH"
 else
     stage_asset "$HDD"
 fi
@@ -174,6 +176,15 @@ produce_installed_hdd() {
     else
         qemu-img convert -O qcow2 "$pool_disk" "$share/$name"
     fi
+}
+
+produce_pflash_vars() {
+    local pflash_overlay=/var/lib/openqa/pool/1/raid/pflash-vars-overlay0
+    local pflash_factory=/var/lib/openqa/share/factory/hdd/ovmf-x86_64-4m-vars.bin
+    local tmp_pflash=/tmp/pflash-vars-overlay0
+    echo "[INFO] Updating $pflash_factory for the next job."
+    qemu-img convert -f qcow2 -O raw $pflash_overlay $tmp_pflash
+    mv $tmp_pflash $pflash_factory
 }
 
 # Clean up the pool ourselves, because we set `--no-cleanup` in the worker so we're able to
@@ -285,7 +296,7 @@ JOB_RESPONSE=$(openqa -X POST jobs \
     BACKEND=qemu \
     UEFI=1 \
     UEFI_PFLASH_CODE=/usr/share/qemu/ovmf-x86_64-4m-code.bin \
-    UEFI_PFLASH_VARS=/usr/share/qemu/ovmf-x86_64-4m-vars.bin \
+    UEFI_PFLASH_VARS=ovmf-x86_64-4m-vars.bin \
     QEMUCPUS=4 \
     QEMURAM=4096 \
     QEMUCPU=host \
@@ -320,6 +331,7 @@ poll_openqa_job "$JOB_ID" "$OPENQA_HOST_ADDR" || poll_retcode=$?
 if [[ "$poll_retcode" -ne 1 ]]; then
     if [[ -n "$LIVE" || "$UPGRADE" -eq 1 ]]; then
         produce_installed_hdd "$(basename "$HDD")"
+        produce_pflash_vars
     fi
     clean_pool
 fi
