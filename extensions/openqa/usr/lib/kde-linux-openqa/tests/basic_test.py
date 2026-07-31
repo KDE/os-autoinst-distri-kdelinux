@@ -6,7 +6,6 @@
 
 import json
 import subprocess
-import sys
 import time
 import unittest
 from pathlib import Path
@@ -16,6 +15,7 @@ from lib.sut import openqa_junit_xml
 BLESS_FILE    = Path('/run/user/1000/kde-linux-bless-session')
 POLL_INTERVAL = 5
 TIMEOUT       = 120
+
 
 class BasicTests(unittest.TestCase):
 

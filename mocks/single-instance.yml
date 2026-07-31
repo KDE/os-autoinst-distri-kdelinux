@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+
 services:
   openqa:
     image: registry.opensuse.org/devel/openqa/containers/openqa-single-instance
@@ -17,9 +18,21 @@ services:
     environment:
       - OPENQA_HOST_ADDR=localhost
       - OPENQA_SCHEME=http
+      - MOCK_MODE=1
+      - CASEDIR=/casedir
+      - PYTHONPATH=/casedir
+      - VIRTUAL_ENV=/var/lib/kde-linux-openqa/worker-venv
+      - PATH=/var/lib/kde-linux-openqa/worker-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     volumes:
       - ..:/casedir
-    entrypoint: ["/casedir/mocks/start-single-instance.sh"]
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+          set -e
+          /casedir/setup.sh
+          exec /var/lib/kde-linux-openqa/worker-venv/bin/python \
+            /casedir/mocks/start-single-instance
 
 volumes:
   openqa-pgsql:

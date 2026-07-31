@@ -50,7 +50,7 @@ reuse:
       --env STAGING_CHANNEL_URL
       --env SYSUPDATE_PUBKEY_B64
       registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
-      bash worker.sh $WORKER_ARGS
+      ./setup.sh ./qa worker $WORKER_ARGS
 
   artifacts:
     when: always
@@ -81,4 +81,3 @@ test-upgrade-encrypt:
   stage: test-upgrade
   variables:
     WORKER_ARGS: --upgrade --encrypt
-

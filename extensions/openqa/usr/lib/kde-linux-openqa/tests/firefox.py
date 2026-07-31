@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
-from lib import user_manager
+from lib.common import user_manager
 
 # Check if Firefox's Plasma Integration addon is installed and enabled.
 

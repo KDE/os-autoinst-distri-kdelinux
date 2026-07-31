@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: 2026 Bhushan Shah <bhushan.shah@machinesoul.in>
 
 from testapi import *
-from lib import user_manager
 import time
+from lib.common import user_manager
 
 def test_flags(self):
     return {'fatal': 1}

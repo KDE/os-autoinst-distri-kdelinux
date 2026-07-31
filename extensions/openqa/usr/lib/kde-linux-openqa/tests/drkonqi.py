@@ -1,28 +1,20 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Bhushan Shah <bhushan.shah@machinesoul.in>
-# 
-
 
 import unittest
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.common.base import AppiumOptions
-import selenium.common.exceptions
-
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
-
 from lib.sut import openqa_junit_xml
 from lib.sut.atspi import find_pid_on_atspi_bus
-
-import sys
 import time
 import subprocess
 import signal
 
 # Crashes an application and checks that DrKonqi produces a useful crash report.
+
 
 class DrkonqiTests(unittest.TestCase):
     @classmethod
@@ -77,13 +69,13 @@ class DrkonqiTests(unittest.TestCase):
         # make sure crash report is useful
         wait = WebDriverWait(drkonqi_driver, 120)
         # Go to backtrace mode
-        info_label = wait.until(
+        wait.until(
             ec.presence_of_all_elements_located((AppiumBy.NAME, "The generated crash information is useful."))
         )
 
         # cleanup
         drkonqi_driver.quit()
-        
+
 
 if __name__ == "__main__":
     openqa_junit_xml.run(DrkonqiTests, "drkonqi")

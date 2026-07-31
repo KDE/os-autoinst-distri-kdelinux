@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+
 services:
   openqa-worker:
     image: registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
@@ -10,7 +11,13 @@ services:
     volumes:
       - ..:/casedir
       - openqa-share:/var/lib/openqa/share
-    entrypoint: /casedir/worker.sh
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+          set -e
+          /casedir/setup.sh
+          exec /casedir/qa worker
 
 volumes:
   openqa-share:

@@ -11,6 +11,16 @@ SPDX-FileCopyrightText = "None"
 SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
+path = ".python-version"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "uv.lock"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
 path = "README.md"
 SPDX-FileCopyrightText = [
   "2026 Thomas Duckworth <tduck@filotimoproject.org>",

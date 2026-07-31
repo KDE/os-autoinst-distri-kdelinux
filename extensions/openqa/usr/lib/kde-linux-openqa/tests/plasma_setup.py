@@ -10,7 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 from lib.sut.atspi import find_pid_on_atspi_bus
-from lib import user_manager
+from lib.common import user_manager
 
 # Walks through the Plasma Setup wizard to set up the SUT.
 # Fatal test - it's necessary for the system to work in later testing.

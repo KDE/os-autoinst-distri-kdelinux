@@ -5,17 +5,17 @@ import unittest
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.common.base import AppiumOptions
-import selenium.common.exceptions
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
-from lib import user_manager
+from lib.common import user_manager
 from lib.sut import openqa_junit_xml
 import subprocess
 import sys
 
 # Installs the system through Calamares.
+
 
 class CalamaresTests(unittest.TestCase):
     @classmethod

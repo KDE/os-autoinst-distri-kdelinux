@@ -15,6 +15,7 @@ import subprocess
 
 # Verifies the set default applications, through mimetype and system settings.
 
+
 class DefaultApplicationsTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -124,7 +125,6 @@ class DefaultApplicationsTests(unittest.TestCase):
             for (label, want), got in zip(expected, got_values)
             if want is not None
         ])
-
 
 
 if __name__ == "__main__":

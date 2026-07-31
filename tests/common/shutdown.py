@@ -2,8 +2,8 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
 from testapi import *
-from lib.openqa.cli_session import session
-from lib import user_manager
+from lib.test.cli_session import session
+from lib.common import user_manager
 
 def run(self):
     try:

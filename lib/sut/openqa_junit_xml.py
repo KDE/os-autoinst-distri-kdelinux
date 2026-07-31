@@ -7,6 +7,7 @@ import sys
 
 RESULTS_DIR = '/var/log/kde-linux-openqa'
 
+
 def run(test_class: type, name: str):
     """Run a unittest class and write JUnit XML to the expected results dir"""
     output_dir  = f'{RESULTS_DIR}/{name}'

@@ -3,19 +3,24 @@
 
 from dataclasses import dataclass
 
+
 @dataclass
 class User:
     name: str
     pw: str | None
 
+
 def live():
     return User(name="live", pw=None)
+
 
 def installed():
     return User(name="user", pw="user")
 
+
 def root():
     return User(name="root", pw=None)
+
 
 def plasma_setup():
     return User(name="plasma-setup", pw=None)

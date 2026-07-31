@@ -1,6 +1,23 @@
 ## os-autoinst-distri-kdelinux
 > End-to-end tests for KDE Linux using [openQA](https://open.qa/).
 
+### Development setup
+
+The Python tooling requires Python 3.14 or newer and
+[`uv`](https://docs.astral.sh/uv/). Install `uv`, then create and activate the
+environment from the repository root:
+
+```bash
+uv sync
+source .venv/bin/activate
+```
+
+The `qa worker` and `qa flow` commands run openQA jobs and are intended
+to run inside mock containers or CI rather than on the host system.
+
+See [Running tests locally](#running-tests-locally) for the mock and remote
+openQA workflows.
+
 ### What's tested
 
 #### Install test suite (`install-system`)
@@ -91,7 +108,7 @@ Nota bene: if you change anything in `extensions/`, to re-create sysext image wi
 
 ```
 podman exec -it openqa-single-instance bash
-mkfs.erofs --quiet -L "kde-openqa-ext" openqa-sysext.img "$CASEDIR/extensions/openqa"
+./qa build-sysext
 ```
 
 #### Full local stack (worker + webui)
@@ -108,9 +125,9 @@ Spins up a local OpenQA webui and worker together.
 4. Open a shell in the container and submit jobs:
    ```bash
    podman exec -it openqa-single-instance bash
-   bash utils/jobs.sh            # add --upgrade for the upgrade flow, add --encrypt to test with full-disk-encryption
+   ./qa flow                     # add --upgrade for the upgrade flow, add --encrypt to test with full-disk-encryption
    ```
-   You can also edit `utils/jobs.sh` to comment out jobs and run only the ones you want. Note that
+   You can also run `./qa job` to run a specific job (use `./qa job --help` to see its options). Note that
    `sanity-test` needs `install-system` to have run first, because it installs the system to a virtual disk.
 5. Tear down when done (this cleans up volumes):
    ```bash
@@ -143,33 +160,36 @@ The worker will register with the remote server, submit jobs, and stream results
 
 #### Running a SUT Python `unittest` on your own machine
 
-This assumes you're running KDE Linux, which will have `selenium-webdriver-at-spi` installed.
+This assumes you're running KDE Linux, which will have
+`selenium-webdriver-at-spi` installed.
 
-Inside the repository, go into the sysext test directory:
+From the repository root, build the SUT system extension. This generates its
+requirements and copies the shared Python libraries into place:
+
+```bash
+./qa build-sysext
 ```
+
+Go into the sysext test directory, create a venv, and install
+the SUT dependency group:
+
+```bash
 cd ./extensions/openqa/usr/lib/kde-linux-openqa
-```
-
-Then, create a venv and download test dependencies:
-```
 python3 -m venv --system-site-packages --upgrade-deps ./venv
+uv pip install --python ./venv/bin/python --group sut
 source ./venv/bin/activate
-pip3 install -r ./requirements.txt
 ```
 
-Copy the required shared Python libs from the toplevel repo into the sysext:
-```
-find -L "$(git rev-parse --show-toplevel)/lib" -maxdepth 1 -type f -exec cp -f {} ./lib/ \;
-```
+As root, create the directory where the tests write their results:
 
-As root, create required directories that the tests will output files to:
-```
+```bash
 mkdir -p /var/log/kde-linux-openqa
 chmod 777 /var/log/kde-linux-openqa
 ```
 
-Then, run your test:
-```
+Then run the desired test:
+
+```bash
 PYTHONPATH=. TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 \
   KWIN_PID=$(pgrep -n kwin_wayland) \
   selenium-webdriver-at-spi-run python3 tests/<name of test>.py
@@ -177,13 +197,15 @@ PYTHONPATH=. TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 \
 
 ### Integration with GitLab CI
 
-The pipeline has three stages: `validate`, `test`, and `test-upgrade`.
+The pipeline has five stages: `validate`, `test`, `test-encrypt`, `test-upgrade`, and `test-upgrade-encrypt`.
 
 | Stage | What it does |
 |---|---|
 | validate | runs [REUSE](https://reuse.software/) license compliance linting. This is skipped when the pipeline is triggered from another project. |
-| test | runs the install + sanity-test suite (`worker.sh`) against the hosted openQA server. |
-| test-upgrade | runs the upgrade suite (`worker.sh --upgrade`) against the hosted openQA server. |
+| test | runs the install + sanity-test suite (`qa worker`) against the hosted openQA server. |
+| test-upgrade | runs the upgrade suite (`qa worker --upgrade`) against the hosted openQA server. |
+| test-encrypt | runs the install + sanity-test suite with FDE (`qa worker --encrypt`) against the hosted openQA server. |
+| test-upgrade-encrypt | runs the upgrade suite with FDE (`qa worker --upgrade --encrypt`) against the hosted openQA server. |
 
 Both test jobs use the upstream `openqa_worker` container image.
 
@@ -208,7 +230,7 @@ These groups should created on the server beforehand, under a `KDE Linux` folder
 | `KDE Linux Installation` | standard install and sanity test flow |
 | `KDE Linux Upgrade` | upgradeability flow |
 
-The names are matched server-side by `utils/jobs.sh`. If a group doesn't exist, openQA will simply leave them ungrouped
+The names are matched server-side by `lib/worker/job_flow.py`. If a group doesn't exist, openQA will simply leave them ungrouped
 without any errors.
 
 #### Triggering from another project

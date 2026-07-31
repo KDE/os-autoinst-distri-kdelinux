@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import selenium.common.exceptions
 from lib.sut.atspi import find_pid_on_atspi_bus
-from lib import user_manager
+from lib.common import user_manager
 
 
 class PolkitAgent:

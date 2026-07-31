@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2025 Anicaa (Kangwei Zhu) <anicaazhu@gmail.com>
 from testapi import *
-from lib.openqa.sessions.base import BaseSession
+from lib.test.sessions.base import BaseSession
 
 
 class PlasmaDesktopSession(BaseSession):

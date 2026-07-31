@@ -1,0 +1,164 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+
+import argparse
+import os
+from pathlib import Path
+from lib.worker import job
+from lib.common.log import get_logger
+from lib.common.paths import git_root
+from lib.worker import bootstrap, job_flow, system_packages, sysext
+from lib.worker.job_flow import JobFlowError
+
+log = get_logger(__name__)
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    commands.add_parser("clean-pool")
+    commands.add_parser("build-sysext")
+    command_parser = commands.add_parser("job")
+    job_mode = command_parser.add_mutually_exclusive_group()
+    job_mode.add_argument("--live", type=Path, metavar="PATH")
+    job_mode.add_argument("--upgrade", action="store_true")
+    command_parser.add_argument("--encrypt", action="store_true")
+    command_parser.add_argument("--hdd", type=Path, required=True)
+    command_parser.add_argument("--sysext", type=Path, required=True)
+    command_parser.add_argument("--build", required=True)
+    command_parser.add_argument("--name", required=True)
+    command_parser.add_argument("--flavor", required=True)
+    command_parser.add_argument("--group")
+    command_parser.add_argument("--after", type=int)
+
+    for command in ("worker", "flow"):
+        command_parser = commands.add_parser(command)
+        command_parser.add_argument("--upgrade", action="store_true")
+        command_parser.add_argument("--encrypt", action="store_true")
+
+    return parser
+
+
+def _load_environment() -> None:
+    if os.environ.get("MOCK_MODE"):
+        return
+
+    environment = Path(__file__).resolve().parent / ".env"
+
+    if not environment.is_file():
+        return
+
+    for line in environment.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        name, value = line.split("=", 1)
+        os.environ.setdefault(name.strip(), value.strip())
+
+
+def _log_artifact_url() -> None:
+    image_url = os.environ.get("IMAGE_URL")
+    if not image_url:
+        return
+
+    bucket_url = image_url.rsplit("/", 1)[0]
+    bucket_url = bucket_url.replace(
+        "/ci-artifacts/",
+        "/ci-artifacts/#",
+        1,
+    )
+    log.message(
+        "In case of failure, inspect and download the image and sysupdate "
+        "tree at: https://qoomon.github.io/aws-s3-bucket-browser/"
+        "index.html?bucket=%s",
+        bucket_url,
+    )
+
+
+def main() -> None:
+    args = _parser().parse_args()
+
+    _load_environment()
+
+    if args.command == "clean-pool":
+        job.clean_pool()
+        return
+
+    if args.command == "build-sysext":
+        sysext.build_sysext()
+        return
+
+    if args.command == "flow":
+        job_flow.run_jobs(
+            upgrade=args.upgrade,
+            encrypt=args.encrypt,
+        )
+        return
+
+    if args.command == "job":
+        job_config = job.JobConfig(
+            live=args.live,
+            upgrade=args.upgrade,
+            encrypt=args.encrypt,
+            hdd=args.hdd,
+            sysext=args.sysext,
+            build=args.build,
+            name=args.name,
+            flavor=args.flavor,
+            casedir=git_root(),
+            group=args.group,
+            after=args.after,
+        )
+
+        running_job = job.Job(
+            job.OpenQAClient(
+                host=os.environ["OPENQA_HOST_ADDR"],
+                scheme=os.environ.get("OPENQA_SCHEME", "https"),
+            ),
+            job_config,
+        )
+
+        result = running_job.run()
+
+        match result:
+            case job.JobSuccess():
+                pass
+            case job.JobNonFatalFailure():
+                raise SystemExit(2)
+            case job.JobFatalFailure(reason=reason):
+                log.critical("Job failed: %s", reason)
+                raise SystemExit(1)
+
+        return
+
+    system_packages.install()
+
+    # The single-instance mock already starts its own worker.
+    if os.environ.get("MOCK_MODE"):
+        return
+
+    worker = bootstrap.start_worker()
+    try:
+        job_flow.run_jobs(
+            worker_class=bootstrap.get_worker_class(),
+            upgrade=args.upgrade,
+            encrypt=args.encrypt,
+        )
+    finally:
+        worker.terminate()
+        worker.wait()
+        _log_artifact_url()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except OSError as error:
+        log.critical("Worker filesystem operation failed: %s", error)
+        raise SystemExit(1)
+    except (JobFlowError, job.InvalidJobError) as error:
+        log.critical("Job flow failed: %s", error)
+        raise SystemExit(1)

@@ -2,9 +2,10 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
 from testapi import *
-from lib.openqa.cli_session import session
-from lib.paths import VENV_DIR, LIB_DIR, RESULTS_DIR
-from lib import user_manager
+from lib.test.cli_session import session
+from lib.common.paths import VENV_DIR, LIB_DIR, RESULTS_DIR
+from lib.common import user_manager
+from lib.common.log import get_logger
 import shlex
 import os
 import uuid
@@ -13,11 +14,14 @@ import shutil
 from pathlib import Path
 from testapi import perl
 
+log = get_logger(__name__)
+
+
 def _cli_command(method):
     @functools.wraps(method)
     def wrapper(self, *args, user: user_manager.User | None = None, **kwargs) -> str:
         cmdline = method(self, *args, **kwargs)
-        diag(f'Running {cmdline} on SUT')
+        log.info(f'Running {cmdline} on SUT')
         try:
             output = self._run_transient(cmdline, user=user)
         finally:
@@ -26,6 +30,7 @@ def _cli_command(method):
             self._collect()
         return output
     return wrapper
+
 
 class CliTest:
     def __init__(self, name: str, artifacts: list[str] | None = None, timeout: int = 90):
@@ -56,7 +61,7 @@ class CliTest:
             else:
                 journal_cmd = f'journalctl _SYSTEMD_USER_UNIT={unit}.service --no-pager -o cat'
             output = session.run(journal_cmd, wait_result=True)
-            diag(f'{unit} outputted:\n{output}')
+            log.info(f'{unit} outputted:\n{output}')
 
         return output or ''
 
@@ -65,19 +70,19 @@ class CliTest:
         return cmdline
 
     @_cli_command
-    def run_script(self, script_name: str = None, directory: str = None) -> str:
+    def run_script(self, script_name: str | None = None, directory: str | None = None) -> str:
         script_name = script_name or f"{self.name}.sh"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
         return f"{script_path}"
 
     @_cli_command
-    def run_python(self, script_name: str = None, directory: str = None) -> str:
+    def run_python(self, script_name: str | None = None, directory: str | None = None) -> str:
         script_name = script_name or f"{self.name}.py"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
         return f'source {VENV_DIR}/bin/activate && python3 {script_path}'
 
     @_cli_command
-    def run_selenium(self, script_name: str = None, directory: str = None, args: str = "") -> str:
+    def run_selenium(self, script_name: str | None = None, directory: str | None = None, args: str | None = None) -> str:
         script_name = script_name or f"{self.name}.py"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
         return f'source {VENV_DIR}/bin/activate && {LIB_DIR}/openqa-selenium-webdriver-at-spi-run {script_path} {args}'
@@ -85,7 +90,7 @@ class CliTest:
     def _collect(self):
         try:
             session.run(f'test -f {self._remote_results}', wait_result=False)
-            diag(f'JUnit XML exists for {self.name}, collecting...')
+            log.info(f'JUnit XML exists for {self.name}, collecting...')
             local_results = f'/tmp/junit-{self.name}.xml'
             session.get(self._remote_results, local_results)
 
@@ -111,9 +116,17 @@ class CliTest:
             """)
 
         except RuntimeError:
-            diag(f'No JUnit XML for {self.name}, not collecting.')
+            log.info(f'No JUnit XML for {self.name}, not collecting.')
 
         for artifact_path in self._artifacts:
             local_artifact = f'/tmp/{self.name}-{os.path.basename(artifact_path)}'
-            session.get(artifact_path, local_artifact)
+            try:
+                session.get(artifact_path, local_artifact)
+            except FileNotFoundError:
+                log.warning(
+                    'Artifact %s was not produced by %s',
+                    artifact_path,
+                    self.name,
+                )
+                continue
             shutil.copy(local_artifact, f'ulogs/{os.path.basename(local_artifact)}')

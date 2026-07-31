@@ -35,7 +35,7 @@ class SystemDevelopmentTests(unittest.TestCase):
 
     def _toggle(self):
         proc = subprocess.Popen(
-            ['run0','--empower',TOGGLE_DEVELOPER_MODE],
+            ['run0', '--empower', TOGGLE_DEVELOPER_MODE],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.polkit.authenticate()
         try:
@@ -93,7 +93,7 @@ class SystemDevelopmentTests(unittest.TestCase):
 
         # Downloads and installs kde-builder, so it needs network and some time.
         first_run = subprocess.Popen(
-            ['run0','--empower',LOCAL_BIN_PATH,SET_UP_SYSTEM_DEVELOPMENT],
+            ['run0', '--empower', LOCAL_BIN_PATH, SET_UP_SYSTEM_DEVELOPMENT],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.polkit.authenticate()
         try:
@@ -113,7 +113,7 @@ class SystemDevelopmentTests(unittest.TestCase):
 
         # A second run must find everything already in place and do nothing.
         second_run = subprocess.Popen(
-            ['run0','--empower',LOCAL_BIN_PATH,SET_UP_SYSTEM_DEVELOPMENT],
+            ['run0', '--empower', LOCAL_BIN_PATH, SET_UP_SYSTEM_DEVELOPMENT],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.polkit.authenticate()
         try:

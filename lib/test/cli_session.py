@@ -8,6 +8,7 @@ import testapi
 _SSH_HOST = '127.0.0.1'
 _SSH_PORT = 2222
 
+
 def _get_connection() -> Connection:
     return Connection(
         host=_SSH_HOST,

@@ -13,12 +13,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
-from lib import user_manager
+from lib.common import user_manager
 
 # Verifies the Secret Service provider is ksecretd and works through KeepSecret.
 
 SECRETS_BUS_NAME = 'org.freedesktop.secrets'
 KEEPSECRET_APP_ID = 'org.kde.keepsecret'
+
 
 class SecretServiceTests(unittest.TestCase):
     @classmethod

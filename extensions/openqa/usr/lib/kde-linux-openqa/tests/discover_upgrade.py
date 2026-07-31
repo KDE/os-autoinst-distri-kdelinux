@@ -5,15 +5,14 @@ import unittest
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.common.base import AppiumOptions
-import selenium.common.exceptions
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
-import sys
 
 # Runs a system update through Discover.
+
 
 class DiscoverTests(unittest.TestCase):
     @classmethod

@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+
+import json
+import subprocess
+import time
+import urllib.error
+import urllib.request
+import os
+import signal
+from pathlib import Path
+from lib.worker import system_packages
+from lib.common.log import get_logger
+
+
+log = get_logger("start-single-instance")
+
+_OPENQA_BOOTSTRAP = Path("/usr/share/openqa/script/openqa-bootstrap")
+_POLL_SECONDS = 2
+
+
+def _wait_for_webui() -> None:
+    log.info("Waiting for OpenQA WebUI to start…")
+
+    while True:
+        try:
+            request = urllib.request.Request(
+                "http://localhost/",
+                method="HEAD",
+            )
+
+            with urllib.request.urlopen(request) as response:
+                if response.status == 200:
+                    return
+        except urllib.error.URLError:
+            pass
+
+        time.sleep(_POLL_SECONDS)
+
+
+def _worker_is_running() -> bool:
+    for process in Path("/proc").iterdir():
+        if not process.name.isdigit():
+            continue
+
+        try:
+            command = (process / "cmdline").read_bytes().replace(b"\0", b" ")
+        except (FileNotFoundError, PermissionError, ProcessLookupError):
+            continue
+
+        if b"openqa/script/worker" in command:
+            return True
+
+    return False
+
+
+def _wait_for_worker() -> None:
+    log.info("Waiting for worker to start...")
+
+    while not _worker_is_running():
+        time.sleep(_POLL_SECONDS)
+
+
+def _cancel_scheduled_jobs() -> None:
+    log.info("Cancelling stale scheduled jobs...")
+
+    result = subprocess.run(
+        ["openqa-cli", "api", "jobs", "state=scheduled"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    for job in json.loads(result.stdout).get("jobs", []):
+        subprocess.run(
+            [
+                "openqa-cli",
+                "api",
+                "-X",
+                "POST",
+                f"jobs/{job['id']}/cancel",
+            ],
+            check=False,
+        )
+
+
+def main() -> None:
+    Path("/var/log/apache2").mkdir(parents=True, exist_ok=True)
+    Path("/srv/www/htdocs").mkdir(parents=True, exist_ok=True)
+
+    # Start the OpenQA stack using the image's own entrypoint
+    # The bundled worker wipes its pool after each job. We take the installed disk
+    # from the pool to give to the next job, so the pool must survive the first job.
+    # openqa-bootstrap starts the worker without --no-cleanup, so swap it for
+    # a --no-cleanup launched one.
+    openqa_bootstrap = _OPENQA_BOOTSTRAP.read_text()
+    openqa_bootstrap = openqa_bootstrap.replace(
+        "OPENQA_DIR/script/worker ",
+        "OPENQA_DIR/script/worker --no-cleanup ",
+    )
+    _OPENQA_BOOTSTRAP.write_text(openqa_bootstrap)
+
+    if "--no-cleanup" not in openqa_bootstrap:
+        raise RuntimeError(
+            "Could not enable --no-cleanup on the openQA worker launcher"
+        )
+
+    system_packages.install()
+
+    os.environ["skip_suse_tests"] = "1"
+    os.environ["skip_suse_specifics"] = "1"
+    subprocess.Popen([_OPENQA_BOOTSTRAP])
+
+    _wait_for_webui()
+    _wait_for_worker()
+    _cancel_scheduled_jobs()
+
+    # Don't auto submit jobs in the mock. Let the user choose what jobs to run.
+    log.message("Open a shell in the container to run jobs: podman exec -it openqa-single-instance bash")
+    log.message("Refer to README.md for instructions.")
+    signal.pause()
+
+
+if __name__ == "__main__":
+    main()

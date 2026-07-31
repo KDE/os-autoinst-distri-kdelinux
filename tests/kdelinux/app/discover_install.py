@@ -2,9 +2,9 @@
 # SPDX-FileCopyrightText: 2026 Bhushan Shah <bhushan.shah@machinesoul.in>
 
 from testapi import *
-from lib.openqa import cli_test
-from lib import paths
-from lib import user_manager
+from lib.test import cli_test
+from lib.common import paths
+from lib.common import user_manager
 
 def run(self):
     test = cli_test.CliTest('discover_install', timeout=800)

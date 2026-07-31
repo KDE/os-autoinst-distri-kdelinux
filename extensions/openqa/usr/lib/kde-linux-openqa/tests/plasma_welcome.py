@@ -5,16 +5,14 @@ import unittest
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.common.base import AppiumOptions
-import selenium.common.exceptions
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
-import sys
 import subprocess
 
 # Goes through the Plasma Welcome app until completion.
 # Will become a bit more useful if we ship our own Welcome page, we can test its functionality.
+
 
 class PlasmaWelcomeTests(unittest.TestCase):
     @classmethod

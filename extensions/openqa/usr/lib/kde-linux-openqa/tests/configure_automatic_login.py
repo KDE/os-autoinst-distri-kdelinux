@@ -7,25 +7,15 @@ import subprocess
 import time
 import unittest
 from typing import Final
-
 from appium import webdriver
 from appium.options.common.base import AppiumOptions
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
-
-import selenium.common.exceptions
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
-
 from lib.sut import openqa_junit_xml
 from lib.sut.polkit import PolkitAgent
-
-import sys
-import time
-import subprocess
 
 # Enables automatic login for the installed user through System Settings.
 
@@ -105,5 +95,6 @@ class AutoLoginTest(unittest.TestCase):
 
         time.sleep(5)
 
+
 if __name__ == '__main__':
-    unittest.main()
+    openqa_junit_xml.run(AutoLoginTest, "configure_automatic_login")
