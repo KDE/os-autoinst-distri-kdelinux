@@ -60,3 +60,6 @@ timedatectl set-timezone Etc/UTC
 
 # Enable sshd
 systemctl enable --now sshd
+
+# Get rid of qtlogging settings so we have more verbose logging
+rm -rf /etc/xdg/QtProject/qtlogging.ini
