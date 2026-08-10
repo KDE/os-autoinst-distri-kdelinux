@@ -3,12 +3,13 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
 import requests
-from bs4 import BeautifulSoup
+import os
+from urllib import parse
 from dataclasses import dataclass
 import re
 from lib.common.log import get_logger
 
-_BASE_URL = "https://files.kde.org/kde-linux/"
+_ISO_CHANNEL_URL = os.environ.get("ISO_CHANNEL_URL", "https://storage.kde.org/kde-linux/testing/")
 _ISO_PATTERN = re.compile(r"kde-linux_(\d{12})\.iso$")
 
 log = get_logger(__name__)
@@ -36,18 +37,20 @@ def download_file(download_url: str, filename: str) -> None:
 
 
 def _available_images() -> list[Image]:
-    url = _BASE_URL + "?C=M;O=D"
-    resp = requests.get(url)
+    checksums_url = parse.urljoin(
+        f"{_ISO_CHANNEL_URL.rstrip('/')}/",
+        "SHA256SUMS",
+    )
+    resp = requests.get(checksums_url)
     resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
 
     images: dict[str, Image] = {}
-    for link in soup.find_all("a", href=_ISO_PATTERN):
-        href = link["href"]
-        match = _ISO_PATTERN.search(href)
+    for line in resp.text.splitlines():
+        match = _ISO_PATTERN.search(line.strip())
         if match is not None:
+            filename = match.group(0)
             version = match.group(1)
-            images.setdefault(version, Image(version, href))
+            images.setdefault(version, Image(version, filename))
 
     if not images:
         raise DownloadError(".iso files not found on the server")
@@ -56,7 +59,7 @@ def _available_images() -> list[Image]:
 
 
 def _download_image(filename: str) -> str:
-    download_file(_BASE_URL + filename, filename)
+    download_file(parse.urljoin(_ISO_CHANNEL_URL, filename), filename)
     return filename
 
 
@@ -89,7 +92,7 @@ def download_previous(build_version: str) -> str:
 
 def download_specific(build_version: str) -> None:
     filename = f"kde-linux_{build_version}.iso"
-    download_url = _BASE_URL + filename
+    download_url = parse.urljoin(_ISO_CHANNEL_URL, filename)
     resp = requests.head(download_url)
     if resp.status_code != 200:
         raise DownloadError(f"Specified build not found: {build_version}")
