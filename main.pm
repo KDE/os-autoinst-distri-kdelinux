@@ -63,6 +63,8 @@ sub test_kdelinux {
     loadtest 'kdelinux/system/system_development.py';
     loadtest 'kdelinux/system/collect_logs.py';
     loadtest 'kdelinux/system/desktop_session_services.py';
+    loadtest 'kdelinux/system/logout.py';
+    loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'common/shutdown.py';
 }
 
