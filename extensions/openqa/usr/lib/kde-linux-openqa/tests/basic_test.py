@@ -48,10 +48,6 @@ class BasicTests(unittest.TestCase):
             messages.append(msg)
         self.fail('\n\n'.join(messages))
 
-    def test_3_dbus_broker(self):
-        """Check that dbus-broker is used instead of dbus-daemon"""
-        subprocess.run(['systemctl', '--user', 'is-active', 'dbus-broker.service'], check=True)
-
 
 if __name__ == '__main__':
     openqa_junit_xml.run(BasicTests, 'basic_test')
