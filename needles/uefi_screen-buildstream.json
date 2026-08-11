@@ -9,12 +9,6 @@
       "width": 290
     }
   ],
-  "properties": [
-    {
-      "name": "workaround",
-      "value": "Workaround for buildstream not having UEFI Shell application"
-    }
-  ],
   "tags": [
     "buildstream",
     "uefi_screen"
