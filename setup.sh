@@ -6,10 +6,10 @@ set -euo pipefail
 CASEDIR="$(git rev-parse --show-toplevel)"
 cd "$CASEDIR"
 
-zypper --non-interactive install awk || true
-curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL=/usr/local/bin sh
+zypper --non-interactive install awk >/dev/null 2>&1 || true
+curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL=/usr/local/bin sh >/dev/null 2>&1
 export UV_PROJECT_ENVIRONMENT=/var/lib/kde-linux-openqa/worker-venv
-uv sync
+uv sync -qq
 source "$UV_PROJECT_ENVIRONMENT/bin/activate"
 
 if (( $# )); then

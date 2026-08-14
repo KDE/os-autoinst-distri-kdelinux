@@ -89,4 +89,15 @@ def start_worker() -> subprocess.Popen[bytes]:
             "Could not enable --no-cleanup on the openQA worker launcher"
         )
 
+    if os.environ.get("CI") == "true":
+        log_path = Path("gitlab-artifacts/worker.log")
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with log_path.open("a") as log:
+            return subprocess.Popen(
+                [_WORKER_LAUNCHER],
+                stdout=log,
+                stderr=subprocess.STDOUT,
+            )
+
     return subprocess.Popen([_WORKER_LAUNCHER])

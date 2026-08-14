@@ -42,6 +42,7 @@ reuse:
       --entrypoint ""
       --volume $CI_PROJECT_DIR:$CI_PROJECT_DIR:z
       --workdir $CI_PROJECT_DIR
+      --env CI
       --env CI_PROJECT_DIR
       --env OPENQA_HOST_ADDR
       --env OPENQA_API_KEY
