@@ -32,7 +32,6 @@ def download_file(download_url: str, filename: str) -> None:
         with open(filename, 'wb') as file:
             for chunk in req.iter_content(chunk_size=8192):
                 file.write(chunk)
-    log.info("Download completed")
     log.info(f"Downloaded file: {filename}")
 
 

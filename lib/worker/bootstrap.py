@@ -63,7 +63,7 @@ def start_worker() -> subprocess.Popen[bytes]:
                 f"{scheme}://{host}/api/v1/jobs",
                 context=context,
             ):
-                logger.info("openQA is ready")
+                logger.debug("openQA is ready")
                 break
         except OSError:
             logger.info("Waiting for openQA… (polling every 2 seconds)")

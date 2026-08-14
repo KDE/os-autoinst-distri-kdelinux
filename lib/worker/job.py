@@ -182,7 +182,7 @@ class Job:
         return job_id
 
     def poll_until_finished(self) -> JobResult:
-        logger.info("Polling job %s for its result", self.job_id)
+        logger.debug("Polling job %s for its result", self.job_id)
         logger.message(
             "View the running %s job at %s",
             self.config.name,
@@ -359,7 +359,7 @@ class Job:
 
     def _stage_asset(self, path: Path) -> None:
         if not path.is_file():
-            logger.info(
+            logger.debug(
                 "%s is already in the worker share, skipping staging",
                 path.name,
             )
@@ -368,7 +368,7 @@ class Job:
         _OPENQA_SHARE_PATH.mkdir(parents=True, exist_ok=True)
         shutil.copy(path, _OPENQA_SHARE_PATH / path.name)
 
-        logger.info("Staged %s into the worker share", path.name)
+        logger.debug("Staged %s into the worker share", path.name)
 
     def _produce_installed_hdd(self) -> None:
         pool_disk = next(
@@ -384,7 +384,7 @@ class Job:
         destination = _OPENQA_SHARE_PATH / self.config.hdd.name
         _OPENQA_SHARE_PATH.mkdir(parents=True, exist_ok=True)
 
-        logger.info(
+        logger.debug(
             "Flattening installed disk %s into %s",
             pool_disk,
             destination,
@@ -411,7 +411,7 @@ class Job:
     def _produce_pflash_vars(self) -> None:
         pflash_factory = _OPENQA_SHARE_PATH / _PFLASH_PATH.name
 
-        logger.info(
+        logger.debug(
             "Updating %s for the next job",
             pflash_factory,
         )
@@ -433,10 +433,10 @@ class Job:
 
 
 def clean_pool() -> None:
-    logger.info("Cleaning openQA worker pool")
+    logger.debug("Cleaning openQA worker pool")
 
     if not _OPENQA_POOL_PATH.is_dir():
-        logger.info("openQA worker pool does not exist")
+        logger.info("openQA worker pool does not exist, not cleaning")
         return
 
     removed = 0
@@ -458,4 +458,4 @@ def clean_pool() -> None:
             f"Could not clean openQA worker pool: {error}"
         ) from error
 
-    logger.info("Removed %d entries from the openQA worker pool", removed)
+    logger.info("Cleaned %d entries from the openQA worker pool", removed)
