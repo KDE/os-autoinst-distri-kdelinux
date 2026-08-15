@@ -38,6 +38,8 @@ sub test_live_image {
     loadtest 'kdelinux/desktop/plasma_welcome.py';
     # loadtest 'common/system_settings/disable_screen_lock.py';
     loadtest 'kdelinux/system_settings/configure_automatic_login.py';
+    loadtest 'kdelinux/desktop/secret_service_persistence_set.py';
+    loadtest 'kdelinux/desktop/secret_service_persistence_get.py';
     loadtest 'kdelinux/system/collect_logs.py';
     loadtest 'common/shutdown.py';
 }
@@ -61,10 +63,11 @@ sub test_kdelinux {
     loadtest 'kdelinux/app/package_compatibility_helper.py';
     loadtest 'kdelinux/app/discover_install.py';
     loadtest 'kdelinux/system/system_development.py';
-    loadtest 'kdelinux/system/collect_logs.py';
-    loadtest 'kdelinux/system/desktop_session_services.py';
     loadtest 'kdelinux/system/logout.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
+    loadtest 'kdelinux/desktop/secret_service_persistence_get.py';
+    loadtest 'kdelinux/system/desktop_session_services.py';
+    loadtest 'kdelinux/system/collect_logs.py';
     loadtest 'common/shutdown.py';
 }
 

@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
-import os
 import unittest
 import subprocess
 from appium import webdriver
@@ -13,11 +12,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 from lib.sut import flatpak
+from lib.sut import secret_service
 from lib.common import user_manager
 
 # Verifies the Secret Service provider is ksecretd and works through KeepSecret.
 
-SECRETS_BUS_NAME = 'org.freedesktop.secrets'
 KEEPSECRET_APP_ID = 'org.kde.keepsecret'
 
 
@@ -41,22 +40,6 @@ class SecretServiceTests(unittest.TestCase):
              'user', 'kde-linux-openqa wallet test user'],
             capture_output=True)
 
-    def _activate_secret_service(self):
-        # The Secret Service is D-Bus activated, bring it up if it isn't already
-        subprocess.run(['secret-tool', 'lookup', 'kde-linux-openqa', 'probe'],
-                       capture_output=True, text=True)
-
-    def _secret_service_pid(self) -> int:
-        out = subprocess.check_output(
-            ['busctl', '--user', 'status', SECRETS_BUS_NAME], text=True)
-        for line in out.splitlines():
-            if line.strip().startswith('PID='):
-                return int(line.split('=', 1)[1].strip())
-        self.fail(f'could not determine PID owning {SECRETS_BUS_NAME}')
-
-    def _process_exe(self, pid: int) -> str:
-        return os.path.basename(os.readlink(f'/proc/{pid}/exe'))
-
     def _set_text(self, text, element=None, verify=True):
         # QML text fields seem to not implement AT-SPI EditableText in QT versions older than 6.11
         # and synthesised keystrokes get garbled, so we fall back to using the clipboard here.
@@ -76,12 +59,11 @@ class SecretServiceTests(unittest.TestCase):
 
     def test_1_secret_service_provider_is_ksecretd(self):
         """Check that the org.freedesktop.secrets provider is ksecretd."""
-        self._activate_secret_service()
-        pid = self._secret_service_pid()
-        exe = self._process_exe(pid)
+        secret_service.activate()
+        exe = secret_service.process_exe()
         self.assertEqual(
             exe, 'ksecretd',
-            f'{SECRETS_BUS_NAME} is provided by {exe!r} (pid {pid}), expected ksecretd'
+            f'{secret_service.SECRETS_BUS_NAME} is provided by {exe!r} (pid {secret_service.pid()}), expected ksecretd'
         )
 
     def test_2_keepsecret(self):
@@ -136,7 +118,6 @@ class SecretServiceTests(unittest.TestCase):
         # Check if our entry now exists.
         wait.until(ec.presence_of_element_located(
             (AppiumBy.XPATH, '//list_item[@name="kde-linux-openqa wallet test"]')))
-
 
 
 if __name__ == "__main__":
