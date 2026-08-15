@@ -19,6 +19,7 @@ services:
       - OPENQA_HOST_ADDR=localhost
       - OPENQA_SCHEME=http
       - MOCK_MODE=1
+      - VARIANT=testing
       - CASEDIR=/casedir
       - PYTHONPATH=/casedir
       - VIRTUAL_ENV=/var/lib/kde-linux-openqa/worker-venv

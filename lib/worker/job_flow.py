@@ -14,6 +14,7 @@ from lib.common.paths import git_root
 import lib.worker.job
 import lib.worker.sysext
 from lib.worker.download_image import (
+    channel_url,
     download_file,
     download_latest,
     download_previous,
@@ -33,7 +34,7 @@ class JobFlowError(Exception):
 class BuildUnderTest:
     image: Path | None
     output: str
-    version: str
+    build: str
 
 
 class JobFlow:
@@ -116,7 +117,7 @@ def _build_from_image(
     return BuildUnderTest(
         image=image,
         output=output,
-        version=output.rsplit("_", 1)[-1],
+        build=output.rsplit("_", 1)[-1],
     )
 
 
@@ -134,10 +135,10 @@ def _validate_upgrade_base(
     image: Path,
     target: BuildUnderTest,
 ) -> Path:
-    if _version_from_image(image) >= target.version:
+    if _version_from_image(image) >= target.build:
         raise JobFlowError(
             f"Upgrade base {image.name} is not older than target "
-            f"{target.version}"
+            f"{target.build}"
         )
 
     return image
@@ -145,8 +146,7 @@ def _validate_upgrade_base(
 
 def _latest_public_version() -> str:
     response = requests.get(
-        "https://storage.kde.org/"
-        "kde-linux/testing/sysupdate/v2/SHA256SUMS"
+        channel_url().rstrip("/") + "/sysupdate/v2/SHA256SUMS"
     )
     response.raise_for_status()
 
@@ -180,7 +180,7 @@ def _resolve_build_under_test(
         return BuildUnderTest(
             image=None,
             output=f"kde-linux_{version}",
-            version=version,
+            build=version,
         )
 
     image = _find_local_iso(casedir)
@@ -224,7 +224,7 @@ def _resolve_install_image(
 
     # The build under test is a published image, so use the newest local image
     # that is still older than the target when one is available.
-    local_image = _find_local_iso(casedir, older_than=build.version)
+    local_image = _find_local_iso(casedir, older_than=build.build)
     if local_image is not None:
         logger.info(
             "Using existing older image %s as the upgrade base",
@@ -234,7 +234,7 @@ def _resolve_install_image(
 
     logger.info("Downloading previous image for upgrade test")
     with chdir(casedir):
-        image = casedir / download_previous(build.version)
+        image = casedir / download_previous(build.build)
     return _validate_upgrade_base(image, build)
 
 
@@ -350,11 +350,12 @@ def run_jobs(
     flow.run_job(
         lib.worker.job.JobConfig(
             name="install-system",
+            variant=os.environ.get("VARIANT"),
             flavor=live_flavor,
             live=install_image,
             hdd=disk,
             sysext=sysext_image,
-            build=build.version,
+            build=build.build,
             casedir=casedir,
             encrypt=encrypt,
         )
@@ -364,10 +365,11 @@ def run_jobs(
         flow.run_job(
             lib.worker.job.JobConfig(
                 name="upgrade-system",
+                variant=os.environ.get("VARIANT"),
                 flavor=installed_flavor,
                 hdd=disk,
                 sysext=sysext_image,
-                build=build.version,
+                build=build.build,
                 casedir=casedir,
                 upgrade=True,
                 encrypt=encrypt,
@@ -377,10 +379,11 @@ def run_jobs(
     flow.run_job(
         lib.worker.job.JobConfig(
             name="sanity-test",
+            variant=os.environ.get("VARIANT"),
             flavor=installed_flavor,
             hdd=disk,
             sysext=sysext_image,
-            build=build.version,
+            build=build.build,
             casedir=casedir,
             encrypt=encrypt,
         )

@@ -9,7 +9,6 @@ from dataclasses import dataclass
 import re
 from lib.common.log import get_logger
 
-_ISO_CHANNEL_URL = os.environ.get("ISO_CHANNEL_URL", "https://storage.kde.org/kde-linux/testing/")
 _ISO_PATTERN = re.compile(r"kde-linux_(\d{12})\.iso$")
 
 log = get_logger(__name__)
@@ -25,6 +24,14 @@ class Image:
     filename: str
 
 
+def channel_url() -> str:
+    variant = os.environ.get("VARIANT", "testing")
+    return os.environ.get(
+        "CHANNEL_URL",
+        f"https://storage.kde.org/kde-linux/{variant}/",
+    )
+
+
 def download_file(download_url: str, filename: str) -> None:
     log.info(f"Started downloading from: {download_url}")
     with requests.get(download_url, stream=True) as req:
@@ -37,7 +44,7 @@ def download_file(download_url: str, filename: str) -> None:
 
 def _available_images() -> list[Image]:
     checksums_url = parse.urljoin(
-        f"{_ISO_CHANNEL_URL.rstrip('/')}/",
+        f"{channel_url().rstrip('/')}/",
         "SHA256SUMS",
     )
     resp = requests.get(checksums_url)
@@ -58,7 +65,7 @@ def _available_images() -> list[Image]:
 
 
 def _download_image(filename: str) -> str:
-    download_file(parse.urljoin(_ISO_CHANNEL_URL, filename), filename)
+    download_file(parse.urljoin(channel_url(), filename), filename)
     return filename
 
 
@@ -91,7 +98,7 @@ def download_previous(build_version: str) -> str:
 
 def download_specific(build_version: str) -> None:
     filename = f"kde-linux_{build_version}.iso"
-    download_url = parse.urljoin(_ISO_CHANNEL_URL, filename)
+    download_url = parse.urljoin(channel_url(), filename)
     resp = requests.head(download_url)
     if resp.status_code != 200:
         raise DownloadError(f"Specified build not found: {build_version}")

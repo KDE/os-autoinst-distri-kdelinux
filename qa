@@ -28,6 +28,7 @@ def _parser() -> argparse.ArgumentParser:
     command_parser.add_argument("--hdd", type=Path, required=True)
     command_parser.add_argument("--sysext", type=Path, required=True)
     command_parser.add_argument("--build", required=True)
+    command_parser.add_argument("--variant", required=True)
     command_parser.add_argument("--name", required=True)
     command_parser.add_argument("--flavor", required=True)
     command_parser.add_argument("--group")
@@ -106,6 +107,7 @@ def main() -> None:
             hdd=args.hdd,
             sysext=args.sysext,
             build=args.build,
+            variant=args.variant,
             name=args.name,
             flavor=args.flavor,
             casedir=git_root(),

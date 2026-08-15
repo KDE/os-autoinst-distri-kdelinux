@@ -65,6 +65,7 @@ class JobConfig:
     hdd: Path
     sysext: Path
     build: str
+    variant: str | None
     name: str
     flavor: str
     casedir: Path
@@ -295,7 +296,6 @@ class Job:
 
         settings = {
             "DISTRI": "KDE-Linux",
-            "VERSION": config.build,
             "FLAVOR": config.flavor,
             "ARCH": "x86_64",
             "BUILD": config.build,
@@ -320,6 +320,11 @@ class Job:
             "VIRTIO_CONSOLE": "1",
             "NICTYPE_USER_OPTIONS": "hostfwd=tcp::2222-:22",
         }
+
+        if config.variant is not None:
+            settings["VERSION"] = f"{config.build}-{config.variant}"
+        else:
+            settings["VERSION"] = f"{config.build}"
 
         if config.live is not None:
             settings.update(
@@ -354,6 +359,11 @@ class Job:
             # No point setting a worker class in mock mode - just schedule
             # to the only worker there is.
             settings["WORKER_CLASS"] = config.worker_class
+
+        if os.environ.get("CI"):
+            # Set the upstream pipeline URL in CI for reference in the test's settings tab
+            if os.environ.get("UPSTREAM_CI_PIPELINE_URL"):
+                settings["CI_PIPELINE_URL"] = os.environ["UPSTREAM_CI_PIPELINE_URL"]
 
         return settings
 
