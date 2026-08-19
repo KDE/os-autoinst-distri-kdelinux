@@ -12,6 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
 from lib.sut.atspi import find_pid_on_atspi_bus
+from lib.sut.openqa_autoinst import OpenQAAutoinst
 
 # Find the logout button in kickoff and trigger logout action
 
@@ -19,6 +20,7 @@ class LogoutTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         options = AppiumOptions()
+        self.openqa_autoinst = OpenQAAutoinst()
         options.set_capability('app', str(find_pid_on_atspi_bus('plasmashell')))
         self.driver = webdriver.Remote(command_executor='http://127.0.0.1:4723', options=options)
         self.driver.implicitly_wait(0)
@@ -60,6 +62,9 @@ class LogoutTests(unittest.TestCase):
         wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Log Out Now")),
             message='Log Out Now is not available').click()
+
+        self.openqa_autoinst.call_testapi("assert_screen", "sddm_password_input", 30)
+
 
 if __name__ == "__main__":
     openqa_junit_xml.run(LogoutTests, "logout")
