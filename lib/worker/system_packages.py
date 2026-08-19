@@ -10,9 +10,11 @@ from lib.common.log import get_logger
 logger = get_logger(__name__)
 
 _PACKAGES = (
+    "python3-asyncio",
     "python3-requests",
     "python3-beautifulsoup4",
-   "python3-colorlog",
+    "python3-colorlog",
+    "python3-websockets",
     "dos2unix",
     "vim",
     "erofs-utils",
