@@ -1,10 +1,13 @@
 # SPDX-License-Identifier: LGPL-2.0-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+# SPDX-FileCopyrightText: 2026 Bhushan Shah <bhushan.shah@machinesoul.in>
 
 import functools
 import os
 import shlex
 import shutil
+import threading
+import time
 import uuid
 from pathlib import Path
 
@@ -14,6 +17,7 @@ from testapi import perl
 from lib.common import user_manager
 from lib.common.log import get_logger
 from lib.common.paths import LIB_DIR, RESULTS_DIR, VENV_DIR
+from lib.test import autoinst_proxy
 from lib.test.cli_session import session
 
 log = get_logger(__name__)
@@ -43,6 +47,7 @@ class CliTest:
         self._remote_results = f"{RESULTS_DIR}/{name}/junit.xml"
         self._artifacts = artifacts or []
         self.timeout = timeout
+        self.autoinst_proxy = autoinst_proxy.AutoinstProxy()
 
     def _run_transient(
         self, cmdline: str, user: user_manager.User | None = None
@@ -60,9 +65,31 @@ class CliTest:
                 f"--uid={effective_user.name} --user bash -lc {safe_cmd}"
             )
 
+        session_exception: RuntimeError | None = None
+
+        def _session_wrapper():
+            nonlocal session_exception
+            try:
+                session.run(systemd_run, self.timeout)
+            except RuntimeError as e:
+                session_exception = e
+
         try:
-            session.run(systemd_run, timeout=self.timeout)
+            proxy_thread = threading.Thread(target=self.autoinst_proxy.start_ws)
+            proxy_thread.start()
+            session_thread = threading.Thread(target=_session_wrapper)
+            session_thread.start()
+            while session_thread.is_alive():
+                self.autoinst_proxy.handle_queue()
+                time.sleep(1)
+
+            if session_exception:
+                raise session_exception
+
         finally:
+            self.autoinst_proxy.stop()
+            proxy_thread.join(1)
+            session_thread.join(1)
             if effective_user.name == "root":
                 journal_cmd = f"journalctl -u {unit} --no-pager -o cat"
             else:

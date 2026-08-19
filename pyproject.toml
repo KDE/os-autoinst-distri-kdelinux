@@ -12,13 +12,17 @@ dependencies = [
     "requests>=2.34.2",
     "fabric>=3.2.3",
     "ruff>=0.16.3",
+    "asyncio>=4.0.0",
+    "websockets>=17.0.1",
 ]
 
 # This is transformed into requirements.txt on the SUT,
 # which is then installed with pip
 [dependency-groups]
 sut = [
+    "asyncio>=4.0.0",
     "unittest-xml-reporting>=4.0.0",
+    "websockets>=17.0.1",
 ]
 
 [tool.uv]
