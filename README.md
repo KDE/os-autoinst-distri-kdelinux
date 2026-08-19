@@ -57,6 +57,7 @@ openQA workflows.
 | `kdelinux/app/package_compatibility_helper` | Checks the Package Compatibility Helper opens for an unsupported package type. |
 | `kdelinux/app/discover_install` | Installs, launches, and uninstalls an application through Discover. |
 | `kdelinux/system/system_development` | Toggles developer mode and runs set-up-system-development to install kde-builder, checking each works. |
+| `kdelinux/system/snapper` | Checks the snapper setup for the per-user home subvolumes; the files it needs in `/etc`, the home template, the config created on login, snapshots taken by the user, and the config, snapshots and home going away with the user. |
 | `kdelinux/system/collect_logs` | Runs collect-logs and checks it produces a redacted `.tar.zst` archive. |
 | `kdelinux/system/desktop_session_services` | Checks whether any essential process has ever crashed. Every crash that dumps core is recorded by systemd-coredump, so we ask coredumpctl and fail if any of the processes we care about show up. This test should be run at the very *end* of the test suite. |
 | `common/shutdown` | Executes `systemctl poweroff` and waits for shutdown |

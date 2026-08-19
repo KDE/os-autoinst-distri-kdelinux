@@ -63,6 +63,7 @@ sub test_kdelinux {
     loadtest 'kdelinux/app/package_compatibility_helper.py';
     loadtest 'kdelinux/app/discover_install.py';
     loadtest 'kdelinux/system/system_development.py';
+    loadtest 'kdelinux/system/snapper.py';
     loadtest 'kdelinux/system/logout.py';
     loadtest 'kdelinux/sddm/sddm_password_login.py';
     loadtest 'kdelinux/desktop/secret_service_persistence_get.py';
