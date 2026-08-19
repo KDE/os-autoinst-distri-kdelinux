@@ -1,18 +1,20 @@
 # SPDX-License-Identifier: LGPL-2.0-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
+import functools
+import os
+import shlex
+import shutil
+import uuid
+from pathlib import Path
+
 from testapi import *
-from lib.test.cli_session import session
-from lib.common.paths import VENV_DIR, LIB_DIR, RESULTS_DIR
+from testapi import perl
+
 from lib.common import user_manager
 from lib.common.log import get_logger
-import shlex
-import os
-import uuid
-import functools
-import shutil
-from pathlib import Path
-from testapi import perl
+from lib.common.paths import LIB_DIR, RESULTS_DIR, VENV_DIR
+from lib.test.cli_session import session
 
 log = get_logger(__name__)
 
@@ -21,7 +23,7 @@ def _cli_command(method):
     @functools.wraps(method)
     def wrapper(self, *args, user: user_manager.User | None = None, **kwargs) -> str:
         cmdline = method(self, *args, **kwargs)
-        log.info(f'Running {cmdline} on SUT')
+        log.info(f"Running {cmdline} on SUT")
         try:
             output = self._run_transient(cmdline, user=user)
         finally:
@@ -29,75 +31,91 @@ def _cli_command(method):
             # before exiting non-zero, so we still want to pull it back for reporting.
             self._collect()
         return output
+
     return wrapper
 
 
 class CliTest:
-    def __init__(self, name: str, artifacts: list[str] | None = None, timeout: int = 90):
-        self.name            = name
-        self._remote_results = f'{RESULTS_DIR}/{name}/junit.xml'
-        self._artifacts      = artifacts or []
-        self.timeout         = timeout
+    def __init__(
+        self, name: str, artifacts: list[str] | None = None, timeout: int = 90
+    ):
+        self.name = name
+        self._remote_results = f"{RESULTS_DIR}/{name}/junit.xml"
+        self._artifacts = artifacts or []
+        self.timeout = timeout
 
-    def _run_transient(self, cmdline: str, user: user_manager.User | None = None) -> str:
-        unit = f'kde-linux-openqa-{self.name}-{uuid.uuid4().hex[:8]}'
+    def _run_transient(
+        self, cmdline: str, user: user_manager.User | None = None
+    ) -> str:
+        unit = f"kde-linux-openqa-{self.name}-{uuid.uuid4().hex[:8]}"
         effective_user = user or user_manager.root()
         safe_cmd = shlex.quote(cmdline)
-        base_run = f'systemd-run --unit={unit} --wait --collect '
+        base_run = f"systemd-run --unit={unit} --wait --collect "
 
-        if effective_user.name == 'root':
-            systemd_run = f'{base_run} bash -lc {safe_cmd}'
+        if effective_user.name == "root":
+            systemd_run = f"{base_run} bash -lc {safe_cmd}"
         else:
             systemd_run = (
-                f'{base_run} --machine=$(id -u {effective_user.name})@.host '
-                f'--uid={effective_user.name} --user bash -lc {safe_cmd}'
+                f"{base_run} --machine=$(id -u {effective_user.name})@.host "
+                f"--uid={effective_user.name} --user bash -lc {safe_cmd}"
             )
 
         try:
             session.run(systemd_run, timeout=self.timeout)
         finally:
-            if effective_user.name == 'root':
-                journal_cmd = f'journalctl -u {unit} --no-pager -o cat'
+            if effective_user.name == "root":
+                journal_cmd = f"journalctl -u {unit} --no-pager -o cat"
             else:
-                journal_cmd = f'journalctl _SYSTEMD_USER_UNIT={unit}.service --no-pager -o cat'
+                journal_cmd = (
+                    f"journalctl _SYSTEMD_USER_UNIT={unit}.service --no-pager -o cat"
+                )
             output = session.run(journal_cmd, wait_result=True)
-            log.info(f'{unit} outputted:\n{output}')
+            log.info(f"{unit} outputted:\n{output}")
 
-        return output or ''
+        return output or ""
 
     @_cli_command
     def run_cmdline(self, cmdline: str) -> str:
         return cmdline
 
     @_cli_command
-    def run_script(self, script_name: str | None = None, directory: str | None = None) -> str:
+    def run_script(
+        self, script_name: str | None = None, directory: str | None = None
+    ) -> str:
         script_name = script_name or f"{self.name}.sh"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
         return f"{script_path}"
 
     @_cli_command
-    def run_python(self, script_name: str | None = None, directory: str | None = None) -> str:
+    def run_python(
+        self, script_name: str | None = None, directory: str | None = None
+    ) -> str:
         script_name = script_name or f"{self.name}.py"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
-        return f'source {VENV_DIR}/bin/activate && python3 {script_path}'
+        return f"source {VENV_DIR}/bin/activate && python3 {script_path}"
 
     @_cli_command
-    def run_selenium(self, script_name: str | None = None, directory: str | None = None, args: str | None = None) -> str:
+    def run_selenium(
+        self,
+        script_name: str | None = None,
+        directory: str | None = None,
+        args: str | None = None,
+    ) -> str:
         script_name = script_name or f"{self.name}.py"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
-        return f'source {VENV_DIR}/bin/activate && {LIB_DIR}/openqa-selenium-webdriver-at-spi-run {script_path} {args}'
+        return f"source {VENV_DIR}/bin/activate && {LIB_DIR}/openqa-selenium-webdriver-at-spi-run {script_path} {args}"
 
     def _collect(self):
         try:
-            session.run(f'test -f {self._remote_results}', wait_result=False)
-            log.info(f'JUnit XML exists for {self.name}, collecting...')
-            local_results = f'/tmp/junit-{self.name}.xml'
+            session.run(f"test -f {self._remote_results}", wait_result=False)
+            log.info(f"JUnit XML exists for {self.name}, collecting...")
+            local_results = f"/tmp/junit-{self.name}.xml"
             session.get(self._remote_results, local_results)
 
-            upname = f'{self.name}-results.xml'
+            upname = f"{self.name}-results.xml"
 
-            Path('ulogs').mkdir(exist_ok=True)
-            shutil.copy2(local_results, Path('ulogs') / upname)
+            Path("ulogs").mkdir(exist_ok=True)
+            shutil.copy2(local_results, Path("ulogs") / upname)
 
             ci_project_dir = os.environ.get("CI_PROJECT_DIR")
             if ci_project_dir:
@@ -116,17 +134,17 @@ class CliTest:
             """)
 
         except RuntimeError:
-            log.info(f'No JUnit XML for {self.name}, not collecting.')
+            log.info(f"No JUnit XML for {self.name}, not collecting.")
 
         for artifact_path in self._artifacts:
-            local_artifact = f'/tmp/{self.name}-{os.path.basename(artifact_path)}'
+            local_artifact = f"/tmp/{self.name}-{os.path.basename(artifact_path)}"
             try:
                 session.get(artifact_path, local_artifact)
             except FileNotFoundError:
                 log.warning(
-                    'Artifact %s was not produced by %s',
+                    "Artifact %s was not produced by %s",
                     artifact_path,
                     self.name,
                 )
                 continue
-            shutil.copy(local_artifact, f'ulogs/{os.path.basename(local_artifact)}')
+            shutil.copy(local_artifact, f"ulogs/{os.path.basename(local_artifact)}")
