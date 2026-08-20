@@ -27,7 +27,16 @@ class AutoinstProxy:
         self.background_task = None
         self.server = None
         self.request: str = None
-        self.api = {"assert_screen": assert_screen, "check_screen": check_screen}
+        self.api = {
+            "assert_and_click": assert_and_click,
+            "assert_screen": assert_screen,
+            "assert_screen_change": assert_screen_change,
+            "check_screen": check_screen,
+            "record_info": record_info,
+            "record_soft_failure": record_soft_failure,
+            "wait_screen_change": wait_screen_change,
+            "wait_still_screen": wait_still_screen,
+        }
 
     def handle_queue(self):
         if self.request:
