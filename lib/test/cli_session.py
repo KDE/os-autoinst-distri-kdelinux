@@ -1,21 +1,28 @@
 # SPDX-License-Identifier: LGPL-2.0-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
+from pathlib import Path
+
 from fabric import Connection
-from fabric import config
-import testapi
+
+from lib.common.paths import OPENQA_SSH_PRIVATE_KEY
 
 _SSH_HOST = '127.0.0.1'
 _SSH_PORT = 2222
 
 
 def _get_connection() -> Connection:
+    if not Path(OPENQA_SSH_PRIVATE_KEY).is_file():
+        raise RuntimeError(
+            "The openQA SSH key is missing. Build the openQA sysext first."
+        )
+
     return Connection(
         host=_SSH_HOST,
         port=_SSH_PORT,
         user='root',
         connect_kwargs={
-            'password': '',
+            'key_filename': str(OPENQA_SSH_PRIVATE_KEY),
             'look_for_keys': False,
             'allow_agent': False,
         },

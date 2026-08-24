@@ -137,6 +137,35 @@ Spins up a local OpenQA webui and worker together.
 
 `mock.sh` passes any additional arguments to `podman-compose`, so `./mock.sh up -d` etc. all work.
 
+#### SSH into the SUT
+
+`./qa build-sysext` generates a temporary keypair for SSH authentication. The 
+private key stays on the machine running the worker while the public key is put
+into the sysext and is installed for all users. SSH password, keyboard-interactive, 
+and challenge-response authentication are disabled, so public-key authentication is 
+required to SSH into the SUT.
+
+In the mock setup, the private key is inside the container at
+`/tmp/kde-linux-openqa-root-key`. Run `ssh` inside the container:
+
+```bash
+podman exec -it openqa-single-instance ssh \
+  -i /tmp/kde-linux-openqa-root-key -p 2222 root@127.0.0.1
+
+# The same key works for any and every account
+podman exec -it openqa-single-instance ssh \
+  -i /tmp/kde-linux-openqa-root-key -p 2222 user@127.0.0.1
+```
+
+Otherwise, if `./qa build-sysext` was run locally, run:
+
+```bash
+ssh -i /tmp/kde-linux-openqa-root-key -p 2222 user@127.0.0.1
+```
+
+The key is generated when `build-sysext` runs and is installed in the SUT when
+it boots up.
+
 #### Running the worker against a remote OpenQA server
 
 To run only the worker locally while pointing it at an existing hosted OpenQA instance, create a `.env` file in the repo root, based on `.env.example`:

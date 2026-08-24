@@ -3,12 +3,19 @@
 
 import base64
 import os
+import pwd
 import shutil
 import subprocess
 from pathlib import Path
+
 from lib.common.log import get_logger
+from lib.common.paths import OPENQA_SSH_PRIVATE_KEY
 
 logger = get_logger(__name__)
+
+_OPENQA_ROOT_AUTHORIZED_KEY = Path(
+    "usr/lib/kde-linux-openqa/openqa-root-authorized-key"
+)
 
 
 def _compile_requirements(casedir: Path, sysext_root: Path) -> None:
@@ -19,6 +26,7 @@ def _compile_requirements(casedir: Path, sysext_root: Path) -> None:
         / "kde-linux-openqa"
         / "requirements.txt"
     )
+
     requirements.parent.mkdir(parents=True, exist_ok=True)
 
     subprocess.run(
@@ -37,6 +45,50 @@ def _compile_requirements(casedir: Path, sysext_root: Path) -> None:
         cwd=casedir,
         check=True,
     )
+
+
+def _generate_ssh_keypair(sysext_root: Path) -> None:
+    """Create the host key and stage the public key in the SUT sysext."""
+    private_key = Path(OPENQA_SSH_PRIVATE_KEY)
+    public_key = private_key.with_suffix(".pub")
+    staged_public_key = sysext_root / _OPENQA_ROOT_AUTHORIZED_KEY
+
+    # Remove a stale key before generating its replacement.
+    private_key.unlink(missing_ok=True)
+    public_key.unlink(missing_ok=True)
+    staged_public_key.unlink(missing_ok=True)
+
+    try:
+        subprocess.run(
+            [
+                "ssh-keygen",
+                "-q",
+                "-t",
+                "ed25519",
+                "-N",
+                "",
+                "-C",
+                "kde-linux-openqa",
+                "-f",
+                str(private_key),
+            ],
+            check=True,
+        )
+        staged_public_key.parent.mkdir(parents=True, exist_ok=True)
+        staged_public_key.write_bytes(public_key.read_bytes())
+        staged_public_key.chmod(0o644)
+        private_key.chmod(0o600)
+        # Ensure the worker can actually use the key.
+        if os.geteuid() == 0:
+            try:
+                worker = pwd.getpwnam("_openqa-worker")
+            except KeyError:
+                pass
+            else:
+                os.chown(private_key, worker.pw_uid, worker.pw_gid)
+    finally:
+        # The public key is copied into the sysext, so no need to keep this around.
+        public_key.unlink(missing_ok=True)
 
 
 def build_sysext() -> Path:
@@ -61,6 +113,8 @@ def build_sysext() -> Path:
         sysext_lib,
         dirs_exist_ok=True,
     )
+
+    _generate_ssh_keypair(sysext_root)
 
     # Build the requirements declared in pyproject.toml into the sysext.
     _compile_requirements(casedir, sysext_root)

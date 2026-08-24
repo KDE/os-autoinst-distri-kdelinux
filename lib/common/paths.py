@@ -8,6 +8,7 @@ VAR_DIR      = '/var/lib/kde-linux-openqa'
 VENV_DIR     = f'{VAR_DIR}/venv'
 LIB_DIR      = '/usr/lib/kde-linux-openqa'
 RESULTS_DIR  = '/var/log/kde-linux-openqa'
+OPENQA_SSH_PRIVATE_KEY = '/tmp/kde-linux-openqa-root-key'
 
 
 def git_root() -> Path:

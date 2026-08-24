@@ -17,6 +17,7 @@ _PACKAGES = (
     "python3-websockets",
     "dos2unix",
     "vim",
+    "openssh-clients",
     "erofs-utils",
     "gpg2",
     "python3-fabric",

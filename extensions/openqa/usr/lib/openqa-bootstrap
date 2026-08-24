@@ -19,7 +19,7 @@ echo "/usr/lib/kde-linux-openqa" > "$SITE_PACKAGES/kde-linux-openqa.pth"
 mkdir -p /var/log/kde-linux-openqa
 chmod 777 /var/log/kde-linux-openqa
 
-# Unlock root account
+# Unlock root for public-key authentication
 passwd -d root
 passwd -u root
 
@@ -29,13 +29,55 @@ user ALL=(ALL) NOPASSWD: ALL
 EOF
 chmod 0440 /etc/sudoers.d/99-kde-linux-openqa
 
-# Configure SSH for passwordless root login
+# Configure SSH for key-based login for every user account
+ROOT_AUTHORIZED_KEY=/usr/lib/kde-linux-openqa/openqa-root-authorized-key
+
+install_authorized_key() {
+    local uid="$1"
+    local gid="$2"
+    local home="$3"
+    local ssh_dir="$home/.ssh"
+    local authorized_keys="$ssh_dir/authorized_keys"
+
+    install -d -m 0700 -o "$uid" -g "$gid" "$ssh_dir"
+    touch "$authorized_keys"
+    chmod 0600 "$authorized_keys"
+    chown "$uid:$gid" "$authorized_keys"
+
+    if ! grep -Fqx -f "$ROOT_AUTHORIZED_KEY" "$authorized_keys"; then
+        if [[ -s "$authorized_keys" ]]; then
+            printf '\n' >> "$authorized_keys"
+        fi
+        cat "$ROOT_AUTHORIZED_KEY" >> "$authorized_keys"
+    fi
+}
+
+while IFS=: read -r _ _ uid gid _ home _; do
+    [[ "$home" == "/" || ! -d "$home" ]] && continue
+    install_authorized_key "$uid" "$gid" "$home"
+done < <(getent passwd)
+
+# Also cover users created after the image is built
+install -d -m 0700 /etc/skel/.ssh
+touch /etc/skel/.ssh/authorized_keys
+chmod 0600 /etc/skel/.ssh/authorized_keys
+
+if ! grep -Fqx -f "$ROOT_AUTHORIZED_KEY" /etc/skel/.ssh/authorized_keys; then
+    if [[ -s /etc/skel/.ssh/authorized_keys ]]; then
+        printf '\n' >> /etc/skel/.ssh/authorized_keys
+    fi
+    cat "$ROOT_AUTHORIZED_KEY" >> /etc/skel/.ssh/authorized_keys
+fi
+
 mkdir -p /etc/ssh/sshd_config.d
 cat > /etc/ssh/sshd_config.d/99-kde-linux-openqa.conf <<EOF
-PermitRootLogin yes
-PasswordAuthentication yes
-PermitEmptyPasswords yes
-UsePAM no
+PermitRootLogin prohibit-password
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitEmptyPasswords no
+PubkeyAuthentication yes
+AuthenticationMethods publickey
+UsePAM yes
 EOF
 
 # Disable screen dim and screen off systemwide
@@ -58,8 +100,10 @@ fi
 # Ensure TZ is set consistently, so plasma-setup works
 timedatectl set-timezone Etc/UTC
 
-# Enable sshd
-systemctl enable --now sshd
+# Generate host keys, validate config, then enable sshd
+systemctl start sshdgenkeys.service
+sshd -t
+systemctl enable --now sshd.service
 
 # Get rid of qtlogging settings so we have more verbose logging
 rm -rf /etc/xdg/QtProject/qtlogging.ini
