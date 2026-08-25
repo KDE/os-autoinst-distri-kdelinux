@@ -114,9 +114,11 @@ class DefaultApplicationsTests(unittest.TestCase):
         ]
 
         comboboxes = self.driver.find_elements(AppiumBy.XPATH, '//combo_box')
+        # HACK: QTBUG-149451 causes duplicate items to be added to the AT-SPI tree,
+        # so use a set to deduplicate them.
         self.assertEqual(
-            len(comboboxes), len(expected),
-            f'expected {len(expected)} comboboxes, found {len(comboboxes)}'
+            len(set(comboboxes)), len(expected),
+            f'expected {len(expected)} comboboxes, found {len(set(comboboxes))}'
         )
 
         got_values = [cb.get_attribute('name') for cb in comboboxes]
