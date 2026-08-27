@@ -55,14 +55,15 @@ class CliTest:
         unit = f"kde-linux-openqa-{self.name}-{uuid.uuid4().hex[:8]}"
         effective_user = user or user_manager.root()
         safe_cmd = shlex.quote(cmdline)
+        inhibit_cmd = "systemd-inhibit --why=openQA --who=openQA --what=idle "
         base_run = f"systemd-run --unit={unit} --wait --collect "
 
         if effective_user.name == "root":
-            systemd_run = f"{base_run} bash -lc {safe_cmd}"
+            systemd_run = f"{base_run} {inhibit_cmd} bash -lc {safe_cmd}"
         else:
             systemd_run = (
                 f"{base_run} --machine=$(id -u {effective_user.name})@.host "
-                f"--uid={effective_user.name} --user bash -lc {safe_cmd}"
+                f"--uid={effective_user.name} --user {inhibit_cmd} bash -lc {safe_cmd}"
             )
 
         session_exception: RuntimeError | None = None
