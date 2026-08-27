@@ -5,7 +5,9 @@ from lib.test.sessions.syscore.plasma_desktop import PlasmaDesktopSession
 from lib.common import user_manager
 
 def run(self):
-   # check whether booted into desktop screen
+    # We need to cancel wallpaper fader if lockscreen was visible long before this point
+    send_key('down')
+    # check whether booted into desktop screen
     assert_and_click(
         'sddm_password_input',
         'timeout', 60
