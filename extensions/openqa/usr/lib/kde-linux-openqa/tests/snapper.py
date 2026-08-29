@@ -13,20 +13,39 @@ from lib.common import user_manager
 from lib.sut import openqa_junit_xml
 
 # Checks the per-user home subvolume snapshots: the config created on login,
-# snapshotting a home as its owner, the timeline picking it up, and the config,
-# snapshots and home going away with the user.
+# snapshotting a home as its owner, the timeline picking it up, the qgroup the
+# space aware cleanup measures, and the config, snapshots and home going away
+# with the user.
 
 CONFIGS = Path('/etc/snapper/configs')
 SYSCONFIG = Path('/etc/sysconfig/snapper')
 UPDATEDB = Path('/etc/updatedb.conf')
+SYSTEM = Path('/system')
 
 CONFIG_HELPER = '/usr/lib/snapper-home-config'
 GC_HELPER = '/usr/lib/snapper-home-gc'
+QUOTA_HELPER = '/usr/lib/btrfs-quota-setup'
+
+QUOTA_STAMP = Path('/var/lib/kde-linux/btrfs-quota-mode')
+QUOTA_STAMP_VERSION = 'qgroups-1'
+
+# Must match snapper-home-config.
+QGROUP_LEVEL = 1
+
+# Snapper only runs the space aware pass for limits written as ranges.
+RANGED_LIMITS = (
+    'TIMELINE_LIMIT_HOURLY',
+    'TIMELINE_LIMIT_DAILY',
+    'TIMELINE_LIMIT_WEEKLY',
+    'TIMELINE_LIMIT_MONTHLY',
+)
+RANGE_RE = re.compile(r'\d+-\d+')
 
 UNITS = (
     'snapper-timeline.timer',
     'snapper-cleanup.timer',
     'kde-linux-snapper-home-gc.path',
+    'kde-linux-btrfs.service',
 )
 
 # Throwaway accounts, high enough to not collide with the installed user but
@@ -83,6 +102,45 @@ def _set_active_configs(names):
         SYSCONFIG.write_text(f'{text}\n{line}\n')
         return
     SYSCONFIG.write_text(text[:match.start()] + line + text[match.end():])
+
+
+def _rewrite_settings(path, **values):
+    text = path.read_text(errors='replace')
+    for key, value in values.items():
+        pattern = re.compile(rf'^{key}=.*$', re.MULTILINE)
+        line = f'{key}="{value}"'
+        text = pattern.sub(line, text) if pattern.search(text) else f'{text}{line}\n'
+    path.write_text(text)
+
+
+def _qgroups(path):
+    """Map of qgroupid to the set of qgroups it is assigned to."""
+    qgroups = {}
+    for line in _run('btrfs', 'qgroup', 'show', '--raw', '-p', str(path)).stdout.splitlines():
+        fields = line.split()
+        if len(fields) < 4 or '/' not in fields[0]:
+            continue
+        qgroups[fields[0]] = set() if fields[3].startswith('-') else set(fields[3].split(','))
+    return qgroups
+
+
+def _subvolume_id(path):
+    for line in _run('btrfs', 'subvolume', 'show', str(path)).stdout.splitlines():
+        key, sep, value = line.partition(':')
+        if sep and key.strip() == 'Subvolume ID':
+            return value.strip()
+    return None
+
+
+def _quota_mode():
+    """"qgroup", "squota", or None when we cannot tell."""
+    uuid = _run('findmnt', '--noheadings', '--output', 'UUID', str(SYSTEM)).stdout.strip()
+    if not uuid:
+        return None
+    try:
+        return (Path('/sys/fs/btrfs') / uuid / 'qgroups' / 'mode').read_text().strip()
+    except OSError:
+        return None
 
 
 def _snapshot_numbers(subvolume):
@@ -143,6 +201,7 @@ class SnapperTests(unittest.TestCase):
                 _run('btrfs', 'subvolume', 'delete', str(home))
         elif home.is_dir():
             shutil.rmtree(home, ignore_errors=True)
+        _run('btrfs', 'qgroup', 'destroy', f'{QGROUP_LEVEL}/{uid}', '/')
 
     def _must_run(self, *args):
         result = _run(*args)
@@ -405,8 +464,11 @@ class SnapperTests(unittest.TestCase):
         path = CONFIGS / config
         self.addCleanup(self._forget_config, config)
 
+        qgroup = f'{QGROUP_LEVEL}/{GONE_UID}'
         path.write_text(f'SUBVOLUME="/home/kde-linux-openqa-gone-{GONE_UID}"\nFSTYPE="btrfs"\n')
         _set_active_configs(_active_configs() + [config])
+        self._must_run('btrfs', 'qgroup', 'create', qgroup, '/')
+        self.addCleanup(_run, 'btrfs', 'qgroup', 'destroy', qgroup, '/')
 
         result = _run(GC_HELPER)
         self.assertEqual(result.returncode, 0, f'{GC_HELPER} failed: {result.stderr.strip()}')
@@ -414,6 +476,9 @@ class SnapperTests(unittest.TestCase):
             path.exists(), f'{config} was kept: {result.stdout.strip()}')
         self.assertNotIn(
             config, _active_configs(), f'{config} was not pruned from {SYSCONFIG}')
+        self.assertNotIn(
+            qgroup, _qgroups('/'),
+            f'{qgroup} outlived {config}: {result.stdout.strip()}')
 
     def test_13_deleting_a_user_collects_their_config_and_home(self):
         """Deleting a user must trip the passwd watcher, taking the config and the home with it."""
@@ -435,6 +500,118 @@ class SnapperTests(unittest.TestCase):
             f'home_{SUBVOLUME_UID}', _active_configs(),
             f'home_{SUBVOLUME_UID} is still listed in {SYSCONFIG}:\n{journal}')
         self.assertFalse(home.exists(), f'{home} was not deleted with the account:\n{journal}')
+        self.assertNotIn(
+            f'{QGROUP_LEVEL}/{SUBVOLUME_UID}', _qgroups('/'),
+            f'the qgroup outlived {SUBVOLUME_USER}:\n{journal}')
+
+    def test_14_filesystem_uses_full_qgroups(self):
+        """Simple quotas account every extent to whichever subvolume allocated it first, so
+        snapshots always measure as empty and the space aware cleanup can never fire."""
+        self.assertEqual(
+            _run('btrfs', 'qgroup', 'show', str(SYSTEM)).returncode, 0,
+            f'quotas are not enabled on {SYSTEM}:\n{_journal("kde-linux-btrfs.service")}')
+
+        # Not the SIMPLE_QUOTA incompat bit: an upgraded filesystem keeps it set
+        # because its extents carry owner refs whichever mode is in force now.
+        mode = _quota_mode()
+        self.assertIsNotNone(mode, f'could not read the quota mode of {SYSTEM} from sysfs')
+        self.assertEqual(
+            mode, 'qgroup',
+            f'{SYSTEM} is accounting in {mode} mode:\n{_journal("kde-linux-btrfs.service")}')
+
+        self.assertTrue(QUOTA_STAMP.is_file(), f'{QUOTA_STAMP} was not written')
+        self.assertEqual(
+            QUOTA_STAMP.read_text().strip(), QUOTA_STAMP_VERSION,
+            f'{QUOTA_STAMP} holds an unexpected version')
+
+        # A second run must leave both the mode and the configs alone.
+        before = _settings(CONFIGS / self.user_config)
+        self._must_run(QUOTA_HELPER)
+        self.assertEqual(
+            _quota_mode(), 'qgroup', f'{QUOTA_HELPER} changed the quota mode on a rerun')
+        self.assertEqual(
+            _settings(CONFIGS / self.user_config), before,
+            f'{QUOTA_HELPER} rewrote {self.user_config} on a rerun')
+
+    def test_15_home_config_has_a_qgroup_and_ranged_limits(self):
+        """Both halves have to be there: the qgroup gives snapper a number to look at, the
+        ranges give it something it is allowed to delete once that number is too big."""
+        path = CONFIGS / self.user_config
+        settings = _settings(path)
+        qgroup = f'{QGROUP_LEVEL}/{self.user.pw_uid}'
+
+        self.assertEqual(
+            settings.get('QGROUP'), qgroup,
+            f'{path} has QGROUP={settings.get("QGROUP")!r}')
+        self.assertIn(
+            qgroup, _qgroups(self.user.pw_dir),
+            f'{path} names {qgroup} but no such qgroup exists')
+
+        plain = [
+            f'  {key}={settings.get(key)!r}'
+            for key in RANGED_LIMITS
+            if not RANGE_RE.fullmatch(settings.get(key, ''))
+        ]
+        self.assertFalse(
+            plain,
+            'these limits are not ranges, so the space aware pass never runs:\n' + '\n'.join(plain))
+
+        for key in ('SPACE_LIMIT', 'FREE_LIMIT'):
+            self.assertTrue(settings.get(key), f'{key} is not set in {path}')
+
+    def test_16_snapshots_are_assigned_to_the_qgroup(self):
+        """A qgroup nobody is assigned to always reads as empty, which is the bug we started from."""
+        home, path = self._account_with_config()
+        config = path.name
+        qgroup = f'{QGROUP_LEVEL}/{SUBVOLUME_UID}'
+
+        create = self._must_run(
+            'snapper', '--no-dbus', '--config', config, 'create',
+            '--cleanup-algorithm', 'timeline', '--print-number',
+            '--description', 'kde-linux-openqa-qgroup')
+        number = create.stdout.strip()
+        self.assertTrue(number.isdigit(), f'snapper printed {number!r} instead of a number')
+
+        snapshot = home / '.snapshots' / number / 'snapshot'
+        subvolume = _subvolume_id(snapshot)
+        self.assertIsNotNone(subvolume, f'could not read the subvolume id of {snapshot}')
+
+        # snapper assigns a snapshot as it creates it, and reassigns everything with a
+        # cleanup algorithm at the start of a cleanup run. Either is fine, both missing
+        # means the qgroup stays empty no matter how much the snapshots hold.
+        if qgroup not in _qgroups(home).get(f'0/{subvolume}', set()):
+            _run('snapper', '--no-dbus', '--config', config, 'cleanup', 'timeline')
+
+        parents = _qgroups(home).get(f'0/{subvolume}', set())
+        self.assertIn(
+            qgroup, parents,
+            f'snapshot {number} (0/{subvolume}) is not in {qgroup}, it is in '
+            f'{sorted(parents) or "no qgroup at all"}')
+
+    def test_17_config_without_a_qgroup_is_repaired(self):
+        """Configs written before qgroups existed have to be picked up, they are what
+        every already installed system is carrying."""
+        home, path = self._account_with_config()
+        qgroup = f'{QGROUP_LEVEL}/{SUBVOLUME_UID}'
+
+        _rewrite_settings(
+            path, QGROUP='', TIMELINE_LIMIT_HOURLY='6', TIMELINE_LIMIT_DAILY='7',
+            TIMELINE_LIMIT_WEEKLY='4', TIMELINE_LIMIT_MONTHLY='2', FREE_LIMIT='0.4')
+        _run('btrfs', 'qgroup', 'destroy', qgroup, str(home))
+
+        self._must_run(CONFIG_HELPER, str(SUBVOLUME_UID))
+
+        settings = _settings(path)
+        self.assertEqual(settings.get('QGROUP'), qgroup, f'{path} was not given a qgroup')
+        self.assertIn(qgroup, _qgroups(home), f'{qgroup} was not created')
+
+        plain = [
+            f'  {key}={settings.get(key)!r}'
+            for key in RANGED_LIMITS
+            if not RANGE_RE.fullmatch(settings.get(key, ''))
+        ]
+        self.assertFalse(
+            plain, 'the limits were left as plain values:\n' + '\n'.join(plain))
 
 
 if __name__ == '__main__':

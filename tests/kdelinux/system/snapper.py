@@ -5,6 +5,7 @@ from lib.test import cli_test
 
 def run(self):
     # Runs as root because it creates and deletes accounts and home subvolumes.
-    # The timeout covers waiting on the passwd watcher and a timeline run.
-    test = cli_test.CliTest('snapper', timeout=300)
+    # The timeout covers waiting on the passwd watcher, a timeline run and a
+    # cleanup run.
+    test = cli_test.CliTest('snapper', timeout=420)
     test.run_python()
