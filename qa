@@ -5,10 +5,12 @@
 import argparse
 import os
 from pathlib import Path
-from lib.worker import job
+
+from openqa_client.client import OpenQA_Client
+
 from lib.common.log import get_logger
 from lib.common.paths import git_root
-from lib.worker import bootstrap, job_flow, system_packages, sysext
+from lib.worker import bootstrap, job, job_flow, sysext, system_packages
 from lib.worker.job_flow import JobFlowError
 
 log = get_logger(__name__)
@@ -116,8 +118,8 @@ def main() -> None:
         )
 
         running_job = job.Job(
-            job.OpenQAClient(
-                host=os.environ["OPENQA_HOST_ADDR"],
+            OpenQA_Client(
+                server=os.environ["OPENQA_HOST_ADDR"],
                 scheme=os.environ.get("OPENQA_SCHEME", "https"),
             ),
             job_config,
