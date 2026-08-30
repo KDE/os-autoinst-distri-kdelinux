@@ -26,6 +26,7 @@ services:
       - PATH=/var/lib/kde-linux-openqa/worker-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     volumes:
       - ..:/casedir
+      - ${KDE_LINUX_OUTPUT:-..}:/kde-linux-output:ro
     entrypoint:
       - /bin/sh
       - -c

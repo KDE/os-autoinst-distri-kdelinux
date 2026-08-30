@@ -118,9 +118,9 @@ podman exec -it openqa-single-instance bash
 Spins up a local OpenQA webui and worker together.
 
 1. Place a KDE Linux `.iso` image in the repo root (the worker finds it automatically). Otherwise, it will try to download the latest one.
-2. Start the stack:
+2. Start the stack. To test upgrading between local builds, mount a mkosi.output directory too:
    ```bash
-   ./mock.sh up
+   KDE_LINUX_OUTPUT=~/Projects/kde-linux/mkosi.output ./mock.sh up
    ```
 3. The web UI is available at http://localhost:1080 once the container is ready. The container sets
    up the worker and test assets but does not submit jobs automatically. You must do this yourself.
@@ -129,6 +129,16 @@ Spins up a local OpenQA webui and worker together.
    podman exec -it openqa-single-instance bash
    ./qa flow                     # add --upgrade for the upgrade flow, add --encrypt to test with full-disk-encryption
    ```
+   To test an upgrade from a local ISO to a local build, pass the base ISO and
+   the mounted `mkosi.output` directory:
+   ```bash
+   ./qa flow --upgrade \
+     --upgrade-from /casedir/kde-linux_202608010001.iso \
+     --upgrade-to /kde-linux-output
+   ```
+   The newest complete build in that directory is exposed to the VM as a
+   temporary sysupdate source. It must be newer than the base ISO.
+
    You can also run `./qa job` to run a specific job (use `./qa job --help` to see its options). Note that
    `sanity-test` needs `install-system` to have run first, because it installs the system to a virtual disk.
 5. Tear down when done (this cleans up volumes):

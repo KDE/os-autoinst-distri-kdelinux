@@ -4,8 +4,8 @@
 import os
 import platform
 import subprocess
-from lib.common.log import get_logger
 
+from lib.common.log import get_logger
 
 logger = get_logger(__name__)
 

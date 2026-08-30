@@ -18,5 +18,7 @@ requirements.txt
 # Generated for SSH access.
 /extensions/openqa/usr/lib/kde-linux-openqa/openqa-root-authorized-key
 # Generated for updates from a staging channel.
+/extensions/openqa/usr/lib/sysupdate.d/*.transfer
 /extensions/openqa/usr/lib/sysupdate.d/*.transfer.d
 /extensions/openqa/usr/lib/systemd/
+/.openqa-local-update-*

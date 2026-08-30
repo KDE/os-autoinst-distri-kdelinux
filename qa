@@ -5,10 +5,10 @@
 import argparse
 import os
 from pathlib import Path
-from lib.worker import job
+
 from lib.common.log import get_logger
 from lib.common.paths import git_root
-from lib.worker import bootstrap, job_flow, system_packages, sysext
+from lib.worker import bootstrap, job, job_flow, sysext, system_packages
 from lib.worker.job_flow import JobFlowError
 
 log = get_logger(__name__)
@@ -38,6 +38,18 @@ def _parser() -> argparse.ArgumentParser:
         command_parser = commands.add_parser(command)
         command_parser.add_argument("--upgrade", action="store_true")
         command_parser.add_argument("--encrypt", action="store_true")
+        command_parser.add_argument(
+            "--upgrade-from",
+            type=Path,
+            metavar="ISO",
+            help="install this local ISO as the upgrade base",
+        )
+        command_parser.add_argument(
+            "--upgrade-to",
+            type=Path,
+            metavar="MKOSI_OUTPUT",
+            help="upgrade using artifacts in this mkosi.output directory",
+        )
 
     return parser
 
@@ -80,7 +92,16 @@ def _log_artifact_url() -> None:
 
 
 def main() -> None:
-    args = _parser().parse_args()
+    parser = _parser()
+    args = parser.parse_args()
+
+    if hasattr(args, "upgrade_from"):
+        if (args.upgrade_from is None) != (args.upgrade_to is None):
+            parser.error(
+                "--upgrade-from and --upgrade-to must be specified together"
+            )
+        if args.upgrade_from is not None and not args.upgrade:
+            parser.error("--upgrade-from and --upgrade-to require --upgrade")
 
     _load_environment()
 
@@ -96,6 +117,8 @@ def main() -> None:
         job_flow.run_jobs(
             upgrade=args.upgrade,
             encrypt=args.encrypt,
+            upgrade_from=args.upgrade_from,
+            upgrade_to=args.upgrade_to,
         )
         return
 
@@ -148,6 +171,8 @@ def main() -> None:
             worker_class=bootstrap.get_worker_class(),
             upgrade=args.upgrade,
             encrypt=args.encrypt,
+            upgrade_from=args.upgrade_from,
+            upgrade_to=args.upgrade_to,
         )
     finally:
         worker.terminate()

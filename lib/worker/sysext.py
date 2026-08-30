@@ -91,7 +91,75 @@ def _generate_ssh_keypair(sysext_root: Path) -> None:
         public_key.unlink(missing_ok=True)
 
 
-def build_sysext() -> Path:
+def _configure_sysupdate(
+    sysext_root: Path,
+    channel_url: str | None,
+    public_key_b64: str | None,
+    disable_caibx: bool,
+    verify_updates: bool,
+) -> None:
+    sysupdate_dir = sysext_root / "usr" / "lib" / "sysupdate.d"
+    pubring = (
+        sysext_root
+        / "usr"
+        / "lib"
+        / "systemd"
+        / "import-pubring.pgp"
+    )
+
+    # Dropins and masks in this directory are generated for one specific run,
+    # so never retain them when rebuilding the sysext.
+    if sysupdate_dir.is_dir():
+        shutil.rmtree(sysupdate_dir)
+
+    pubring.unlink(missing_ok=True)
+
+    if not channel_url:
+        return
+
+    # Redirect updates to a staged CI tree or a temporary local source.
+    override = ""
+    if not verify_updates:
+        override += "[Transfer]\nVerify=no\n\n"
+    override += f"[Source]\nPath={channel_url}\n"
+
+    dropins = [
+        sysupdate_dir / "50-root-x86-64-caibx.transfer.d",
+        sysupdate_dir / "50-root-x86-64-erofs.transfer.d",
+        sysupdate_dir / "60-esp.transfer.d",
+    ]
+
+    for dropin in dropins:
+        dropin.mkdir(parents=True, exist_ok=True)
+        (dropin / "99-openqa-override.conf").write_text(override)
+
+    if disable_caibx:
+        # CAIBX is produced after the root and UKI, so permit testing a build
+        # as soon as those two essential artifacts are ready.
+        caibx_transfer = sysupdate_dir / "50-root-x86-64-caibx.transfer"
+        caibx_transfer.symlink_to("/dev/null")
+
+    # Give it an ephemeral signing key so the SUT can verify non-production
+    # update metadata.
+    if public_key_b64:
+        pubring.parent.mkdir(parents=True, exist_ok=True)
+
+        result = subprocess.run(
+            ["gpg", "--dearmor"],
+            input=base64.b64decode(public_key_b64),
+            capture_output=True,
+            check=True,
+        )
+        pubring.write_bytes(result.stdout)
+
+
+def build_sysext(
+    *,
+    channel_url: str | None = None,
+    public_key_b64: str | None = None,
+    disable_caibx: bool = False,
+    verify_updates: bool = True,
+) -> Path:
     casedir = Path(
         subprocess.run(
             ["git", "rev-parse", "--show-toplevel"],
@@ -119,52 +187,15 @@ def build_sysext() -> Path:
     # Build the requirements declared in pyproject.toml into the sysext.
     _compile_requirements(casedir, sysext_root)
 
-    sysupdate_dir = sysext_root / "usr" / "lib" / "sysupdate.d"
-    pubring = (
-        sysext_root
-        / "usr"
-        / "lib"
-        / "systemd"
-        / "import-pubring.pgp"
+    channel_url = channel_url or os.environ.get("STAGING_CHANNEL_URL")
+    public_key_b64 = public_key_b64 or os.environ.get("SYSUPDATE_PUBKEY_B64")
+    _configure_sysupdate(
+        sysext_root,
+        channel_url,
+        public_key_b64,
+        disable_caibx,
+        verify_updates,
     )
-
-    staging_channel_url = os.environ.get("STAGING_CHANNEL_URL")
-    pubkey_b64 = os.environ.get("SYSUPDATE_PUBKEY_B64")
-
-    # Clean up before creating the sysext.
-    if not staging_channel_url and sysupdate_dir.is_dir():
-        # If we haven't been passed a URL, clean up any dropins that may point to one from a previous run.
-        shutil.rmtree(sysupdate_dir)
-
-    if not pubkey_b64 and pubring.is_file():
-        # If we haven't been passed a signing key, clean up any that exist from a previous run.
-        pubring.unlink()
-
-    if staging_channel_url:
-        # Create sysupdate.d dropins to redirect updates to our staged S3 image in CI.
-        override = f"[Source]\nPath={staging_channel_url}\n"
-
-        dropins = [
-            sysupdate_dir / "50-root-x86-64-caibx.transfer.d",
-            sysupdate_dir / "50-root-x86-64-erofs.transfer.d",
-            sysupdate_dir / "60-esp.transfer.d",
-        ]
-
-        for dropin in dropins:
-            dropin.mkdir(parents=True, exist_ok=True)
-            (dropin / "99-openqa-override.conf").write_text(override)
-
-        # Give it an ephemeral signing key, generated in CI, so it can verify updates from a staging channel outside of master upstream.
-        if pubkey_b64:
-            pubring.parent.mkdir(parents=True, exist_ok=True)
-
-            result = subprocess.run(
-                ["gpg", "--dearmor"],
-                input=base64.b64decode(pubkey_b64),
-                capture_output=True,
-                check=True,
-            )
-            pubring.write_bytes(result.stdout)
 
     sysext_image = Path("openqa-sysext.img")
     os.environ["SYSEXT_IMG"] = str(sysext_image)

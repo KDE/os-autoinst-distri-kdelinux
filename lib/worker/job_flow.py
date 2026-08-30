@@ -4,22 +4,28 @@
 import os
 import re
 import subprocess
-from contextlib import chdir
+from contextlib import chdir, nullcontext
 from dataclasses import dataclass, replace
 from pathlib import Path
 from urllib.parse import urlsplit
+
 import requests
-from lib.common.log import get_logger
-from lib.common.paths import git_root
+
 import lib.worker.job
 import lib.worker.sysext
+from lib.common.log import get_logger
+from lib.common.paths import git_root
 from lib.worker.download_image import (
     channel_url,
     download_file,
     download_latest,
     download_previous,
 )
-
+from lib.worker.local_update import (
+    LocalUpdateError,
+    inspect_build_output,
+    serve_local_update,
+)
 
 logger = get_logger(__name__)
 
@@ -200,6 +206,7 @@ def _resolve_install_image(
     casedir: Path,
     build: BuildUnderTest,
     upgrade: bool,
+    upgrade_from: Path | None = None,
 ) -> Path:
     if not upgrade:
         if build.image is None:
@@ -208,6 +215,21 @@ def _resolve_install_image(
             )
 
         return build.image
+
+    if upgrade_from is not None:
+        image = upgrade_from.expanduser()
+        if not image.is_absolute():
+            image = casedir / image
+
+        image = image.resolve()
+        if not image.is_file():
+            raise JobFlowError(f"Upgrade base does not exist: {image}")
+
+        logger.info(
+            "Using local image %s as the explicit upgrade base",
+            image,
+        )
+        return _validate_upgrade_base(image, build)
 
     # The upgrade flow installs an older base, then upgrades it to the build
     # under test. Staged builds should start from the latest published image;
@@ -306,23 +328,104 @@ def run_jobs(
     worker_class: str | None = None,
     upgrade: bool = False,
     encrypt: bool = False,
+    upgrade_from: Path | None = None,
+    upgrade_to: Path | None = None,
 ) -> None:
     """Submit and poll all test jobs for a build."""
 
     casedir = git_root()
     mock_mode = bool(os.environ.get("MOCK_MODE"))
 
+    if (upgrade_from is None) != (upgrade_to is None):
+        raise JobFlowError(
+            "--upgrade-from and --upgrade-to must be specified together"
+        )
+
+    if upgrade_from is not None and not upgrade:
+        raise JobFlowError(
+            "--upgrade-from and --upgrade-to require --upgrade"
+        )
+
     if not mock_mode and worker_class is None:
         raise JobFlowError(
             "worker_class is required outside mock mode"
         )
 
-    sysext_image = lib.worker.sysext.build_sysext()
-    build = _resolve_build_under_test(casedir, upgrade)
+    try:
+        target_output = None
+        if upgrade_to is not None and upgrade_from is not None:
+            target = upgrade_to.expanduser()
+            base = upgrade_from.expanduser()
+            if not target.is_absolute():
+                target = casedir / target
+            if not base.is_absolute():
+                base = casedir / base
+
+            target_output = inspect_build_output(target)
+            target_build = BuildUnderTest(
+                image=None,
+                output=f"kde-linux_{target_output.version}",
+                build=target_output.version,
+            )
+            upgrade_from = base.resolve()
+            if not upgrade_from.is_file():
+                raise JobFlowError(
+                    f"Upgrade base does not exist: {upgrade_from}"
+                )
+            _validate_upgrade_base(upgrade_from, target_build)
+
+        update_context = (
+            serve_local_update(target_output, casedir)
+            if target_output is not None
+            else nullcontext(None)
+        )
+
+        with update_context as local_update:
+            if local_update is not None:
+                build = BuildUnderTest(
+                    image=None,
+                    output=f"kde-linux_{local_update.version}",
+                    build=local_update.version,
+                )
+                sysext_image = lib.worker.sysext.build_sysext(
+                    channel_url=local_update.url,
+                    disable_caibx=local_update.disable_caibx,
+                    verify_updates=False,
+                )
+            else:
+                build = _resolve_build_under_test(casedir, upgrade)
+                sysext_image = lib.worker.sysext.build_sysext()
+
+            _run_resolved_jobs(
+                casedir=casedir,
+                build=build,
+                sysext_image=sysext_image,
+                worker_class=worker_class,
+                upgrade=upgrade,
+                encrypt=encrypt,
+                upgrade_from=upgrade_from,
+                mock_mode=mock_mode,
+            )
+    except LocalUpdateError as error:
+        raise JobFlowError(str(error)) from error
+
+
+def _run_resolved_jobs(
+    *,
+    casedir: Path,
+    build: BuildUnderTest,
+    sysext_image: Path,
+    worker_class: str | None,
+    upgrade: bool,
+    encrypt: bool,
+    upgrade_from: Path | None,
+    mock_mode: bool,
+) -> None:
     install_image = _resolve_install_image(
         casedir,
         build,
         upgrade,
+        upgrade_from,
     )
     disk = Path(f"{build.output}.qcow2")
 
