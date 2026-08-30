@@ -84,9 +84,6 @@ class CliTest:
                 self.autoinst_proxy.handle_queue()
                 time.sleep(1)
 
-            if session_exception:
-                raise session_exception
-
         finally:
             self.autoinst_proxy.stop()
             proxy_thread.join(1)
@@ -99,6 +96,12 @@ class CliTest:
                 )
             output = session.run(journal_cmd, wait_result=True)
             log.info(f"{unit} outputted:\n{output}")
+
+        if session_exception:
+            journal = output.strip() if output else "No journal output was available."
+            raise RuntimeError(
+                f"Test command failed: {cmdline}\n\n{journal}"
+            ) from None
 
         return output or ""
 
