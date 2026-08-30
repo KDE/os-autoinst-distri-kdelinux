@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 import requests
+from openqa_client.client import OpenQA_Client
 
 import lib.worker.job
 import lib.worker.sysext
@@ -46,7 +47,7 @@ class BuildUnderTest:
 class JobFlow:
     def __init__(
         self,
-        client: lib.worker.job.OpenQAClient,
+        client: OpenQA_Client,
         group: str | None,
         worker_class: str | None,
     ) -> None:
@@ -438,8 +439,8 @@ def _run_resolved_jobs(
     )
 
     flow = JobFlow(
-        client=lib.worker.job.OpenQAClient(
-            host=os.environ["OPENQA_HOST_ADDR"],
+        client=OpenQA_Client(
+            server=os.environ["OPENQA_HOST_ADDR"],
             scheme=os.environ.get("OPENQA_SCHEME", "https"),
         ),
         group=_job_group(upgrade),
