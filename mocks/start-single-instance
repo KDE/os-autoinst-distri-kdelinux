@@ -2,19 +2,17 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
-import os
-import signal
+import json
 import subprocess
 import time
 import urllib.error
 import urllib.request
+import os
+import signal
 from pathlib import Path
-
-from openqa_client.client import OpenQA_Client
-from openqa_client.exceptions import OpenQAClientError
-
-from lib.common.log import get_logger
 from lib.worker import system_packages
+from lib.common.log import get_logger
+
 
 log = get_logger("start-single-instance")
 
@@ -67,25 +65,24 @@ def _wait_for_worker() -> None:
 def _cancel_scheduled_jobs() -> None:
     log.info("Cancelling stale scheduled jobs...")
 
-    client = OpenQA_Client(
-        server="localhost",
-        scheme="http",
-        retries=0,
-    )
-    response = client.openqa_request(
-        "GET",
-        "jobs",
-        params={"state": "scheduled"},
+    result = subprocess.run(
+        ["openqa-cli", "api", "jobs", "state=scheduled"],
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
-    for job in response.get("jobs", []):
-        try:
-            client.openqa_request(
+    for job in json.loads(result.stdout).get("jobs", []):
+        subprocess.run(
+            [
+                "openqa-cli",
+                "api",
+                "-X",
                 "POST",
                 f"jobs/{job['id']}/cancel",
-            )
-        except OpenQAClientError as error:
-            log.warning("Could not cancel stale job %s: %s", job["id"], error)
+            ],
+            check=False,
+        )
 
 
 def main() -> None:

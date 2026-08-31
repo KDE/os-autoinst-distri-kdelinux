@@ -14,7 +14,6 @@ dependencies = [
     "ruff>=0.16.3",
     "asyncio>=4.0.0",
     "websockets>=17.0.1",
-    "openqa-client>=4.3.1",
 ]
 
 # This is transformed into requirements.txt on the SUT,

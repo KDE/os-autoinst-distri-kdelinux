@@ -8,20 +8,18 @@ from contextlib import chdir
 from dataclasses import dataclass, replace
 from pathlib import Path
 from urllib.parse import urlsplit
-
 import requests
-from openqa_client.client import OpenQA_Client
-
-import lib.worker.job
-import lib.worker.sysext
 from lib.common.log import get_logger
 from lib.common.paths import git_root
+import lib.worker.job
+import lib.worker.sysext
 from lib.worker.download_image import (
     channel_url,
     download_file,
     download_latest,
     download_previous,
 )
+
 
 logger = get_logger(__name__)
 
@@ -42,7 +40,7 @@ class BuildUnderTest:
 class JobFlow:
     def __init__(
         self,
-        client: OpenQA_Client,
+        client: lib.worker.job.OpenQAClient,
         group: str | None,
         worker_class: str | None,
     ) -> None:
@@ -337,8 +335,8 @@ def run_jobs(
     )
 
     flow = JobFlow(
-        client=OpenQA_Client(
-            server=os.environ["OPENQA_HOST_ADDR"],
+        client=lib.worker.job.OpenQAClient(
+            host=os.environ["OPENQA_HOST_ADDR"],
             scheme=os.environ.get("OPENQA_SCHEME", "https"),
         ),
         group=_job_group(upgrade),

@@ -1,17 +1,16 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
-import os
+import json
 import shutil
 import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
-from openqa_client.client import OpenQA_Client
-
+import os
 from lib.common.log import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -84,8 +83,37 @@ class JobConfig:
             )
 
 
+class OpenQAClient:
+    def __init__(self, host: str, scheme: str = "https") -> None:
+        self.host = host
+        self.scheme = scheme
+
+    def request(self, *args: str) -> dict[str, Any]:
+        logger.debug("Running openQA API request: %s", " ".join(args))
+
+        result = subprocess.run(
+            [
+                "openqa-cli",
+                "api",
+                "--host",
+                f"{self.scheme}://{self.host}",
+                *args,
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        response = json.loads(result.stdout)
+
+        if not isinstance(response, dict):
+            raise InvalidJobError("openQA returned an invalid response")
+
+        return response
+
+
 class Job:
-    def __init__(self, client: OpenQA_Client, config: JobConfig) -> None:
+    def __init__(self, client: OpenQAClient, config: JobConfig) -> None:
         self.client = client
         self.config = config
         self._job_id: int | None = None
@@ -99,34 +127,12 @@ class Job:
 
     @property
     def web_url(self) -> str:
-        base_url = self.client.baseurl
+        host = self.client.host
 
-        if base_url.endswith("://localhost"):
-            base_url += ":1080"
+        if host == "localhost":
+            host = "localhost:1080"
 
-        return f"{base_url}/tests/{self.job_id}"
-
-    def _request(
-        self,
-        method: str,
-        path: str,
-        *,
-        params: dict[str, str] | None = None,
-        data: dict[str, str] | None = None,
-    ) -> dict[str, Any]:
-        logger.debug("Running openQA API request: %s %s", method, path)
-
-        response = self.client.openqa_request(
-            method,
-            path,
-            params=params,
-            data=data,
-        )
-
-        if not isinstance(response, dict):
-            raise InvalidJobError("openQA returned an invalid response")
-
-        return response
+        return f"{self.client.scheme}://{host}/tests/{self.job_id}"
 
     def run(self) -> JobResult:
         logger.info("Running test job %s", self.config.name)
@@ -152,10 +158,14 @@ class Job:
         return result
 
     def submit(self) -> int:
-        response = self._request(
+        response = self.client.request(
+            "-X",
             "POST",
             "jobs",
-            data=self._submission_settings(),
+            *(
+                f"{key}={value}"
+                for key, value in self._submission_settings().items()
+            ),
         )
 
         logger.debug("Job creation response: %s", response)
@@ -185,7 +195,7 @@ class Job:
         scheduled_since: float | None = None
 
         while True:
-            response = self._request("GET", f"jobs/{self.job_id}")
+            response = self.client.request(f"jobs/{self.job_id}")
             job_data = response.get("job")
 
             if not isinstance(job_data, dict):
@@ -242,10 +252,7 @@ class Job:
         return self._classify_failed_job()
 
     def _classify_failed_job(self) -> JobResult:
-        response = self._request(
-            "GET",
-            f"jobs/{self.job_id}/details",
-        )
+        response = self.client.request(f"jobs/{self.job_id}/details")
         job_data = response.get("job")
 
         if not isinstance(job_data, dict):
@@ -353,9 +360,10 @@ class Job:
             # to the only worker there is.
             settings["WORKER_CLASS"] = config.worker_class
 
-        if os.environ.get("CI") and os.environ.get("UPSTREAM_CI_PIPELINE_URL"):
+        if os.environ.get("CI"):
             # Set the upstream pipeline URL in CI for reference in the test's settings tab
-            settings["CI_PIPELINE_URL"] = os.environ["UPSTREAM_CI_PIPELINE_URL"]
+            if os.environ.get("UPSTREAM_CI_PIPELINE_URL"):
+                settings["CI_PIPELINE_URL"] = os.environ["UPSTREAM_CI_PIPELINE_URL"]
 
         return settings
 

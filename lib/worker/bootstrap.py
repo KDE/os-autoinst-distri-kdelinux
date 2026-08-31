@@ -2,16 +2,15 @@
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
 import os
+import ssl
 import subprocess
 import time
+import urllib.request
 import uuid
 from functools import cache
 from pathlib import Path
-
-from openqa_client.client import OpenQA_Client
-from openqa_client.exceptions import OpenQAClientError
-
 from lib.common.log import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -56,19 +55,17 @@ def start_worker() -> subprocess.Popen[bytes]:
         f"secret = {api_secret}\n"
     )
 
-    client = OpenQA_Client(
-        server=host,
-        scheme=scheme,
-        retries=0,
-    )
-    client.session.verify = False
+    context = ssl._create_unverified_context()
 
     for _ in range(10):
         try:
-            client.openqa_request("GET", "jobs")
-            logger.debug("openQA is ready")
-            break
-        except OpenQAClientError:
+            with urllib.request.urlopen(
+                f"{scheme}://{host}/api/v1/jobs",
+                context=context,
+            ):
+                logger.debug("openQA is ready")
+                break
+        except OSError:
             logger.info("Waiting for openQA… (polling every 2 seconds)")
             time.sleep(2)
 
