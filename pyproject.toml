@@ -21,6 +21,7 @@ dependencies = [
 [dependency-groups]
 sut = [
     "asyncio>=4.0.0",
+    "dbus-fast>=5.0.22",
     "unittest-xml-reporting>=4.0.0",
     "websockets>=17.0.1",
 ]
