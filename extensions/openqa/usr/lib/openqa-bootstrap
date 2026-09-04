@@ -23,11 +23,19 @@ chmod 777 /var/log/kde-linux-openqa
 passwd -d root
 passwd -u root
 
-# Let the test user elevate without a password
-cat > /etc/sudoers.d/99-kde-linux-openqa <<EOF
-user ALL=(ALL) NOPASSWD: ALL
-EOF
-chmod 0440 /etc/sudoers.d/99-kde-linux-openqa
+# No polkit overrides here. The tests answer prompts with the user's password,
+# so a prompt that stops appearing shows up as a test failure instead of being
+# silently authorised. The live session ships its own manage-units rule; its
+# user has no password and cannot be authenticated.
+
+# Ensure the installed test user is in the wheel group
+if id "user" &>/dev/null; then
+    usermod -aG wheel user
+fi
+# Also add live user if present (for live environment tests)
+if id "live" &>/dev/null; then
+    usermod -aG wheel live
+fi
 
 # Configure SSH for key-based login for every user account
 ROOT_AUTHORIZED_KEY=/usr/lib/kde-linux-openqa/openqa-root-authorized-key

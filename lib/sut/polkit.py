@@ -15,6 +15,8 @@ import selenium.common.exceptions
 from lib.sut.atspi import find_pid_on_atspi_bus
 from lib.common import user_manager
 
+PROMPT_TIMEOUT = 10
+
 
 class PolkitAgent:
     """Authenticates through the KDE polkit prompt."""
@@ -50,11 +52,25 @@ class PolkitAgent:
                 lambda _: element.is_selected(), message='field never gained focus')
         ActionChains(self.driver).key_down(Keys.CONTROL).pause(0.5).send_keys('v').pause(0.5).key_up(Keys.CONTROL).perform()
 
-    def authenticate(self, password=None):
-        """Wait for a single authentication prompt to appear and answer it."""
+    def authenticate(self, password=None, timeout=PROMPT_TIMEOUT, required=True) -> bool:
+        """Answer an authentication prompt. Returns whether there was one.
+
+        polkit keeps an auth_admin_keep authorisation for a few minutes, so a
+        repeat of the same action legitimately gets no prompt. Only pass
+        required=False where that is the case, a missing prompt is otherwise
+        the thing we want to catch.
+        """
         self._attach()
         if password is None:
             password = user_manager.installed().pw
-        field = WebDriverWait(self.driver, 10).until(ec.presence_of_element_located((AppiumBy.XPATH, '//password_text')))
+        try:
+            field = WebDriverWait(self.driver, timeout).until(
+                ec.presence_of_element_located((AppiumBy.XPATH, '//password_text')))
+        except selenium.common.exceptions.TimeoutException:
+            if required:
+                raise AssertionError(
+                    f'no polkit prompt appeared within {timeout}s') from None
+            return False
         self._set_text(password, field)
         field.send_keys(Keys.RETURN)
+        return True

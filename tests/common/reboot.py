@@ -9,7 +9,7 @@ def run(self):
     # Enable timeout on the UEFI screen so we can select previous boot
     boot_prev = get_var('BOOT_PREVIOUS', '0')
     if boot_prev == '1':
-        session.run('sudo bootctl set-timeout-oneshot 7', wait_result=False)
+        session.run('bootctl set-timeout-oneshot 7', wait_result=False)
 
     # Reboot
     try:

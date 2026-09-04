@@ -33,11 +33,11 @@ class SystemDevelopmentTests(unittest.TestCase):
     def _dev_mode_enabled(self) -> bool:
         return (OPT_APPS / 'GammaRay.desktop').exists()
 
-    def _toggle(self):
+    def _toggle(self, expect_prompt=False):
         proc = subprocess.Popen(
             ['run0', '--empower', TOGGLE_DEVELOPER_MODE],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        self.polkit.authenticate()
+        self.polkit.authenticate(required=expect_prompt)
         try:
             _, stderr = proc.communicate(timeout=30)
         except subprocess.TimeoutExpired:
@@ -58,8 +58,9 @@ class SystemDevelopmentTests(unittest.TestCase):
         """Toggling must show/hide the bundled developer app launchers."""
         started_enabled = self._dev_mode_enabled()
 
-        # First toggle flips the state.
-        self._toggle()
+        # First toggle flips the state. It is also the first elevation of the
+        # session, so it has to prompt.
+        self._toggle(expect_prompt=True)
         self.assertEqual(
             self._dev_mode_enabled(), not started_enabled,
             'toggling developer mode did not flip its state')
@@ -95,7 +96,7 @@ class SystemDevelopmentTests(unittest.TestCase):
         first_run = subprocess.Popen(
             ['run0', '--empower', LOCAL_BIN_PATH, SET_UP_SYSTEM_DEVELOPMENT],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        self.polkit.authenticate()
+        self.polkit.authenticate(required=False)
         try:
             _, stderr = first_run.communicate(timeout=60)
         except subprocess.TimeoutExpired:
@@ -115,7 +116,7 @@ class SystemDevelopmentTests(unittest.TestCase):
         second_run = subprocess.Popen(
             ['run0', '--empower', LOCAL_BIN_PATH, SET_UP_SYSTEM_DEVELOPMENT],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        self.polkit.authenticate()
+        self.polkit.authenticate(required=False)
         try:
             stdout, stderr = second_run.communicate(timeout=60)
         except subprocess.TimeoutExpired:

@@ -11,26 +11,47 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.common import user_manager
 from lib.sut import openqa_junit_xml
+from lib.sut.atspi import find_pid_on_atspi_bus
 import subprocess
 import sys
 
 # Installs the system through Calamares.
 
+CALAMARES = '/opt/local/bin/calamares'
+LAUNCH_TIMEOUT = 120
+
 
 class CalamaresTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
+        # Calamares elevates itself through run0, so the process we spawn here is
+        # not the one that ends up on the a11y bus. The driver matches the app
+        # against the PID it launched, so launch it ourselves and hand over the
+        # PID that actually registers.
+        # start_new_session keeps the elevated process out of our process group.
+        # The runner TERMs that group on exit and only rescues ESRCH, not the
+        # EPERM it gets when the group holds nothing it may signal.
+        self.launcher = subprocess.Popen(
+            [CALAMARES], stdin=subprocess.DEVNULL, start_new_session=True)
+        try:
+            pid = find_pid_on_atspi_bus('calamares', timeout=LAUNCH_TIMEOUT)
+        except RuntimeError:
+            if self.launcher.poll() is not None:
+                raise RuntimeError(
+                    f'{CALAMARES} exited with {self.launcher.returncode} before '
+                    'reaching the a11y bus') from None
+            raise
+
         options = AppiumOptions()
-        options.set_capability("app", "/opt/local/bin/calamares")
+        options.set_capability("app", str(pid))
         self.driver = webdriver.Remote(command_executor="http://127.0.0.1:4723", options=options)
         self.driver.implicitly_wait(0)
 
     @classmethod
     def tearDownClass(self):
-        # fails because calamares is root? TODO
-        # self.driver.quit()
+        self.driver.quit()
         # Copy logs so that test can archive that
-        subprocess.run(['sudo', 'cp', '/root/.cache/calamares/session.log', '/tmp/calamares-session.log'], check=True)
+        subprocess.run(['run0', 'cp', '/root/.cache/calamares/session.log', '/tmp/calamares-session.log'], check=True)
 
     def _set_text(self, text, element=None):
         # QML text fields seem to not implement AT-SPI EditableText in QT versions older than 6.11

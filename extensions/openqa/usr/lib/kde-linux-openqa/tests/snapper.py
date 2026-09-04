@@ -152,7 +152,12 @@ class SnapperTests(unittest.TestCase):
         return result
 
     def _as_user(self, name, *args):
-        return _run('sudo', '--non-interactive', '-u', name, *args)
+        # De-escalate via systemd-run directly instead of the run0 sudo shim,
+        # same as the host-side harness does for a logged-in user.
+        uid = _run('id', '-u', name).stdout.strip()
+        return _run(
+            'systemd-run', '--pipe', '--quiet', '--collect',
+            f'--machine={uid}@.host', f'--uid={name}', '--user', *args)
 
     def _create_account(self, name, uid, subvolume):
         self._forget_account(name, uid)

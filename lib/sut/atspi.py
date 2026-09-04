@@ -13,7 +13,7 @@ def find_pid_on_atspi_bus(app_name: str, timeout: int = 10) -> int:
             desktop = pyatspi.Registry.getDesktop(i)
             for app in desktop:
                 try:
-                    if app.name == app_name:
+                    if app.name.casefold() == app_name.casefold():
                         return app.get_process_id()
                 except Exception:
                     pass
