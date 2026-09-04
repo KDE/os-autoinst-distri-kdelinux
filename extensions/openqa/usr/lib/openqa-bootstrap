@@ -100,9 +100,13 @@ fi
 # Ensure TZ is set consistently, so plasma-setup works
 timedatectl set-timezone Etc/UTC
 
-# Generate host keys, validate config, then enable sshd
-systemctl start sshdgenkeys.service
-sshd -t
+# Generate host keys
+if systemctl show sshdgenkeys.service --property=LoadState | grep -q "loaded"; then
+    systemctl start sshdgenkeys.service
+    sshd -t
+fi
+
+# validate config, then enable sshd
 systemctl enable --now sshd.service
 
 # Get rid of qtlogging settings so we have more verbose logging
