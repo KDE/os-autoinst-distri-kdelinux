@@ -360,14 +360,10 @@ wheels = [
 [[package]]
 name = "openqa-client"
 version = "4.3.1"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/os-autoinst/openQA-python-client.git?rev=ed924a8921ecee6a843bd141faac6e41c4739e0a#ed924a8921ecee6a843bd141faac6e41c4739e0a" }
 dependencies = [
     { name = "pyyaml" },
     { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/93/1d/e3ee9e9160411c25a7eeb720ab812a15d63aa6da48a746aef7e2b741f815/openqa_client-4.3.1.tar.gz", hash = "sha256:5dd2740c29ad485f62f2e871e732f8405f078b1d283dc2ea90a5a5e74f5bf7ba", size = 35038, upload-time = "2025-09-06T01:46:34.593Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f8/cc/9462ee127a075c4fb116ebb991f603f60ff5037839a71170242fd5250360/openqa_client-4.3.1-py3-none-any.whl", hash = "sha256:8e3d5135f581a60dab96b6daef2014d07e68c855a26c4a2f4d27bd9dd32751a1", size = 26354, upload-time = "2025-09-06T01:46:33.609Z" },
 ]
 
 [[package]]
@@ -397,7 +393,7 @@ requires-dist = [
     { name = "asyncio", specifier = ">=4.0.0" },
     { name = "colorlog", specifier = ">=6.12.0" },
     { name = "fabric", specifier = ">=3.2.3" },
-    { name = "openqa-client", specifier = ">=4.3.1" },
+    { name = "openqa-client", git = "https://github.com/os-autoinst/openQA-python-client.git?rev=ed924a8921ecee6a843bd141faac6e41c4739e0a" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "ruff", specifier = ">=0.16.3" },
     { name = "websockets", specifier = ">=17.0.1" },
