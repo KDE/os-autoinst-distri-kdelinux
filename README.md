@@ -81,11 +81,7 @@ openQA workflows.
 - Bootability/upgradeability - UEFI boot menu shows both old and new system versions after an upgrade
 - Lock screen - lock the session and unlock it with the user's password
 - Clipboard - test outside of Qt apps and flatpaks (e.g. copy from Firefox, paste into LibreOffice Calc)
-- FDE and manual partitioning - test installation with these
-  - This will need some scheduler changes. We need to add a setting to main.pm for INSTALL_TYPE, which can be default|fde|manual
-  - Then we need distinct named test-suites - install-system\[-fde|-manual\]
-  - Then do some fancy combinatorics in CI, use matrices. This is because we don't do things the "normal" OpenQA way with persistent hosted runners (our way is better!).
-  - The caveat with this is we'd be downloading an image many times. We should have some kind of cache for this or shared volume.
+- Manual partitioning - add a Calamares installation flow and verify the resulting disk layout
 - Ensure a new build can upgrade to an even newer one - see https://invent.kde.org/kde-linux/os-autoinst-distri-kdelinux/-/work_items/11. This is going to be weird to implement.
 
 ### End-to-end test flows
@@ -238,17 +234,15 @@ PYTHONPATH=. TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 \
 
 ### Integration with GitLab CI
 
-The pipeline has five stages: `validate`, `test`, `test-encrypt`, `test-upgrade`, and `test-upgrade-encrypt`.
+The pipeline has three stages: `validate`, `test`, and `test-upgrade`.
 
 | Stage | What it does |
 |---|---|
 | validate | runs [REUSE](https://reuse.software/) license compliance linting. This is skipped when the pipeline is triggered from another project. |
-| test | runs the install + sanity-test suite (`qa worker`) against the hosted openQA server. |
-| test-upgrade | runs the upgrade suite (`qa worker --upgrade`) against the hosted openQA server. |
-| test-encrypt | runs the install + sanity-test suite with FDE (`qa worker --encrypt`) against the hosted openQA server. |
-| test-upgrade-encrypt | runs the upgrade suite with FDE (`qa worker --upgrade --encrypt`) against the hosted openQA server. |
+| test | runs plain and FDE install + sanity-test flows as a parallel matrix against the hosted openQA server. |
+| test-upgrade | runs plain and FDE upgrade flows as a parallel matrix against the hosted openQA server. |
 
-Both test jobs use the upstream `openqa_worker` container image.
+The test jobs use the upstream `openqa_worker` container image.
 
 #### CI variables
 
