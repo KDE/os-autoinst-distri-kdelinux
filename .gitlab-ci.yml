@@ -20,6 +20,8 @@ reuse:
 
 .test-base:
   image: storage.kde.org/vm-images/image-builder
+  # Their artifacts land in gitlab-artifacts/ owned by the job user.
+  dependencies: []
   tags:
     - VM
     - amd64
@@ -39,6 +41,7 @@ reuse:
         WORKER_ARGS="${WORKER_ARGS:+$WORKER_ARGS }--encrypt"
       fi
   script:
+    - rm -rf "$CI_PROJECT_DIR/gitlab-artifacts"
     - mkdir -p "$CI_PROJECT_DIR/gitlab-artifacts"
     - chmod 0777 "$CI_PROJECT_DIR/gitlab-artifacts"
     - >
