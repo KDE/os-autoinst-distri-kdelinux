@@ -98,10 +98,12 @@ class CliTest:
             log.info(f"{unit} outputted:\n{output}")
 
         if session_exception:
-            journal = output.strip() if output else "No journal output was available."
-            raise RuntimeError(
-                f"Test command failed: {cmdline}\n\n{journal}"
-            ) from None
+            journal = (
+                output.strip()
+                if output
+                else f"No journal output was available.\n\n{session_exception}"
+            )
+            raise RuntimeError(f"Test command failed: {cmdline}\n\n{journal}") from None
 
         return output or ""
 
