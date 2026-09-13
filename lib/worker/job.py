@@ -70,6 +70,8 @@ class JobConfig:
     name: str
     flavor: str
     casedir: Path
+    # Defined in the manifest file, tests.toml
+    distri: str
     live: Path | None = None
     group: str | None = None
     after: int | None = None
@@ -288,7 +290,7 @@ class Job:
         config = self.config
 
         settings = {
-            "DISTRI": "KDE-Linux",
+            "DISTRI": config.distri,
             "FLAVOR": config.flavor,
             "ARCH": "x86_64",
             "BUILD": config.build,

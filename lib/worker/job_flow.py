@@ -15,7 +15,6 @@ from openqa_client.client import OpenQA_Client
 import lib.worker.job
 import lib.worker.sysext
 from lib.common.log import get_logger
-from lib.common.paths import git_root
 from lib.worker.download_image import (
     channel_url,
     download_file,
@@ -27,6 +26,8 @@ from lib.worker.local_update import (
     inspect_build_output,
     serve_local_update,
 )
+from lib.worker.test_layout import staged_casedir
+from lib.worker.test_manifest import Manifest
 
 logger = get_logger(__name__)
 
@@ -50,10 +51,12 @@ class JobFlow:
         client: OpenQA_Client,
         group: str | None,
         worker_class: str | None,
+        manifest: Manifest,
     ) -> None:
         self.client = client
         self.group = group
         self.worker_class = worker_class
+        self.manifest = manifest
         self.parent: int | None = None
         self.tests_failed = False
 
@@ -65,9 +68,20 @@ class JobFlow:
             worker_class=self.worker_class,
         )
 
-        current_job = lib.worker.job.Job(self.client, config)
-        result = current_job.run()
-        self.parent = current_job.job_id
+        with staged_casedir(
+            self.manifest.casedir,
+            config.name,
+            self.manifest,
+        ) as staged:
+            if os.environ.get("MOCK_MODE"):
+                _stage_mock_tests(staged.path, self.manifest)
+            config = replace(
+                config,
+                casedir=staged.path,
+            )
+            current_job = lib.worker.job.Job(self.client, config)
+            result = current_job.run()
+            self.parent = current_job.job_id
 
         match result:
             case lib.worker.job.JobSuccess():
@@ -261,10 +275,10 @@ def _resolve_install_image(
     return _validate_upgrade_base(image, build)
 
 
-def _stage_mock_tests(casedir: Path) -> None:
+def _stage_mock_tests(casedir: Path, manifest: Manifest) -> None:
     # Copy test cases to the directory where openQA expects so that the needle
     # editor works.
-    destination = Path("/var/lib/openqa/tests/kde-linux")
+    destination = Path("/var/lib/openqa/tests") / manifest.distri.lower()
     destination.mkdir(parents=True, exist_ok=True)
 
     subprocess.run(
@@ -313,19 +327,21 @@ def _flavors(
     return live, installed
 
 
-def _job_group(upgrade: bool) -> str | None:
+def _job_group(name: str, upgrade: bool) -> str | None:
     # Mock doesn't have any groups.
     if os.environ.get("MOCK_MODE"):
         return None
 
     if upgrade:
-        return "KDE Linux Upgrade"
+        return f"{name} Upgrade"
 
-    return "KDE Linux Installation"
+    return f"{name} Installation"
 
 
 def run_jobs(
     *,
+    casedir: Path,
+    manifest: Manifest,
     worker_class: str | None = None,
     upgrade: bool = False,
     encrypt: bool = False,
@@ -334,7 +350,7 @@ def run_jobs(
 ) -> None:
     """Submit and poll all test jobs for a build."""
 
-    casedir = git_root()
+    casedir = casedir.expanduser().resolve()
     mock_mode = bool(os.environ.get("MOCK_MODE"))
 
     if (upgrade_from is None) != (upgrade_to is None):
@@ -389,23 +405,28 @@ def run_jobs(
                     build=local_update.version,
                 )
                 sysext_image = lib.worker.sysext.build_sysext(
+                    casedir,
+                    manifest=manifest,
                     channel_url=local_update.url,
                     disable_caibx=local_update.disable_caibx,
                     verify_updates=False,
                 )
             else:
                 build = _resolve_build_under_test(casedir, upgrade)
-                sysext_image = lib.worker.sysext.build_sysext()
+                sysext_image = lib.worker.sysext.build_sysext(
+                    casedir,
+                    manifest=manifest,
+                )
 
             _run_resolved_jobs(
                 casedir=casedir,
+                manifest=manifest,
                 build=build,
                 sysext_image=sysext_image,
                 worker_class=worker_class,
                 upgrade=upgrade,
                 encrypt=encrypt,
                 upgrade_from=upgrade_from,
-                mock_mode=mock_mode,
             )
     except LocalUpdateError as error:
         raise JobFlowError(str(error)) from error
@@ -414,13 +435,13 @@ def run_jobs(
 def _run_resolved_jobs(
     *,
     casedir: Path,
+    manifest: Manifest,
     build: BuildUnderTest,
     sysext_image: Path,
     worker_class: str | None,
     upgrade: bool,
     encrypt: bool,
     upgrade_from: Path | None,
-    mock_mode: bool,
 ) -> None:
     install_image = _resolve_install_image(
         casedir,
@@ -429,9 +450,6 @@ def _run_resolved_jobs(
         upgrade_from,
     )
     disk = Path(f"{build.output}.qcow2")
-
-    if mock_mode:
-        _stage_mock_tests(casedir)
 
     live_flavor, installed_flavor = _flavors(
         upgrade,
@@ -443,8 +461,9 @@ def _run_resolved_jobs(
             server=os.environ["OPENQA_HOST_ADDR"],
             scheme=os.environ.get("OPENQA_SCHEME", "https"),
         ),
-        group=_job_group(upgrade),
+        group=_job_group(manifest.name, upgrade),
         worker_class=worker_class,
+        manifest=manifest,
     )
 
     # Chain each job onto the previous one, so we get a nice dependency graph.
@@ -461,6 +480,7 @@ def _run_resolved_jobs(
             sysext=sysext_image,
             build=build.build,
             casedir=casedir,
+            distri=manifest.distri,
             encrypt=encrypt,
         )
     )
@@ -475,6 +495,7 @@ def _run_resolved_jobs(
                 sysext=sysext_image,
                 build=build.build,
                 casedir=casedir,
+                distri=manifest.distri,
                 upgrade=True,
                 encrypt=encrypt,
             )
@@ -489,6 +510,7 @@ def _run_resolved_jobs(
             sysext=sysext_image,
             build=build.build,
             casedir=casedir,
+            distri=manifest.distri,
             encrypt=encrypt,
         )
     )

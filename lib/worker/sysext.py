@@ -6,10 +6,13 @@ import os
 import pwd
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from lib.common.log import get_logger
 from lib.common.paths import OPENQA_SSH_PRIVATE_KEY
+from lib.worker.test_layout import stage_sut_tests
+from lib.worker.test_manifest import Manifest
 
 logger = get_logger(__name__)
 
@@ -154,63 +157,78 @@ def _configure_sysupdate(
 
 
 def build_sysext(
+    casedir: Path,
     *,
+    manifest: Manifest,
     channel_url: str | None = None,
     public_key_b64: str | None = None,
     disable_caibx: bool = False,
     verify_updates: bool = True,
 ) -> Path:
-    casedir = Path(
-        subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-    )
-
-    sysext_root = casedir / "extensions" / "openqa"
-
-    # Build the openQA sysext for the SUT.
-    # The top-level files in ./lib are shared between the host and the SUT, so copy them in at sysext build time.
-    # These are in .gitignore.
-    sysext_lib = sysext_root / "usr" / "lib" / "kde-linux-openqa" / "lib"
-
-    shutil.copytree(
-        casedir / "lib",
-        sysext_lib,
-        dirs_exist_ok=True,
-    )
-
-    _generate_ssh_keypair(sysext_root)
-
-    # Build the requirements declared in pyproject.toml into the sysext.
-    _compile_requirements(casedir, sysext_root)
-
-    channel_url = channel_url or os.environ.get("STAGING_CHANNEL_URL")
-    public_key_b64 = public_key_b64 or os.environ.get("SYSUPDATE_PUBKEY_B64")
-    _configure_sysupdate(
-        sysext_root,
-        channel_url,
-        public_key_b64,
-        disable_caibx,
-        verify_updates,
-    )
+    casedir = casedir.expanduser().resolve()
 
     sysext_image = Path("openqa-sysext.img")
     os.environ["SYSEXT_IMG"] = str(sysext_image)
 
-    subprocess.run(
-        [
-            "mkfs.erofs",
-            "--quiet",
-            "-L",
-            "kde-openqa-ext",
-            sysext_image,
+    # Build the openQA sysext for the SUT.
+    static_payload = casedir / "extensions" / "openqa"
+    generated_payload = static_payload / "usr" / "lib" / "kde-linux-openqa"
+
+    def ignore_generated(directory: str, names: list[str]) -> set[str]:
+        ignored = {
+            name for name in names if name == "__pycache__" or name.endswith(".pyc")
+        }
+        if Path(directory) == generated_payload:
+            ignored.update(
+                {
+                    "lib",
+                    "openqa-root-authorized-key",
+                    "requirements.txt",
+                    "tests",
+                    "venv",
+                }
+            )
+        return ignored
+
+    with tempfile.TemporaryDirectory(prefix="kde-linux-openqa-sysext-") as tmp:
+        sysext_root = Path(tmp) / "root"
+        shutil.copytree(
+            static_payload,
             sysext_root,
-        ],
-        check=True,
-    )
+            ignore=ignore_generated,
+        )
+
+        # The top-level files in ./lib are shared between the host and the SUT,
+        # so copy them in at sysext build time. These are in .gitignore.
+        sysext_lib = sysext_root / "usr" / "lib" / "kde-linux-openqa" / "lib"
+        shutil.copytree(casedir / "lib", sysext_lib)
+        stage_sut_tests(sysext_root, manifest)
+        _generate_ssh_keypair(sysext_root)
+
+        # Build the requirements declared in pyproject.toml into the sysext.
+        _compile_requirements(casedir, sysext_root)
+
+        channel_url = channel_url or os.environ.get("STAGING_CHANNEL_URL")
+        public_key_b64 = public_key_b64 or os.environ.get("SYSUPDATE_PUBKEY_B64")
+        _configure_sysupdate(
+            sysext_root,
+            channel_url,
+            public_key_b64,
+            disable_caibx,
+            verify_updates,
+        )
+
+        subprocess.run(
+            [
+                "mkfs.erofs",
+                "--quiet",
+                "-L",
+                "kde-openqa-ext",
+                sysext_image,
+                sysext_root,
+            ],
+            check=True,
+        )
 
     logger.info("Built openQA sysext at %s", sysext_image)
     return sysext_image

@@ -100,9 +100,45 @@ install-system (previous build) -> upgrade-system -> sanity-test
 
 Both of these flows are also offered in encrypted install variant too.
 
+### Test layout
+
+All tests live under `tests/`. `tests/tests.toml` declares the tests,
+the distri name, and the test suites, grouped into `install-system`, `upgrade-system`,
+and `sanity-test` suites. The Python job flow - for the moment - selects the suite by job name.
+
+Every `qa` command that works with tests accepts `--manifest-path <path>`. This
+defaults to `./tests/tests.toml`. Test paths in
+`tests.toml` are relative to the directory containing `<path>`.
+
+```toml
+name = "KDE Linux"
+distri = "KDE-Linux"
+
+[suites.example]
+tests = [
+    { path = "common/bootup.py", type = "openqa" },
+    { path = "common/basic_test.py", type = "python" },
+    { path = "kdelinux/app/firefox.py", type = "selenium", user = "installed", timeout = 180 },
+]
+```
+
+`openqa` tests run on the host. `selenium` and `python` tests run inside the
+SUT, with and without the Selenium runner respectively. Tests run in the
+order that they are listed in, including repeats. `enabled = false` keeps a
+test declared despite stopping it from being included in the schedule.
+
+Before each job, the worker creates a temporary CASEDIR containing only the
+selected tests - the original openQA tests and generated `CliTest`
+wrappers that call SUT tests. It generates a minimal `main.pm` that calls
+`autotest::loadtest` in manifest order, using the user, timeout, flags, and
+artifacts previously declared for each SUT test. An explicit `override` path
+can be used to select a custom wrapper instead,
+with these also living under `tests/` beside their SUT script.
+All paths in `tests.toml` are relative to `tests/`.
+
 ### Running tests locally
 
-Nota bene: if you change anything in `extensions/`, to re-create sysext image without restarting worker, run following,
+To rebuild the sysext without restarting the worker, run:
 
 ```
 podman exec -it openqa-single-instance bash
@@ -200,18 +236,9 @@ The worker will register with the remote server, submit jobs, and stream results
 This assumes you're running KDE Linux, which will have
 `selenium-webdriver-at-spi` installed.
 
-From the repository root, build the SUT system extension. This generates its
-requirements and copies the shared Python libraries into place:
+From the repository root, create a venv and install the SUT dependency group:
 
 ```bash
-./qa build-sysext
-```
-
-Go into the sysext test directory, create a venv, and install
-the SUT dependency group:
-
-```bash
-cd ./extensions/openqa/usr/lib/kde-linux-openqa
 python3 -m venv --system-site-packages --upgrade-deps ./venv
 uv pip install --python ./venv/bin/python --group sut
 source ./venv/bin/activate
@@ -229,7 +256,7 @@ Then run the desired test:
 ```bash
 PYTHONPATH=. TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 \
   KWIN_PID=$(pgrep -n kwin_wayland) \
-  selenium-webdriver-at-spi-run python3 tests/<name of test>.py
+  selenium-webdriver-at-spi-run python3 tests/<path>/<name>.py
 ```
 
 ### Integration with GitLab CI
@@ -258,15 +285,16 @@ The following variables must be configured in the GitLab project settings, and s
 #### Job groups
 
 Each flow is assigned to its own job group so it gets a separate build overview and the dependency chain stays together. 
-These groups should created on the server beforehand, under a `KDE Linux` folder:
+These groups should be created on the server beforehand, under a folder named
+after the manifest's `name` value:
 
 | Group | Used by |
 |---|---|
-| `KDE Linux Installation` | standard install and sanity test flow |
-| `KDE Linux Upgrade` | upgradeability flow |
+| `<name> Installation` | standard install and sanity test flow |
+| `<name> Upgrade` | upgradeability flow |
 
-The names are matched server-side by `lib/worker/job_flow.py`. If a group doesn't exist, openQA will simply leave them ungrouped
-without any errors.
+The names are derived from `name` in `tests/tests.toml`. If a group doesn't
+exist, openQA will simply leave jobs ungrouped without any errors.
 
 #### Triggering from another project
 

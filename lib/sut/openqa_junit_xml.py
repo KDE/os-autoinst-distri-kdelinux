@@ -8,7 +8,10 @@ import sys
 from pathlib import Path
 
 _RESULTS_DIR = '/var/log/kde-linux-openqa'
-_TEST_BASE_DIR = '/extensions/openqa'
+_SOURCE_PATHS = {
+    "/usr/lib/kde-linux-openqa/lib": "/lib",
+    "/usr/lib/kde-linux-openqa/tests": "/tests",
+}
 
 
 def _label(xml: bytes) -> bytes:
@@ -16,10 +19,18 @@ def _label(xml: bytes) -> bytes:
     for testcase in root.iter("testcase"):
         original_path = testcase.get("file", "")
         if original_path:
-            testcase.set(
-                "file",
-                str(Path(_TEST_BASE_DIR) / original_path.lstrip("/")),
-            )
+            source_path = Path(original_path)
+            # CI needs paths pointing to the checkout, not paths inside the
+            # installed sysext, so map the test paths back.
+            for installed_root, repository_root in _SOURCE_PATHS.items():
+                if not source_path.is_relative_to(installed_root):
+                    continue
+                relative_path = source_path.relative_to(installed_root)
+                testcase.set(
+                    "file",
+                    str(Path(repository_root) / relative_path),
+                )
+                break
     return ET.tostring(root, encoding="utf-8", xml_declaration=True)
 
 
