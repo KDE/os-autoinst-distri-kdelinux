@@ -19,5 +19,5 @@ def run(self):
    # Check if welcome exists
     do_install = get_var('DO_INSTALL')
     if do_install == '0':
-        assert_screen('kdelinux_desktop_welcome', timeout=60)
+        assert_screen('kdelinux_desktop_welcome', 'timeout', 60)
     PlasmaDesktopSession.ensure_active()

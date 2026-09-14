@@ -38,7 +38,7 @@ def run(self):
 
     if encrypted == '1' and (first_boot == '1' or do_install == '0'):
         # Enter password for the FDE
-        assert_screen('bootup_fde', timeout=30)
+        assert_screen('bootup_fde', 'timeout', 30)
         type_string(user_manager.installed().pw, "max_interval", 250)
         send_key('ret')
 
