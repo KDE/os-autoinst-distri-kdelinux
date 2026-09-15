@@ -27,7 +27,7 @@ from lib.worker.local_update import (
     serve_local_update,
 )
 from lib.worker.test_layout import staged_casedir
-from lib.worker.test_manifest import Manifest
+from lib.worker.test_manifest import Flow, Manifest, SuiteAction
 
 logger = get_logger(__name__)
 
@@ -311,7 +311,7 @@ def _stage_mock_tests(casedir: Path, manifest: Manifest) -> None:
 
 def _flavors(
     upgrade: bool,
-    encrypt: bool,
+    suffix: str,
 ) -> tuple[str, str]:
     if upgrade:
         live = "live-upgrade"
@@ -320,11 +320,7 @@ def _flavors(
         live = "live"
         installed = "installed"
 
-    if encrypt:
-        live += "-encrypted"
-        installed += "-encrypted"
-
-    return live, installed
+    return live + suffix, installed + suffix
 
 
 def _job_group(name: str, upgrade: bool) -> str | None:
@@ -342,9 +338,10 @@ def run_jobs(
     *,
     casedir: Path,
     manifest: Manifest,
+    flow: Flow,
     worker_class: str | None = None,
-    upgrade: bool = False,
-    encrypt: bool = False,
+    variables: dict[str, str],
+    flavor_suffix: str = "",
     upgrade_from: Path | None = None,
     upgrade_to: Path | None = None,
 ) -> None:
@@ -352,15 +349,25 @@ def run_jobs(
 
     casedir = casedir.expanduser().resolve()
     mock_mode = bool(os.environ.get("MOCK_MODE"))
+    has_upgrade_suite = any(
+        suite.action is SuiteAction.UPGRADE for suite in flow.suites
+    )
 
     if (upgrade_from is None) != (upgrade_to is None):
         raise JobFlowError(
             "--upgrade-from and --upgrade-to must be specified together"
         )
 
-    if upgrade_from is not None and not upgrade:
+    if (upgrade_from is not None) and not has_upgrade_suite:
         raise JobFlowError(
-            "--upgrade-from and --upgrade-to require --upgrade"
+            "--upgrade-from and --upgrade-to require a suite with upgrade action specified"
+        )
+
+    unknown_variables = set(variables) - set(flow.variables)
+    if unknown_variables:
+        raise JobFlowError(
+            f"Flow {flow.name!r} does not declare variables: "
+            + ", ".join(sorted(unknown_variables))
         )
 
     if not mock_mode and worker_class is None:
@@ -412,7 +419,7 @@ def run_jobs(
                     verify_updates=False,
                 )
             else:
-                build = _resolve_build_under_test(casedir, upgrade)
+                build = _resolve_build_under_test(casedir, has_upgrade_suite)
                 sysext_image = lib.worker.sysext.build_sysext(
                     casedir,
                     manifest=manifest,
@@ -421,11 +428,13 @@ def run_jobs(
             _run_resolved_jobs(
                 casedir=casedir,
                 manifest=manifest,
+                flow=flow,
+                variables=variables,
+                flavor_suffix=flavor_suffix,
+                upgrade=has_upgrade_suite,
                 build=build,
                 sysext_image=sysext_image,
                 worker_class=worker_class,
-                upgrade=upgrade,
-                encrypt=encrypt,
                 upgrade_from=upgrade_from,
             )
     except LocalUpdateError as error:
@@ -436,11 +445,13 @@ def _run_resolved_jobs(
     *,
     casedir: Path,
     manifest: Manifest,
+    flow: Flow,
+    variables: dict[str, str],
+    upgrade: bool,
+    flavor_suffix: str,
     build: BuildUnderTest,
     sysext_image: Path,
     worker_class: str | None,
-    upgrade: bool,
-    encrypt: bool,
     upgrade_from: Path | None,
 ) -> None:
     install_image = _resolve_install_image(
@@ -451,12 +462,9 @@ def _run_resolved_jobs(
     )
     disk = Path(f"{build.output}.qcow2")
 
-    live_flavor, installed_flavor = _flavors(
-        upgrade,
-        encrypt,
-    )
+    live_flavor, installed_flavor = _flavors(upgrade, flavor_suffix)
 
-    flow = JobFlow(
+    runner = JobFlow(
         client=OpenQA_Client(
             server=os.environ["OPENQA_HOST_ADDR"],
             scheme=os.environ.get("OPENQA_SCHEME", "https"),
@@ -470,52 +478,37 @@ def _run_resolved_jobs(
     # A successful job continues normally, while a non-fatal test failure is
     # recorded and the remaining jobs continue. Everything else is a fatal
     # failure, so fail fast.
-    flow.run_job(
-        lib.worker.job.JobConfig(
-            name="install-system",
-            variant=os.environ.get("VARIANT"),
-            flavor=live_flavor,
-            live=install_image,
-            hdd=disk,
-            sysext=sysext_image,
-            build=build.build,
-            casedir=casedir,
-            distri=manifest.distri,
-            encrypt=encrypt,
-        )
-    )
+    for suite in flow.suites:
+        live: Path | None = None
+        job_upgrade = False
+        flavor = installed_flavor
 
-    if upgrade:
-        flow.run_job(
+        match suite.action:
+            case SuiteAction.INSTALL:
+                live = install_image
+                flavor = live_flavor
+            case SuiteAction.UPGRADE:
+                job_upgrade = True
+            case SuiteAction.TEST:
+                pass
+
+        runner.run_job(
             lib.worker.job.JobConfig(
-                name="upgrade-system",
-                variant=os.environ.get("VARIANT"),
-                flavor=installed_flavor,
+                name=suite.name,
+                live=live,
+                upgrade=job_upgrade,
+                flavor=flavor,
                 hdd=disk,
                 sysext=sysext_image,
                 build=build.build,
+                variant=os.environ.get("VARIANT"),
                 casedir=casedir,
                 distri=manifest.distri,
-                upgrade=True,
-                encrypt=encrypt,
+                variables=variables,
             )
         )
 
-    flow.run_job(
-        lib.worker.job.JobConfig(
-            name="sanity-test",
-            variant=os.environ.get("VARIANT"),
-            flavor=installed_flavor,
-            hdd=disk,
-            sysext=sysext_image,
-            build=build.build,
-            casedir=casedir,
-            distri=manifest.distri,
-            encrypt=encrypt,
-        )
-    )
-
-    if flow.tests_failed:
+    if runner.tests_failed:
         raise JobFlowError(
             "one or more jobs had failing tests"
         )
