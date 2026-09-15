@@ -84,37 +84,31 @@ openQA workflows.
 - Manual partitioning - add a Calamares installation flow and verify the resulting disk layout
 - Ensure a new build can upgrade to an even newer one - see https://invent.kde.org/kde-linux/os-autoinst-distri-kdelinux/-/work_items/11. This is going to be weird to implement.
 
-### End-to-end test flows
-
-Two flows are run against each build:
-
-The standard flow, which verifies the current build installs and runs correctly:
-```
-install-system -> sanity-test
-```
-
-The upgrade flow, verifies the current build can be upgraded to from the previous build:
-```
-install-system (previous build) -> upgrade-system -> sanity-test
-```
-
-Both of these flows are also offered in encrypted install variant too.
-
 ### Test layout
 
 All tests live under `tests/`. `tests/tests.toml` declares the tests,
-the distri name, and the test suites, grouped into `install-system`, `upgrade-system`,
-and `sanity-test` suites. The Python job flow - for the moment - selects the suite by job name.
+the distri name, test suites and test flows, 
 
-Every `qa` command that works with tests accepts `--manifest-path <path>`. This
-defaults to `./tests/tests.toml`. Test paths in
-`tests.toml` are relative to the directory containing `<path>`.
+Every `qa` command that works with tests accepts `--manifest-path <path>`, 
+`--var <key>=<value>` and `--flavor-suffix=<value>`.
+The manifest path defaults to `./tests/tests.toml`. Test paths in
+`tests.toml` are relative to the directory containing `<path>`. 
+Variables passed into `--var` are set as openQA test settings. For KDE Linux,
+`FDE_INSTALL=1` is set through this mechanism. `--flavor-suffix` appends a
+string to the end of the flavor value in the openQA webUI, and is used to
+differentiate encryption runs.
+
+#### Test suites
+
+For KDE Linux, suites are grouped into `install-system`, `upgrade-system`,
+and `sanity-test` suites.
 
 ```toml
 name = "KDE Linux"
 distri = "KDE-Linux"
 
 [suites.example]
+action = "install"
 tests = [
     { path = "common/bootup.py", type = "openqa" },
     { path = "common/basic_test.py", type = "python" },
@@ -127,6 +121,19 @@ SUT, with and without the Selenium runner respectively. Tests run in the
 order that they are listed in, including repeats. `enabled = false` keeps a
 test declared despite stopping it from being included in the schedule.
 
+`action` describes disk interaction. Three options are accepted - `install`, 
+`upgrade`, and `test`.
+
+- `install`
+  Boots the selected live image, sets the live-install flavor, and creates the installed HDD. Usually the first suite in an
+  install flow.
+
+- `upgrade`
+  Boots from the already-installed HDD and sets DO_UPGRADE as an openQA test setting. It upgrades that installation using the selected update source.
+
+- `test`
+  Boots the existing installed HDD without installation or upgrade flags. This is for post-install or post-upgrade validation.
+
 Before each job, the worker creates a temporary CASEDIR containing only the
 selected tests - the original openQA tests and generated `CliTest`
 wrappers that call SUT tests. It generates a minimal `main.pm` that calls
@@ -135,6 +142,33 @@ artifacts previously declared for each SUT test. An explicit `override` path
 can be used to select a custom wrapper instead,
 with these also living under `tests/` beside their SUT script.
 All paths in `tests.toml` are relative to `tests/`.
+
+#### Test flows
+
+Suites are run in the order defined in a test flow. For KDE Linux, flows are
+grouped into `install` and `upgrade` flows.
+
+The `install` flow, which verifies the current build installs and runs correctly:
+```
+install-system -> sanity-test
+```
+
+The `upgrade` flow, verifies the current build can be upgraded to from the previous build:
+```
+install-system (previous build) -> upgrade-system -> sanity-test
+```
+
+Both flows are run under each build. Flows are defined as per the below example:
+
+```toml
+[flows.install]
+suites = ["install-system", "sanity-test"]
+variables = ["FDE_INSTALL"]
+
+[flows.upgrade]
+suites = ["install-system", "upgrade-system", "sanity-test"]
+variables = ["FDE_INSTALL"]
+```
 
 ### Running tests locally
 
@@ -159,12 +193,14 @@ Spins up a local OpenQA webui and worker together.
 4. Open a shell in the container and submit jobs:
    ```bash
    podman exec -it openqa-single-instance bash
-   ./qa flow                     # add --upgrade for the upgrade flow, add --encrypt to test with full-disk-encryption
+   ./qa flow install
+   # For an encrypted install, add:
+   #   --var FDE_INSTALL=1 --flavor-suffix=-encrypted
    ```
    To test an upgrade from a local ISO to a local build, pass the base ISO and
    the mounted `mkosi.output` directory:
    ```bash
-   ./qa flow --upgrade \
+   ./qa flow upgrade \
      --upgrade-from /casedir/kde-linux_202608010001.iso \
      --upgrade-to /kde-linux-output
    ```

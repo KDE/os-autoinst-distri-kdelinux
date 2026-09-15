@@ -72,12 +72,12 @@ class JobConfig:
     casedir: Path
     # Defined in the manifest file, tests.toml
     distri: str
+    variables: dict[str, str]
     live: Path | None = None
     group: str | None = None
     after: int | None = None
     worker_class: str | None = None
     upgrade: bool = False
-    encrypt: bool = False
 
     def __post_init__(self) -> None:
         if self.live is not None and self.upgrade:
@@ -341,9 +341,6 @@ class Job:
         if config.upgrade:
             settings["DO_UPGRADE"] = "1"
 
-        if config.encrypt:
-            settings["FDE_INSTALL"] = "1"
-
         if config.after is not None:
             settings["_START_AFTER_JOBS"] = str(config.after)
 
@@ -358,6 +355,9 @@ class Job:
         if os.environ.get("CI") and os.environ.get("UPSTREAM_CI_PIPELINE_URL"):
             # Set the upstream pipeline URL in CI for reference in the test's settings tab
             settings["CI_PIPELINE_URL"] = os.environ["UPSTREAM_CI_PIPELINE_URL"]
+
+        # Merge settings with supplied config variables
+        settings |= config.variables
 
         return settings
 

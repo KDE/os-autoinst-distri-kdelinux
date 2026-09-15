@@ -5,6 +5,7 @@ name = "KDE Linux"
 distri = "KDE-Linux"
 
 [suites.install-system]
+action = "install"
 tests = [
     { path = "common/bootup.py", type = "openqa" },
     { path = "common/basic_test.py", type = "python" },
@@ -24,6 +25,7 @@ tests = [
 ]
 
 [suites.upgrade-system]
+action = "upgrade"
 tests = [
     { path = "common/bootup.py", type = "openqa" },
     { path = "common/basic_test.py", type = "python" },
@@ -43,6 +45,7 @@ tests = [
 ]
 
 [suites.sanity-test]
+action = "test"
 tests = [
     { path = "common/bootup.py", type = "openqa" },
     { path = "common/basic_test.py", type = "python" },
@@ -71,3 +74,11 @@ tests = [
     { path = "kdelinux/system/collect_logs.py", type = "selenium", override = "kdelinux/system/collect_logs.openqa.py" },
     { path = "common/shutdown.py", type = "openqa" },
 ]
+
+[flows.install]
+suites = ["install-system", "sanity-test"]
+variables = ["FDE_INSTALL"]
+
+[flows.upgrade]
+suites = ["install-system", "upgrade-system", "sanity-test"]
+variables = ["FDE_INSTALL"]

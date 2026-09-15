@@ -4,6 +4,7 @@
 
 import argparse
 import os
+from collections.abc import Sequence
 from pathlib import Path
 
 from openqa_client.client import OpenQA_Client
@@ -12,7 +13,7 @@ from lib.common.log import get_logger
 from lib.worker import bootstrap, job, job_flow, sysext, system_packages
 from lib.worker.job_flow import JobFlowError
 from lib.worker.test_layout import staged_casedir
-from lib.worker.test_manifest import Manifest
+from lib.worker.test_manifest import Flow, Manifest
 
 log = get_logger(__name__)
 
@@ -28,10 +29,10 @@ def _parser() -> argparse.ArgumentParser:
 
     command_parser = commands.add_parser("job")
     _add_manifest_path(command_parser)
+    _add_variables_argument(command_parser)
     job_mode = command_parser.add_mutually_exclusive_group()
     job_mode.add_argument("--live", type=Path, metavar="PATH")
     job_mode.add_argument("--upgrade", action="store_true")
-    command_parser.add_argument("--encrypt", action="store_true")
     command_parser.add_argument("--hdd", type=Path, required=True)
     command_parser.add_argument("--sysext", type=Path, required=True)
     command_parser.add_argument("--build", required=True)
@@ -43,9 +44,10 @@ def _parser() -> argparse.ArgumentParser:
 
     for command in ("worker", "flow"):
         command_parser = commands.add_parser(command)
+        command_parser.add_argument("flow")
         _add_manifest_path(command_parser)
-        command_parser.add_argument("--upgrade", action="store_true")
-        command_parser.add_argument("--encrypt", action="store_true")
+        _add_variables_argument(command_parser)
+        _add_flavor_suffix_argument(command_parser)
         command_parser.add_argument(
             "--upgrade-from",
             type=Path,
@@ -69,6 +71,25 @@ def _add_manifest_path(parser: argparse.ArgumentParser) -> None:
         default=Path.cwd() / "tests" / "tests.toml",
         metavar="PATH",
         help="path to tests.toml; test sources are relative to its directory",
+    )
+
+
+def _add_variables_argument(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--var",
+        action="append",
+        default=[],
+        metavar="NAME=VALUE",
+        help="set a variable declared by the selected flow, multiple can be supplied",
+    )
+
+
+def _add_flavor_suffix_argument(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--flavor-suffix",
+        default="",
+        metavar="SUFFIX",
+        help="append this suffix to every job flavor in the selected flow",
     )
 
 
@@ -109,17 +130,67 @@ def _log_artifact_url() -> None:
     )
 
 
+def _parse_vars(
+    parser: argparse.ArgumentParser,
+    arguments: Sequence[str],
+) -> dict[str, str]:
+    variables: dict[str, str] = {}
+
+    for argument in arguments:
+        name, separator, value = argument.partition("=")
+        if not separator or not name:
+            parser.error(f"Expected NAME=VALUE for --var, got {argument!r}")
+
+        variables[name] = value
+
+    return variables
+
+
+def _run_worker(
+    *,
+    casedir: Path,
+    manifest: Manifest,
+    flow: Flow,
+    upgrade_from: Path | None,
+    upgrade_to: Path | None,
+    variables: dict[str, str],
+    flavor_suffix: str,
+) -> None:
+    """Start a local worker and submit the selected manifest flow."""
+    system_packages.install()
+
+    # The single-instance mock already starts its own worker.
+    if os.environ.get("MOCK_MODE"):
+        return
+
+    worker = bootstrap.start_worker()
+    try:
+        job_flow.run_jobs(
+            casedir=casedir,
+            manifest=manifest,
+            flow=flow,
+            worker_class=bootstrap.get_worker_class(),
+            upgrade_from=upgrade_from,
+            upgrade_to=upgrade_to,
+            variables=variables,
+            flavor_suffix=flavor_suffix,
+        )
+    finally:
+        worker.terminate()
+        worker.wait()
+        _log_artifact_url()
+
+
 def main() -> None:
     parser = _parser()
     args = parser.parse_args()
 
-    if hasattr(args, "upgrade_from"):
-        if (args.upgrade_from is None) != (args.upgrade_to is None):
-            parser.error(
-                "--upgrade-from and --upgrade-to must be specified together"
-            )
-        if args.upgrade_from is not None and not args.upgrade:
-            parser.error("--upgrade-from and --upgrade-to require --upgrade")
+    if args.command in {"worker", "flow"} and (
+        (args.upgrade_from is None) != (args.upgrade_to is None)
+    ):
+        parser.error(
+            "--upgrade-from and --upgrade-to must be specified together"
+        )
 
     _load_environment()
 
@@ -139,10 +210,11 @@ def main() -> None:
         job_flow.run_jobs(
             casedir=casedir,
             manifest=manifest,
-            upgrade=args.upgrade,
-            encrypt=args.encrypt,
+            flow=manifest.flow(args.flow),
             upgrade_from=args.upgrade_from,
             upgrade_to=args.upgrade_to,
+            variables=_parse_vars(parser, args.var),
+            flavor_suffix=args.flavor_suffix,
         )
         return
 
@@ -155,7 +227,6 @@ def main() -> None:
             job_config = job.JobConfig(
                 live=args.live,
                 upgrade=args.upgrade,
-                encrypt=args.encrypt,
                 hdd=args.hdd,
                 sysext=args.sysext,
                 build=args.build,
@@ -166,6 +237,7 @@ def main() -> None:
                 distri=manifest.distri,
                 group=args.group,
                 after=args.after,
+                variables=_parse_vars(parser, args.var),
             )
 
             running_job = job.Job(
@@ -189,27 +261,19 @@ def main() -> None:
 
         return
 
-    system_packages.install()
-
-    # The single-instance mock already starts its own worker.
-    if os.environ.get("MOCK_MODE"):
-        return
-
-    worker = bootstrap.start_worker()
-    try:
-        job_flow.run_jobs(
+    if args.command == "worker":
+        _run_worker(
             casedir=casedir,
             manifest=manifest,
-            worker_class=bootstrap.get_worker_class(),
-            upgrade=args.upgrade,
-            encrypt=args.encrypt,
+            flow=manifest.flow(args.flow),
             upgrade_from=args.upgrade_from,
             upgrade_to=args.upgrade_to,
+            variables=_parse_vars(parser, args.var),
+            flavor_suffix=args.flavor_suffix,
         )
-    finally:
-        worker.terminate()
-        worker.wait()
-        _log_artifact_url()
+        return
+
+    raise AssertionError(f"Unhandled command {args.command!r}")
 
 
 if __name__ == "__main__":

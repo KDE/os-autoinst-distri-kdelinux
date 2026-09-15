@@ -37,15 +37,30 @@ class Test:
     def source(self) -> Path:
         return Path("tests") / self.path
 
+
 @dataclass(frozen=True)
 class Suite:
     name: str
+    action: SuiteAction
     # Can't use a dict here, test order and repeats are meaningful.
     tests: tuple[Test, ...]
 
     @property
     def enabled_tests(self) -> tuple[Test, ...]:
         return tuple(test for test in self.tests if test.enabled)
+
+
+class SuiteAction(StrEnum):
+    INSTALL = "install"
+    UPGRADE = "upgrade"
+    TEST = "test"
+
+
+@dataclass(frozen=True)
+class Flow:
+    name: str
+    suites: list[Suite]
+    variables: list[str]
 
 
 @dataclass(frozen=True)
@@ -57,6 +72,7 @@ class Manifest:
     name: str
     distri: str
     suites: Mapping[str, Suite]
+    flows: Mapping[str, Flow]
 
     @classmethod  # factory method
     def load(cls, manifest_path: Path) -> Manifest:
@@ -66,14 +82,18 @@ class Manifest:
         manifest_path = manifest_path.expanduser().resolve()
         data = tomllib.loads(manifest_path.read_text())
         raw_suites = data.get("suites")
+        raw_flows = data.get("flows")
 
         # Global state - this is the name of the OS being tested
         # and the contents of the DISTRI test variable.
-        name = _manifest_string(data, "name", manifest_path)
-        distri = _manifest_string(data, "distri", manifest_path)
+        name = _validate_string(data, "name", f"Manifest {manifest_path}")
+        distri = _validate_string(data, "distri", f"Manifest {manifest_path}")
 
         if not isinstance(raw_suites, dict):
             raise TypeError(f"Manifest {manifest_path} must define suites")
+
+        if not isinstance(raw_flows, dict):
+            raise TypeError(f"Manifest {manifest_path} must define flows")
 
         # Validate suites, then load.
         suites: dict[str, Suite] = {}
@@ -88,11 +108,26 @@ class Manifest:
                 settings,
             )
 
+        # Validate flows, then load.
+        flows: dict[str, Flow] = {}
+        for flow_name, settings in raw_flows.items():
+            if not isinstance(flow_name, str):
+                raise TypeError("Flow names must be strings")
+            if not isinstance(settings, dict):
+                raise TypeError(f"Flow {flow_name!r} must be a table")
+            flows[flow_name] = _load_flow(
+                manifest_path.parent,
+                flow_name,
+                settings,
+                suites
+            )
+
         return cls(
             manifest_path=manifest_path,
             name=name,
             distri=distri,
             suites=MappingProxyType(suites),  # read-only view over a dict
+            flows=MappingProxyType(flows),
         )
 
     @property
@@ -106,14 +141,20 @@ class Manifest:
         except KeyError as error:
             raise ValueError(f"Unknown test suite {name!r}") from error
 
+    def flow(self, name: str) -> Flow:
+        try:
+            return self.flows[name]
+        except KeyError as error:
+            raise ValueError(f"Unknown flow {name!r}") from error
+
     def all_tests(self) -> tuple[Test, ...]:
         return tuple(test for suite in self.suites.values() for test in suite.tests)
 
 
-def _manifest_string(
+def _validate_string(
     data: dict[str, object],
     key: str,
-    manifest_path: Path,
+    prefix: str
 ) -> str:
     """
     Return a field from a parsed manifest after validating.
@@ -121,10 +162,46 @@ def _manifest_string(
     value = data.get(key)
 
     if not isinstance(value, str):
-        raise TypeError(f"Manifest {manifest_path} requires string {key!r}")
+        raise TypeError(f"{prefix} requires string {key!r}")
     if not value:
-        raise ValueError(f"Manifest {manifest_path} requires non-empty {key!r}")
+        raise ValueError(f"{prefix} requires non-empty {key!r}")
     return value
+
+
+def _load_flow(
+    source_dir: Path,
+    name: str,
+    settings: dict[str, object],
+    suites: dict[str, Suite],
+) -> Flow:
+    """
+    Parse a validated flow table into a typed Flow object.
+    """
+    raw_suites = settings.get("suites")
+    variables = settings.get("variables", [])  # this is optional
+
+    if not isinstance(raw_suites, list):
+        raise TypeError(f"Flow {name!r} must define a suites array")
+
+    if not isinstance(variables, list) or not all(
+        isinstance(variable, str) for variable in variables
+    ):
+        raise TypeError(f"Flow {name!r} variables must be an array of strings")
+
+    # Validate suite references, explode if one doesn't exist.
+    resolved_suites: list[Suite] = []
+    for suite_name in raw_suites:
+        if not isinstance(suite_name, str):
+            raise TypeError(f"Flow {name!r} suite names must be strings")
+
+        if suite_name not in suites:
+            raise ValueError(
+                f"Flow {name!r} references unknown suite {suite_name!r}"
+            )
+
+        resolved_suites.append(suites[suite_name])
+
+    return Flow(name=name, suites=resolved_suites, variables=variables)
 
 
 def _load_suite(
@@ -135,12 +212,15 @@ def _load_suite(
     """
     Parse a validated suite table into a typed Suite object.
     """
+
+    action = _validate_string(settings, "action", f"Suite {name!r}")
+
     raw_tests = settings.get("tests")
     if not isinstance(raw_tests, list):
         raise TypeError(f"Suite {name!r} must define a tests array")
 
     tests = tuple(_load_test(source_dir, raw_test) for raw_test in raw_tests)
-    return Suite(name=name, tests=tests)
+    return Suite(name=name, action=SuiteAction(action), tests=tests)
 
 
 def _load_test(source_dir: Path, raw_settings: object) -> Test:

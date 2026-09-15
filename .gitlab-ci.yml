@@ -27,6 +27,7 @@ reuse:
     - amd64
   variables:
     OPENQA_HOST_ADDR: openqa.kde-linux.haraldsitter.eu
+    WORKER_FLOW: install
     WORKER_ARGS: ""
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger"
@@ -38,7 +39,7 @@ reuse:
   before_script:
     - |
       if [ "${ENCRYPTION:-plain}" = encrypted ]; then
-        WORKER_ARGS="${WORKER_ARGS:+$WORKER_ARGS }--encrypt"
+        WORKER_ARGS="${WORKER_ARGS:+$WORKER_ARGS }--var FDE_INSTALL=1 --flavor-suffix=-encrypted"
       fi
   script:
     - rm -rf "$CI_PROJECT_DIR/gitlab-artifacts"
@@ -62,7 +63,7 @@ reuse:
       --env CHANNEL_URL
       --env VARIANT
       registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
-      ./setup.sh ./qa worker $WORKER_ARGS
+      ./setup.sh ./qa worker "$WORKER_FLOW" $WORKER_ARGS
 
   artifacts:
     when: always
@@ -83,7 +84,7 @@ test-upgrade:
   extends: .test-base
   stage: test-upgrade
   variables:
-    WORKER_ARGS: --upgrade
+    WORKER_FLOW: upgrade
   parallel:
     matrix:
       - ENCRYPTION: [plain, encrypted]
