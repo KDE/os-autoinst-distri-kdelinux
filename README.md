@@ -33,6 +33,7 @@ openQA workflows.
 | `kdelinux/desktop/plasma_setup` | Completes the Plasma initial setup wizard |
 | `kdelinux/sddm/sddm_password_login` | Types password at SDDM, checks desktop or welcome screen loads |
 | `kdelinux/desktop/plasma_welcome` | Runs through the Plasma Welcome screen via Selenium |
+| `kdelinux/system/flatpak_preinstaller` | Checks that the Flatpak preinstaller ran correctly |
 | `kdelinux/system_settings/configure_automatic_login` | Configures automatic login via System Settings using Selenium |
 | `common/shutdown` | Executes `systemctl poweroff` and waits for shutdown |
 
@@ -43,6 +44,7 @@ openQA workflows.
 | `common/bootup` | Powers on; checks Plymouth and desktop panel (kickoff icon) load |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
 | `common/network` | Checks that networking works; a non-loopback link is up with a routable IP and a default route, DNS resolves, and HTTPS to the internet works  |
+| `kdelinux/system/flatpak_preinstaller` | Checks that the Flatpak preinstaller ran correctly |
 | `kdelinux/system_settings/default_applications` | Verifies the set default applications, through mimetype and system settings. |
 | `kdelinux/desktop/panel` | Checks if apps can be launched from Kickoff search, Kickoff favorites, and the task manager. Checks if the correct apps are pinned to task manager. Ensures that the system tray works and displays entries. |
 | `kdelinux/desktop/task_switcher` | Checks that Alt+Tab task switcher moves focus between windows. The switcher is not on the a11y bus and is a part of KWin, so check the active state of KDialog windows. |
@@ -74,6 +76,7 @@ openQA workflows.
 | `common/reboot` | Executes `systemctl reboot` |
 | `common/bootup` | Checks new build boots correctly after upgrade |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `kdelinux/system/flatpak_preinstaller` | Checks that the Flatpak preinstaller ran correctly |
 | `common/shutdown` | Issues `systemctl poweroff` and waits for shutdown |
 
 ### TODO
