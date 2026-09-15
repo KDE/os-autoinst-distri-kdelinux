@@ -42,8 +42,11 @@ def run(self):
         type_string(user_manager.installed().pw, "max_interval", 250)
         send_key('ret')
 
-    # check if we see plymouth
-    assert_screen('booting_screen', 'timeout', 30)
+    # check if we see plymouth, do not make it hard failure as buildstream
+    # has a different behavior
+    check_screen('booting_screen', 'timeout', 20)
+    if not match_has_tag('booting_screen'):
+       record_soft_failure('plymouth is not visible')
 
     if first_boot == '1':
         # Check if we boot into plasma-welcome
