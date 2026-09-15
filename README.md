@@ -138,10 +138,15 @@ All paths in `tests.toml` are relative to `tests/`.
 
 ### Running tests locally
 
-To rebuild the sysext without restarting the worker, run:
+To rebuild the sysext without restarting the worker, enter the worker container (make sure you've sourced the venv beforehand):
 
 ```
-podman exec -it openqa-single-instance bash
+./qa enter-mock
+```
+
+Then run:
+
+```
 ./qa build-sysext
 ```
 
@@ -150,15 +155,15 @@ podman exec -it openqa-single-instance bash
 Spins up a local OpenQA webui and worker together.
 
 1. Place a KDE Linux `.iso` image in the repo root (the worker finds it automatically). Otherwise, it will try to download the latest one.
-2. Start the stack. To test upgrading between local builds, mount a mkosi.output directory too:
+2. Start the stack (make sure you've sourced the venv beforehand). To test upgrading between local builds, mount a mkosi.output directory too:
    ```bash
-   KDE_LINUX_OUTPUT=~/Projects/kde-linux/mkosi.output ./mock.sh up
+   KDE_LINUX_OUTPUT=~/Projects/kde-linux/mkosi.output ./qa mock up
    ```
 3. The web UI is available at http://localhost:1080 once the container is ready. The container sets
    up the worker and test assets but does not submit jobs automatically. You must do this yourself.
 4. Open a shell in the container and submit jobs:
    ```bash
-   podman exec -it openqa-single-instance bash
+   ./qa enter-mock
    ./qa flow                     # add --upgrade for the upgrade flow, add --encrypt to test with full-disk-encryption
    ```
    To test an upgrade from a local ISO to a local build, pass the base ISO and
@@ -175,10 +180,10 @@ Spins up a local OpenQA webui and worker together.
    `sanity-test` needs `install-system` to have run first, because it installs the system to a virtual disk.
 5. Tear down when done (this cleans up volumes):
    ```bash
-   ./mock.sh down -v
+   ./qa mock down -v
    ```
 
-`mock.sh` passes any additional arguments to `podman-compose`, so `./mock.sh up -d` etc. all work.
+`./qa mock` passes any additional arguments to `podman-compose`, so `./qa mock up -d` etc. all work.
 
 #### SSH into the SUT
 

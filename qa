@@ -4,6 +4,7 @@
 
 import argparse
 import os
+import subprocess
 from pathlib import Path
 
 from openqa_client.client import OpenQA_Client
@@ -15,6 +16,7 @@ from lib.worker.test_layout import staged_casedir
 from lib.worker.test_manifest import Manifest
 
 log = get_logger(__name__)
+_MOCK_SCRIPT = Path(__file__).resolve().parent / "mocks" / "mock.sh"
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -22,6 +24,13 @@ def _parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
 
     commands.add_parser("clean-pool")
+    command_parser = commands.add_parser("mock")
+    command_parser.add_argument(
+        "options",
+        nargs=argparse.REMAINDER,
+        help="arguments passed to mocks/mock.sh",
+    )
+    commands.add_parser("enter-mock")
 
     command_parser = commands.add_parser("build-sysext")
     _add_manifest_path(command_parser)
@@ -109,6 +118,17 @@ def _log_artifact_url() -> None:
     )
 
 
+def _mock(options: list[str]) -> None:
+    subprocess.run([_MOCK_SCRIPT, *options], check=True)
+
+
+def _enter_mock() -> None:
+    subprocess.run(
+        ["podman", "exec", "-it", "openqa-single-instance", "bash"],
+        check=True,
+    )
+
+
 def main() -> None:
     parser = _parser()
     args = parser.parse_args()
@@ -125,6 +145,14 @@ def main() -> None:
 
     if args.command == "clean-pool":
         job.clean_pool()
+        return
+
+    if args.command == "mock":
+        _mock(args.options)
+        return
+
+    if args.command == "enter-mock":
+        _enter_mock()
         return
 
     # Load and parse the manifest once, here, and dependency-inject throughout.

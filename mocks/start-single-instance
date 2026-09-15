@@ -120,7 +120,7 @@ def main() -> None:
     _cancel_scheduled_jobs()
 
     # Don't auto submit jobs in the mock. Let the user choose what jobs to run.
-    log.message("Open a shell in the container to run jobs: podman exec -it openqa-single-instance bash")
+    log.message("Open a shell in the container to run jobs: ./qa enter-mock")
     log.message("Refer to README.md for instructions.")
     signal.pause()
 
