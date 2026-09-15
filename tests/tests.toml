@@ -16,7 +16,8 @@ tests = [
     { path = "kdelinux/sddm/sddm_password_login.py", type = "openqa" },
     { path = "kdelinux/desktop/plasma_welcome.py", type = "selenium", user = "installed", timeout = 300 },
     { path = "common/system_settings/disable_screen_lock.py", type = "openqa", enabled = false },
-    { path = "kdelinux/system_settings/configure_automatic_login.py", type = "selenium", user = "installed", fatal = true },
+    # Make autologin happen only in sanity test
+    { path = "kdelinux/system_settings/configure_automatic_login.py", type = "selenium", user = "installed", fatal = true, enabled = false },
     { path = "kdelinux/desktop/secret_service_persistence_set.py", type = "python", user = "installed" },
     { path = "kdelinux/desktop/secret_service_persistence_get.py", type = "selenium", user = "installed" },
     { path = "kdelinux/system/collect_logs.py", type = "selenium", override = "kdelinux/system/collect_logs.openqa.py" },
@@ -26,16 +27,19 @@ tests = [
 [suites.upgrade-system]
 tests = [
     { path = "common/bootup.py", type = "openqa" },
+    { path = "kdelinux/sddm/sddm_password_login.py", type = "openqa" },
     { path = "common/basic_test.py", type = "python" },
     { path = "common/network.py", type = "python", fatal = true },
     { path = "kdelinux/app/discover_upgrade.py", type = "selenium", user = "installed", timeout = 1200, fatal = true },
     { path = "common/reboot.py", type = "openqa" },
     # Check the upgraded build, then reboot into the old build.
     { path = "common/bootup.py", type = "openqa" },
+    { path = "kdelinux/sddm/sddm_password_login.py", type = "openqa" },
     { path = "common/basic_test.py", type = "python" },
     { path = "kdelinux/system/verify_upgrade.py", type = "openqa" },
     { path = "common/reboot.py", type = "openqa" },
     { path = "common/bootup.py", type = "openqa" },
+    { path = "kdelinux/sddm/sddm_password_login.py", type = "openqa" },
     { path = "common/basic_test.py", type = "python" },
     { path = "kdelinux/system/verify_upgrade.py", type = "openqa" },
     { path = "kdelinux/system/collect_logs.py", type = "selenium", override = "kdelinux/system/collect_logs.openqa.py" },
@@ -45,6 +49,7 @@ tests = [
 [suites.sanity-test]
 tests = [
     { path = "common/bootup.py", type = "openqa" },
+    { path = "kdelinux/sddm/sddm_password_login.py", type = "openqa" },
     { path = "common/basic_test.py", type = "python" },
     { path = "common/network.py", type = "python", fatal = true },
     { path = "kdelinux/system_settings/default_applications.py", type = "selenium", user = "installed" },

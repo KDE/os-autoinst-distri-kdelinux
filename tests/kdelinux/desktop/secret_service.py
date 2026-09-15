@@ -68,17 +68,8 @@ class SecretServiceTests(unittest.TestCase):
 
     def test_2_keepsecret(self):
         """Check that the secret service is functional through KeepSecret."""
-        # Unlock the wallet.
-        wait = WebDriverWait(self.driver, 10)
-        wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Unlock"))
-        ).click()
-
-        # Type the user's password. The prompt is a separate dialog, so just paste without an element.
-        self._set_text(user_manager.installed().pw)
-        ActionChains(self.driver).send_keys(Keys.RETURN).perform()
-
         # Open the new entry dialog.
+        wait = WebDriverWait(self.driver, 10)
         wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "New Entry"))
         ).click()

@@ -48,6 +48,9 @@ def run(self):
     if first_boot == '1':
         # Check if we boot into plasma-welcome
         assert_screen('plasma_welcome', 'timeout', 60)
-    else:
-        # wait for kick-off icon on panel to show up
+    elif do_install == '1':
+        # check if we boot to live desktop
         assert_screen('kickoff_icon_on_panel', 'timeout', 60)
+    else:
+        # check whether booted into login screen
+        assert_screen('sddm_password_input', 'timeout', 60)
