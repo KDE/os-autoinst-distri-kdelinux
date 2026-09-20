@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
+# SPDX-FileCopyrightText: 2026 Philip Grant <pg_kde_invent@runbox.com>
+
+import subprocess
+import sys
+from pathlib import Path
+
+_MOCK_SCRIPT = Path(__file__).resolve().parent / "mocks" / "mock.sh"
+
+
+def _mock(options: list[str]) -> None:
+    subprocess.run([_MOCK_SCRIPT, *options], check=True)
+
+
+def _enter_mock() -> None:
+    subprocess.run(
+        ["podman", "exec", "-it", "openqa-single-instance", "bash"],
+        check=True,
+    )
+
+
+def main() -> None:
+    if len(sys.argv) > 1 and sys.argv[1] == "enter":
+        _enter_mock()
+    else:
+        _mock(sys.argv[1:])
+
+
+if __name__ == "__main__":
+    main()
