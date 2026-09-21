@@ -81,7 +81,11 @@ class DefaultApplicationsTests(unittest.TestCase):
         """Checks if the listed defaults in System Settings match the xdg-mime test."""
         # Go to the Default Applications page
         wait = WebDriverWait(self.driver, 5)
-        self.driver.find_element(AppiumBy.NAME, "Search").send_keys("Default Applications")
+        search = self.driver.find_element(
+            AppiumBy.XPATH,
+            '//text[@name="Search" and contains(@states, "enabled")'
+            ' and contains(@states, "focused") and contains(@states, "editable")]')
+        search.send_keys("Default applications")
         ActionChains(self.driver).send_keys(Keys.DOWN).perform()
         ActionChains(self.driver).send_keys(Keys.DOWN).perform()
         self.driver.find_element(AppiumBy.XPATH,
