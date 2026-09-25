@@ -70,11 +70,13 @@ create the venv.
 |---|---|
 | `common/bootup` | Powers on previous build; checks Plymouth and panel load |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `kdelinux/system/etc_factory_preupgrade` | Simulates user actions on files in `/etc`, to prepare for `etc_factory_postupgrade` |
 | `common/network` | Checks that networking works; a non-loopback link is up with a routable IP and a default route, DNS resolves, and HTTPS to the internet works, fatal |
 | `kdelinux/app/discover_upgrade` | Upgrades the system via Discover, fatal |
 | `common/reboot` | Executes `systemctl reboot` |
 | `common/bootup` | Checks new build boots correctly after upgrade |
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
+| `kdelinux/system/etc_factory_postupgrade` | Checks that etc-factory does not override user changes to files in `/etc` |
 | `common/shutdown` | Issues `systemctl poweroff` and waits for shutdown |
 
 ### TODO
