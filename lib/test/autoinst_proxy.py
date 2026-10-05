@@ -34,6 +34,7 @@ class AutoinstProxy:
             "check_screen": check_screen,
             "record_info": record_info,
             "record_soft_failure": record_soft_failure,
+            "send_key": send_key,
             "wait_screen_change": wait_screen_change,
             "wait_still_screen": wait_still_screen,
         }

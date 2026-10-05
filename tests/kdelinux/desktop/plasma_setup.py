@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
+import array
+import os
+import subprocess
 import unittest
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
@@ -9,6 +12,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from lib.sut import openqa_junit_xml
+from lib.sut.openqa_autoinst import OpenQAAutoinst
 from lib.sut.atspi import find_pid_on_atspi_bus
 from lib.common import user_manager
 
@@ -28,7 +32,6 @@ class PlasmaSetupTests(unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         self.driver.quit()
-
 
     def _next_page(self, current_page_title, next_page_title):
         # Ensure we reliably start from the page we expect.
@@ -54,8 +57,43 @@ class PlasmaSetupTests(unittest.TestCase):
 
         self.wait.until(reached_next_page)
 
+    def _toggle_screen_reader(self):
+        self.assertEqual(OpenQAAutoinst().call_testapi('send_key', 'super-alt-s'), 'pass',
+                         'openQA failed to send the screen reader shortcut')
 
-    def test_setup(self):
+    def _orca_running(self, _driver=None):
+        return subprocess.run(
+            ['pgrep', '-u', str(os.getuid()), '-x', 'orca'],
+            stdout=subprocess.DEVNULL, check=False,
+        ).returncode == 0
+
+    def test_1_screen_reader(self):
+        """The screen reader works, and Orca makes audible output sound."""
+        recorder = subprocess.Popen([
+            'pw-record', '--raw', '--format=s16', '--rate=16000', '--channels=1',
+            '--sample-count=80000', '--properties={"stream.capture.sink": true}', '-',
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            self._toggle_screen_reader()
+            self.wait.until(self._orca_running, 'The shortcut did not start Orca')
+            audio, error = recorder.communicate(timeout=10)
+            # pw-record exits 1 even when it actually works!
+            self.assertEqual(len(audio), 80000 * 2,
+                             f'Recording incomplete with PipeWire, exit code {recorder.returncode}: {error.decode(errors="replace")}')
+            samples = array.array('h', audio)
+            audible_samples = sum(abs(amplitude) > 100 for amplitude in samples)
+            # Output should contain at least 100 ms above -50 dB
+            self.assertGreaterEqual(audible_samples, 1600,
+                                    'Orca started but there was no captured sound')
+        finally:
+            if recorder.poll() is None:
+                recorder.kill()
+            recorder.communicate()
+            if self._orca_running():
+                self._toggle_screen_reader()
+                self.wait.until_not(self._orca_running, 'Orca did not stop')
+
+    def test_2_setup(self):
         """Go through and set up the system through Plasma Setup."""
         # Welcome page
         setup_button = self.driver.find_element(AppiumBy.NAME, 'Begin Setup')
