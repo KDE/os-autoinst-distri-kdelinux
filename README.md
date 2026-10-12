@@ -30,6 +30,7 @@ create the venv.
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
 | `common/network` | Checks that networking works; a non-loopback link is up with a routable IP and a default route, DNS resolves, and HTTPS to the internet works |
 | `kdelinux-live/calamares_install` | Runs the Calamares installer and installs the system, fatal |
+| `kdelinux/desktop/a11y` | Checks a base set of a11y functionality before installation in the live session and before the wizard in the Plasma Setup session |
 | `common/bootup` | Powers on after install, checks Plymouth and Plasma Welcome screen appear |
 | `kdelinux/desktop/plasma_setup` | Completes the Plasma initial setup wizard |
 | `kdelinux/sddm/sddm_password_login` | Types password at SDDM, checks desktop or welcome screen loads |
@@ -45,6 +46,7 @@ create the venv.
 | `common/basic_test` | Checks if the system is blessed and no services have failed |
 | `common/network` | Checks that networking works; a non-loopback link is up with a routable IP and a default route, DNS resolves, and HTTPS to the internet works  |
 | `kdelinux/system_settings/default_applications` | Verifies the set default applications, through mimetype and system settings. |
+| `kdelinux/desktop/a11y` | Checks a base set of a11y functionality in the installed session |
 | `kdelinux/desktop/panel` | Checks if apps can be launched from Kickoff search, Kickoff favorites, and the task manager. Checks if the correct apps are pinned to task manager. Ensures that the system tray works and displays entries. |
 | `kdelinux/desktop/task_switcher` | Checks that Alt+Tab task switcher moves focus between windows. The switcher is not on the a11y bus and is a part of KWin, so check the active state of KDialog windows. |
 | `kdelinux/desktop/create_file` | Creates a new text file on the desktop and verifies it appears. |
@@ -121,6 +123,10 @@ tests = [
 SUT, with and without the Selenium runner respectively. Tests run in the
 order that they are listed in, including repeats. `enabled = false` keeps a
 test declared despite stopping it from being included in the schedule.
+
+SUT tests can set `instance = "instance_name"` to give a specific run its own openQA module name
+and JUnit results name. This allows the same source file to run multiple times as different users 
+in the same suite.
 
 `action` describes disk interaction. Three options are accepted - `install`, 
 `upgrade`, and `test`.

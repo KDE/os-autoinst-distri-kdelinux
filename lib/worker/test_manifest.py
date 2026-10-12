@@ -28,14 +28,15 @@ class Test:
     always_run: bool = False
     override: Path | None = None
     enabled: bool = True
+    instance: str | None = None
 
     @property
     def name(self) -> str:
-        return self.path.stem
+        return self.instance or self.path.stem
 
     @property
     def source(self) -> Path:
-        return Path("tests") / self.path
+        return Path("tests") / self.path.with_stem(self.name)
 
 
 @dataclass(frozen=True)
@@ -264,6 +265,11 @@ def _load_test(source_dir: Path, raw_settings: object) -> Test:
         raise ValueError(f"SUT test must be Python: {test.path}")
     if test.user not in {None, "root", "live", "installed", "plasma_setup"}:
         raise ValueError(f"Unknown test user {test.user!r}")
+    if test.instance is not None:
+        if not isinstance(test.instance, str) or not re.fullmatch(r"[\w-]+", test.instance):
+            raise ValueError(f"Invalid test instance {test.instance!r}")
+        if test.kind is TestKind.OPENQA:
+            raise ValueError("Named instances are only supported for SUT tests")
 
     # Fail while loading rather than finding out that an implementation is missing
     # during sysext staging or, even worse, after an openQA job is submitted.

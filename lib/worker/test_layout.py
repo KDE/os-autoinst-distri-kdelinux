@@ -140,11 +140,11 @@ def staged_casedir(
 
     # Check that tests aren't defined multiple times ambiguously.
     for test in tests:
-        if test.path in definitions and definitions[test.path] != test:
+        if test.source in definitions and definitions[test.source] != test:
             raise ValueError(
                 f"Conflicting definitions of {test.path} in suite {suite!r}"
             )
-        definitions[test.path] = test
+        definitions[test.source] = test
 
     # Create and build the transient casedir.
     with tempfile.TemporaryDirectory(prefix="kde-linux-openqa-casedir-") as tmp:

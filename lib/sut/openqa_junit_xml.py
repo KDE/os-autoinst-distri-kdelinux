@@ -36,6 +36,7 @@ def _label(xml: bytes) -> bytes:
 
 def run(test_class: type, name: str):
     """Run a unittest class and write JUnit XML to the expected results dir"""
+    name = os.environ.get("OPENQA_TEST_NAME", name)
     output_dir  = f'{_RESULTS_DIR}/{name}'
     output_path = f'{output_dir}/junit.xml'
     os.makedirs(output_dir, exist_ok=True)

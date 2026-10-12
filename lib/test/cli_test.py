@@ -125,7 +125,7 @@ class CliTest:
     ) -> str:
         script_name = script_name or f"{self.name}.py"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
-        return f"source {VENV_DIR}/bin/activate && python3 {script_path}"
+        return f"source {VENV_DIR}/bin/activate && OPENQA_TEST_NAME={shlex.quote(self.name)} python3 {script_path}"
 
     @_cli_command
     def run_selenium(
@@ -136,7 +136,7 @@ class CliTest:
     ) -> str:
         script_name = script_name or f"{self.name}.py"
         script_path = Path(directory or LIB_DIR) / "tests" / script_name
-        return f"source {VENV_DIR}/bin/activate && {LIB_DIR}/openqa-selenium-webdriver-at-spi-run {script_path} {args}"
+        return f"source {VENV_DIR}/bin/activate && OPENQA_TEST_NAME={shlex.quote(self.name)} {LIB_DIR}/openqa-selenium-webdriver-at-spi-run {script_path} {args}"
 
     def _collect(self):
         try:
