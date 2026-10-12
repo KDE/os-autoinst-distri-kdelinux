@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 # SPDX-FileCopyrightText: 2026 Thomas Duckworth <tduck@filotimoproject.org>
 
+import configparser
 import os
 import signal
 import subprocess
@@ -19,6 +20,7 @@ from lib.worker import system_packages
 log = get_logger("start-single-instance")
 
 _OPENQA_BOOTSTRAP = Path("/usr/share/openqa/script/openqa-bootstrap")
+_CLIENT_CONFIG = Path("/etc/openqa/client.conf")
 _POLL_SECONDS = 2
 
 
@@ -113,6 +115,15 @@ def main() -> None:
 
     os.environ["skip_suse_tests"] = "1"
     os.environ["skip_suse_specifics"] = "1"
+
+    # Container bootstrap appends localhost creds, remove the previous entry so
+    # it doesn't complain and die when there's a duplicate.
+    config = configparser.ConfigParser(interpolation=None, strict=False)
+    config.read(_CLIENT_CONFIG)
+    config.remove_section("localhost")
+    with _CLIENT_CONFIG.open("w") as client_config:
+        config.write(client_config)
+
     subprocess.Popen([_OPENQA_BOOTSTRAP])
 
     _wait_for_webui()
