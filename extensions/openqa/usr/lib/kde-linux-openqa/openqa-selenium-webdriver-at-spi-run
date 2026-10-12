@@ -14,7 +14,7 @@ trap 'cd "$OLDPWD"; rm -rf "$TMPDIR"' EXIT
 cd "$TMPDIR"
 
 # Enable accessibility to be able to connect to processes
-gsettings set org.gnome.desktop.interface toolkit-accessibility true
+busctl --user set-property org.a11y.Bus /org/a11y/bus org.a11y.Status IsEnabled b true
 
 # Sometimes tests will be killed while still leaving their port occupied,
 # so pre-emptively ensure that the port is free.
