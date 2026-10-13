@@ -28,6 +28,7 @@ NON_ADMIN_UID = 61240
 
 
 def _run(*args):
+    print(f'Running {args}')
     return subprocess.run(args, capture_output=True, text=True)
 
 
