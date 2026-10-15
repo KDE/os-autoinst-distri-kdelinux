@@ -57,12 +57,17 @@ class PolkitRulesTests(unittest.TestCase):
         # setpriv rather than su or runuser, no PAM and no session of its own.
         process = subprocess.Popen(
             ['setpriv', f'--reuid={entry.pw_uid}', f'--regid={entry.pw_gid}',
-             '--clear-groups', 'sleep', '60'])
+             '--clear-groups', 'sh', '-c', 'echo ready; exec sleep 60'],
+            stdout=subprocess.PIPE, text=True)
         try:
+            # Wait until setpriv has dropped root before querying this PID.
+            self.assertEqual(process.stdout.readline(), 'ready\n',
+                             f'setpriv failed for {name}')
             result = _run(PKCHECK, '--action-id', ACTION, '--process', str(process.pid))
         finally:
             process.kill()
             process.wait()
+            process.stdout.close()
 
         output = (result.stdout + result.stderr).strip()
         self.assertIn(
