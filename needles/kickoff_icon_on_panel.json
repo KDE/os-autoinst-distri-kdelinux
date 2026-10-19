@@ -13,12 +13,7 @@
       "match": 90
     }
   ],
-  "properties": [
-    {
-      "name": "workaround",
-      "value": "Kickoff icon appearance pending breeze-icons fix"
-    }
-  ],
+  "properties": [],
   "tags": [
     "kickoff_icon_on_panel"
   ]

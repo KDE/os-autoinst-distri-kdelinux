@@ -1,0 +1,25 @@
+{
+  "area": [
+    {
+      "ypos": 720,
+      "height": 32,
+      "click_point": {
+        "ypos": 17,
+        "xpos": 20
+      },
+      "type": "match",
+      "xpos": 14,
+      "width": 36,
+      "match": 85
+    }
+  ],
+  "properties": [
+    {
+      "name": "workaround",
+      "value": "Kickoff icon appearance pending breeze-icons fix"
+    }
+  ],
+  "tags": [
+    "kickoff_icon_on_panel"
+  ]
+}
