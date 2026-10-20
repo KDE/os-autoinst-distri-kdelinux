@@ -87,9 +87,15 @@ class PlasmaSetupTests(unittest.TestCase):
 
         # Timezone page
         # Timezone is pre-set because the TZ page is very flaky and hard to code around. Just skip it.
-        self._next_page("Time and Date", "Completed!")
+        self._next_page("Time and Date", "Finish")
 
-        # Finished page
+        # Finish page
+        # "Confirm" to start post-steps.
+        confirm_button = self.wait.until(
+            ec.element_to_be_clickable((AppiumBy.NAME, "Confirm"))
+        )
+        confirm_button.click()
+        # "Finish" appears when the post-steps ends.
         finish_button = self.wait.until(
             ec.element_to_be_clickable((AppiumBy.NAME, "Finish"))
         )
