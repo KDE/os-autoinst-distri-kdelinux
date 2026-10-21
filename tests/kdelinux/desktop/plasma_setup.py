@@ -42,7 +42,7 @@ class PlasmaSetupTests(unittest.TestCase):
         def reached_next_page(driver):
             # A prior click was accepted once the heading changes.
             try:
-                if driver.find_elements(AppiumBy.NAME, next_page_title):
+                if driver.find_elements(AppiumBy.CLASS_NAME, f"[label | {next_page_title}]"):
                     return True
             except WebDriverException as error:
                 # Catch this transient backend error and ignore it.
@@ -97,7 +97,7 @@ class PlasmaSetupTests(unittest.TestCase):
         confirm_button.click()
         # "Finish" appears when the post-steps ends.
         finish_button = self.wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Finish"))
+            ec.element_to_be_clickable((AppiumBy.CLASS_NAME, "[button | Finish]"))
         )
         finish_button.click()
 
