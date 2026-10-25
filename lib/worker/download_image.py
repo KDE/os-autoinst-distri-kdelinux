@@ -28,7 +28,7 @@ def channel_url() -> str:
     variant = os.environ.get("VARIANT", "testing")
     return os.environ.get(
         "CHANNEL_URL",
-        f"https://storage.kde.org/kde-linux/{variant}/",
+        f"https://kde-linux-images.s3.kde.org/{variant}/",
     )
 
 

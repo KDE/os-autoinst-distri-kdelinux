@@ -19,7 +19,7 @@ reuse:
     - when: always
 
 .test-base:
-  image: storage.kde.org/vm-images/image-builder
+  image: s3.kde.org/ci-vm-images/image-builder
   # Their artifacts land in gitlab-artifacts/ owned by the job user.
   dependencies: []
   tags:
