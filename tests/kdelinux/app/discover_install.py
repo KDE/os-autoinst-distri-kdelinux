@@ -59,7 +59,7 @@ class DiscoverTests(unittest.TestCase):
         # Launch app and wait (slightly longer delay to account for network)
         wait = WebDriverWait(self.driver, 300)
         launch_button = wait.until(
-            ec.element_to_be_clickable((AppiumBy.NAME, "Launch"))
+            ec.element_to_be_clickable((AppiumBy.XPATH, "//*[@name='Launch' and contains(@states, 'enabled')]"))
         )
         launch_button.click()
 
