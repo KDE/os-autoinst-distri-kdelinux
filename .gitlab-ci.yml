@@ -26,7 +26,7 @@ reuse:
     - VM
     - amd64
   variables:
-    OPENQA_HOST_ADDR: openqa.kde-linux.haraldsitter.eu
+    OPENQA_HOST_ADDR: openqa.kde.org
     WORKER_FLOW: install
     WORKER_ARGS: ""
   rules:
