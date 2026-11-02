@@ -16,8 +16,7 @@ services:
       - -c
       - |
           set -e
-          /casedir/setup.sh
-          exec /casedir/qa worker install
+          /casedir/setup.sh /casedir/qa worker install
 
 volumes:
   openqa-share:
