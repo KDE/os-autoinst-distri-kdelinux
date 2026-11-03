@@ -76,13 +76,5 @@ test:
   stage: test
   parallel:
     matrix:
-      - ENCRYPTION: [plain, encrypted]
-
-test-upgrade:
-  extends: .test-base
-  stage: test-upgrade
-  variables:
-    WORKER_FLOW: upgrade
-  parallel:
-    matrix:
-      - ENCRYPTION: [plain, encrypted]
+      - WORKER_FLOW: [install, upgrade]
+        ENCRYPTION: [plain, encrypted]
