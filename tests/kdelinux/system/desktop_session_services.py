@@ -27,7 +27,6 @@ ESSENTIAL_SERVICES = [
     'pipewire',
     'pipewire-pulse',
     'wireplumber',
-    'gmenudbusmenuproxy',
     'kaccess',
     'baloo_file',
     'dbus-broker',
