@@ -257,28 +257,6 @@ ssh -i /tmp/kde-linux-openqa-root-key -p 2222 user@127.0.0.1
 The key is generated when `build-sysext` runs and is installed in the SUT when
 it boots up.
 
-#### Running the worker against a remote OpenQA server
-
-To run only the worker locally while pointing it at an existing hosted OpenQA instance, create a `.env` file in the repo root, based on `.env.example`:
-
-```ini
-OPENQA_HOST_ADDR=openqa.example.com
-OPENQA_API_KEY=<your key>
-OPENQA_API_SECRET=<your secret>
-OPENQA_SCHEME=https
-```
-
-The API key and secret can be set up in the OpenQA web UI. 
-You'll need operator or admin permissions on the server, and once you have these, you can generate an API key and secret through the user menu on the top right. Don't commit these!
-
-Then run the worker via Podman:
-
-```bash
-podman-compose -f mocks/worker.yml up
-```
-
-The worker will register with the remote server, submit jobs, and stream results back. It is a single worker that triggers and consumes every test asset itself, so nothing is uploaded to the server.
-
 #### Running a SUT Python `unittest` on your own machine
 
 This assumes you're running KDE Linux, which will have
