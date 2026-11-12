@@ -7,7 +7,7 @@ from pathlib import Path
 from lib.sut import openqa_junit_xml
 
 # Paths of the files which were modified/deleted in the preupgrade test
-TEST_MODIFIED_FILE = 'papersize'
+TEST_MODIFIED_FILE = 'quotatab'
 TEST_DELETED_FILE = 'paperspecs'
 
 TEST_CONTENT = '# QA testing for /etc mstack'
