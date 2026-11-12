@@ -11,13 +11,13 @@ from lib.sut import openqa_junit_xml
 TEST_MODIFIED_FILE = 'papersize'
 TEST_DELETED_FILE = 'paperspecs'
 
-TEST_CONTENT = '# QA testing for etc_factory'
+TEST_CONTENT = '# QA testing for /etc mstack'
 
 ETC = Path('/etc')
 FACTORY_ETC = Path('/usr/share/factory/etc')
 
 
-class EtcFactoryPreupgradeTests(unittest.TestCase):
+class EtcMstackPreupgradeTests(unittest.TestCase):
     def test_00_etc_matches_factory(self) -> None:
         for p in (TEST_MODIFIED_FILE, TEST_DELETED_FILE):
             with open(ETC / p) as f:
@@ -36,4 +36,4 @@ class EtcFactoryPreupgradeTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    openqa_junit_xml.run(EtcFactoryPreupgradeTests, 'etc_factory_preupgrade')
+    openqa_junit_xml.run(EtcMstackPreupgradeTests, 'etc_mstack_preupgrade')

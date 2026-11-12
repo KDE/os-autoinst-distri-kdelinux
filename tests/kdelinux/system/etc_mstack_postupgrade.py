@@ -10,22 +10,22 @@ from lib.sut import openqa_junit_xml
 TEST_MODIFIED_FILE = 'papersize'
 TEST_DELETED_FILE = 'paperspecs'
 
-TEST_CONTENT = '# QA testing for etc_factory'
+TEST_CONTENT = '# QA testing for /etc mstack'
 
 ETC = Path('/etc')
 
 
-class EtcFactoryPostUpgradeTests(unittest.TestCase):
-    def test_01_etc_factory_ignores_user_modified_file(self) -> None:
-        # Verify that the test file kept the modification made to it in etc_factory_preupgrade.py
+class EtcMstackPostUpgradeTests(unittest.TestCase):
+    def test_01_etc_mstack_preserves_user_modification(self) -> None:
+        # Verify that the test file kept the modification made to it in etc_mstack_preupgrade.py
         with open(ETC / TEST_MODIFIED_FILE) as f:
             etc_content = f.read()
         self.assertEqual(etc_content, TEST_CONTENT)
 
-    def test_02_etc_factory_ignores_user_deleted_file(self) -> None:
-        # Verify that the file deleted in etc_factory_preupgrade.py stayed deleted
+    def test_02_etc_mstack_preserves_user_deletion(self) -> None:
+        # Verify that the file deleted in etc_mstack_preupgrade.py stayed deleted
         self.assertFalse((ETC / TEST_DELETED_FILE).exists())
 
 
 if __name__ == '__main__':
-    openqa_junit_xml.run(EtcFactoryPostUpgradeTests, 'etc_factory_preupgrade')
+    openqa_junit_xml.run(EtcMstackPostUpgradeTests, 'etc_mstack_preupgrade')
