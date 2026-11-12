@@ -433,7 +433,7 @@ class Job:
             ],
             check=True,
         )
-        _PFLASH_TEMP_PATH.replace(pflash_factory)
+        shutil.move(_PFLASH_TEMP_PATH, pflash_factory)
 
 
 def clean_pool() -> None:
