@@ -10,7 +10,7 @@ from pathlib import Path
 from openqa_client.client import OpenQA_Client
 
 from lib.common.log import get_logger
-from lib.worker import bootstrap, job, job_flow, sysext, system_packages
+from lib.worker import bootstrap, job, job_flow, sysext
 from lib.worker.job_flow import JobFlowError
 from lib.worker.test_layout import staged_casedir
 from lib.worker.test_manifest import Flow, Manifest
@@ -156,8 +156,6 @@ def _run_worker(
     variables: dict[str, str],
     flavor_suffix: str,
 ) -> None:
-    """Start a local worker and submit the selected manifest flow."""
-    system_packages.install()
 
     # The single-instance mock already starts its own worker.
     if os.environ.get("MOCK_MODE"):

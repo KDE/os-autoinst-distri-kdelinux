@@ -7,8 +7,7 @@ CASEDIR="$(git rev-parse --show-toplevel)"
 cd "$CASEDIR"
 
 if [[ -n "${MOCK_MODE:-}" ]]; then
-    zypper --non-interactive install awk >/dev/null 2>&1 || true
-    curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL=/usr/local/bin sh >/dev/null 2>&1
+    zypper --non-interactive --gpg-auto-import-keys install python3-uv
 fi
 
 export UV_PROJECT_ENVIRONMENT=/var/lib/kde-linux-openqa/worker-venv
