@@ -4,7 +4,6 @@
 import os
 import subprocess
 import time
-import uuid
 from functools import cache
 from pathlib import Path
 
@@ -18,7 +17,6 @@ logger = get_logger(__name__)
 _WORKERS_CONFIG = Path("/etc/openqa/workers.ini")
 _CLIENT_CONFIG = Path("/etc/openqa/client.conf")
 _CACHE_DATABASE = Path("/var/lib/openqa/cache/cache.sqlite")
-_WORKER_LAUNCHER = Path("/run_openqa_worker.sh")
 
 
 class WorkerConfigurationError(Exception):
@@ -29,7 +27,7 @@ class WorkerConfigurationError(Exception):
 # Lazily-evaluated global constant.
 @cache
 def get_worker_class() -> str:
-    return f"kde-linux-worker-{os.environ["CI_RUNNER_SHORT_TOKEN"]}"
+    return f"kde-linux-worker-{os.environ['CI_RUNNER_SHORT_TOKEN']}"
 
 
 def start_worker() -> subprocess.Popen[bytes]:
@@ -76,31 +74,33 @@ def start_worker() -> subprocess.Popen[bytes]:
 
     # Start the worker with --no-cleanup so it preserves the pool after each job instead of
     # wiping it. install-system's published qcow2 then stays in the pool, and we don't have to
-    # re-download it from the server. This isn't great, but the upstream script hardcodes the
-    # OpenQA worker's arguments, and we shouldn't be reimplementing their code.
-    # Also strip the launcher's hardcoded --verbose so we don't spam CI.
-    launcher = _WORKER_LAUNCHER.read_text()
-    launcher = launcher.replace(
-        "/usr/share/openqa/script/worker ",
-        "/usr/share/openqa/script/worker --no-cleanup ",
-    )
-    launcher = launcher.replace(" --verbose", "")
-    _WORKER_LAUNCHER.write_text(launcher)
+    # re-download it from the server.
+    launcher = [
+        "/usr/share/openqa/script/worker",
+        "--no-cleanup",
+        "--instance",
+        "1",
+    ]
 
-    if "--no-cleanup" not in launcher:
-        raise WorkerConfigurationError(
-            "Could not enable --no-cleanup on the openQA worker launcher"
+    # Manually strip out virtualenv path before starting worker
+    runner_env = os.environ.copy()
+    runner_env.pop("VIRTUAL_ENV", None)
+    runner_env.pop("VIRTUAL_ENV_PROMPT", None)
+    runner_env.pop("PYTHONHOME", None)
+
+    path_parts = runner_env.get("PATH", "").split(os.pathsep)
+    clean_path = [p for p in path_parts if "worker-venv" not in p]
+    runner_env["PATH"] = os.pathsep.join(clean_path)
+
+    log_path = Path("gitlab-artifacts/worker.log")
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    openqa_dir = Path("/var/lib/openqa")
+
+    with log_path.open("a") as log:
+        return subprocess.Popen(
+            launcher,
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            env=runner_env,
+            cwd=openqa_dir,
         )
-
-    if os.environ.get("CI") == "true":
-        log_path = Path("gitlab-artifacts/worker.log")
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with log_path.open("a") as log:
-            return subprocess.Popen(
-                [_WORKER_LAUNCHER],
-                stdout=log,
-                stderr=subprocess.STDOUT,
-            )
-
-    return subprocess.Popen([_WORKER_LAUNCHER])
