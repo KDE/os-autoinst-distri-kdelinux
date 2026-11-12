@@ -29,7 +29,7 @@ class WorkerConfigurationError(Exception):
 # Lazily-evaluated global constant.
 @cache
 def get_worker_class() -> str:
-    return f"kde-linux-worker-{uuid.uuid4()}"
+    return f"kde-linux-worker-{os.environ["CI_RUNNER_SHORT_TOKEN"]}"
 
 
 def start_worker() -> subprocess.Popen[bytes]:
