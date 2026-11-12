@@ -19,7 +19,7 @@ reuse:
     - when: always
 
 .test-base:
-  image: s3.kde.org/ci-vm-images/image-builder
+  image: s3.kde.org/ci-vm-images/suse-openqa-worker
   # Their artifacts land in gitlab-artifacts/ owned by the job user.
   dependencies: []
   tags:
@@ -43,25 +43,7 @@ reuse:
     - rm -rf "$CI_PROJECT_DIR/gitlab-artifacts"
     - mkdir -p "$CI_PROJECT_DIR/gitlab-artifacts"
     - chmod 0777 "$CI_PROJECT_DIR/gitlab-artifacts"
-    - >
-      podman run --rm
-      --device /dev/kvm
-      --entrypoint ""
-      --volume $CI_PROJECT_DIR:$CI_PROJECT_DIR:z
-      --workdir $CI_PROJECT_DIR
-      --env CI
-      --env CI_PROJECT_DIR
-      --env UPSTREAM_CI_PIPELINE_URL
-      --env OPENQA_HOST_ADDR
-      --env OPENQA_API_KEY
-      --env OPENQA_API_SECRET
-      --env IMAGE_URL
-      --env STAGING_CHANNEL_URL
-      --env SYSUPDATE_PUBKEY_B64
-      --env CHANNEL_URL
-      --env VARIANT
-      registry.opensuse.org/devel/openqa/containers16.0/openqa_worker:latest
-      ./setup.sh ./qa worker "$WORKER_FLOW" $WORKER_ARGS
+    - ./setup.sh ./qa worker "$WORKER_FLOW" $WORKER_ARGS
 
   artifacts:
     when: always
