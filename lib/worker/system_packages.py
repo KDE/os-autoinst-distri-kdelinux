@@ -18,6 +18,7 @@ _PACKAGES = (
     "vim",
     "openssh-clients",
     "erofs-utils",
+    "ffmpeg",
     "gpg2",
     "python3-fabric",
     "perl-Inline-Python",

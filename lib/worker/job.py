@@ -314,6 +314,10 @@ class Job:
             "TIMEOUT_SCALE": "3",
             "VIRTIO_CONSOLE": "1",
             "NICTYPE_USER_OPTIONS": "hostfwd=tcp::2222-:22",
+            "EXTERNAL_VIDEO_ENCODER_CMD": (
+                "ffmpeg -y -hide_banner -nostats -r 24 -f image2pipe -vcodec ppm -i - -pix_fmt yuv420p -c:v libvpx-vp9 -crf 35 -b:v 1500k -cpu-used 1"
+            ),
+            "EXTERNAL_VIDEO_ENCODER_OUTPUT_FILE_EXTENSION": "webm",
         }
 
         if config.variant is not None:
