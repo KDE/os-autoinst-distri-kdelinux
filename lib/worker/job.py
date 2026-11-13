@@ -311,7 +311,6 @@ class Job:
             "QEMUCPU": "host",
             "CASEDIR": str(config.casedir),
             "NEEDLES_DIR": "%%CASEDIR%%/needles",
-            "TIMEOUT_SCALE": "3",
             "VIRTIO_CONSOLE": "1",
             "NICTYPE_USER_OPTIONS": "hostfwd=tcp::2222-:22",
         }
