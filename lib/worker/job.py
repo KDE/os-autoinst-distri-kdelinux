@@ -14,6 +14,7 @@ from openqa_client.client import OpenQA_Client
 from lib.common.log import get_logger
 
 logger = get_logger(__name__)
+logger.setLevel("DEBUG")
 
 _OPENQA_SHARE_PATH = Path("/var/lib/openqa/share/factory/hdd")
 _OPENQA_POOL_PATH = Path("/var/lib/openqa/pool")
