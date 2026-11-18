@@ -28,7 +28,7 @@ class WorkerConfigurationError(Exception):
 # Lazily-evaluated global constant.
 @cache
 def get_worker_class() -> str:
-    return f"kde-linux-worker-{os.environ['CI_RUNNER_SHORT_TOKEN']}"
+    return f"kde-linux-worker-{os.environ['CI_RUNNER_SHORT_TOKEN']}-{os.environ['CI_JOB_ID']}"
 
 
 def start_worker() -> subprocess.Popen[bytes]:
@@ -90,7 +90,7 @@ def start_worker() -> subprocess.Popen[bytes]:
     runner_env.pop("PYTHONHOME", None)
 
     path_parts = runner_env.get("PATH", "").split(os.pathsep)
-    clean_path = path_parts.remove(str(Path(sys.executable).parent))
+    path_parts.remove(str(Path(sys.executable).parent))
     runner_env["PATH"] = os.pathsep.join(path_parts)
 
     log_path = Path("gitlab-artifacts/worker.log")
