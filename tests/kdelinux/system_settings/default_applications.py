@@ -94,7 +94,7 @@ class DefaultApplicationsTests(unittest.TestCase):
 
         # Wait for the Default Applications page to load
         WebDriverWait(self.driver, 10).until(
-            lambda d: d.find_elements(AppiumBy.XPATH, '//heading[@name="Web browser:"]')
+            lambda d: d.find_elements(AppiumBy.XPATH, '//label[@name="Web browser:"]')
         )
 
         # The comboboxes appear in the same document order as the labels, so match them positionally.
