@@ -118,14 +118,13 @@ def _log_artifact_url() -> None:
 
     bucket_url = image_url.rsplit("/", 1)[0]
     bucket_url = bucket_url.replace(
-        "/ci-artifacts/",
-        "/ci-artifacts/#",
+        "s3.kde.org/",
+        "s3.kde.org/index.html#",
         1,
     )
     log.message(
         "In case of failure, inspect and download the image and sysupdate "
-        "tree at: https://qoomon.github.io/aws-s3-bucket-browser/"
-        "index.html?bucket=%s",
+        "tree at: %s",
         bucket_url,
     )
 
