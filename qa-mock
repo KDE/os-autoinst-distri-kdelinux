@@ -5,6 +5,7 @@
 
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 _MOCK_SCRIPT = Path(__file__).resolve().parent / "mocks" / "mock.sh"
@@ -15,6 +16,14 @@ def _mock(options: list[str]) -> None:
 
 
 def _enter_mock() -> None:
+    print("Waiting for openQA to finish starting…", flush=True)
+    while subprocess.run(
+        ["podman", "exec", "openqa-single-instance", "curl", "-fs", "http://localhost"],
+        stdout=subprocess.DEVNULL,
+        check=False,
+    ).returncode:
+        time.sleep(2)
+
     subprocess.run(
         ["podman", "exec", "-it", "openqa-single-instance", "bash"],
         check=True,
