@@ -91,13 +91,21 @@ create the venv.
 
 ### Test layout
 
-All tests live under `tests/`. `tests/tests.toml` declares the tests,
-the distri name, test suites and test flows, 
+KDE Linux tests live in `kde-linux/openqa/tests/`. Its `tests.toml` declares the tests,
+the distri name, test suites and test flows.
 
-Every `qa` command that works with tests accepts `--manifest-path <path>`, 
+Every `qa` command that works with tests accepts `--project-dir <checkout>`,
 `--var <key>=<value>` and `--flavor-suffix=<value>`.
-The manifest path defaults to `./tests/tests.toml`. Test paths in
-`tests.toml` are relative to the directory containing `<path>`. 
+
+The project directory defaults to `.`. Tests come from its `openqa/` directory
+and local ISOs from `mkosi.output/` or the worker's current directory. The environment 
+variables `TEST_PROJECT_OPENQA_DIR` and `TEST_PROJECT_OUTPUT_DIR` override these paths, 
+with relative paths starting at the checkout.
+
+`openqa/` contains `tests.toml`, `tests/`, `needles/`, and optional `lib/`.
+Test and override paths are relative to `openqa/tests/`.
+Project `lib/` files can extend or override this repository's base `lib/`.
+
 Variables passed into `--var` are set as openQA test settings. For KDE Linux,
 `FDE_INSTALL=1` is set through this mechanism. `--flavor-suffix` appends a
 string to the end of the flavor value in the openQA webUI, and is used to
@@ -190,33 +198,33 @@ To rebuild the sysext without restarting the worker, enter the worker container:
 Then run:
 
 ```
-./qa build-sysext
+./qa build-sysext --project-dir /test-project
 ```
 
 #### Full local stack (worker + webui)
 
 Spins up a local OpenQA webui and worker together.
 
-1. Place a KDE Linux `.iso` image in the repo root (the worker finds it automatically). Otherwise, it will try to download the latest one.
-2. Start the stack. To test upgrading between local builds, mount a mkosi.output directory too:
+1. `TEST_PROJECT_SOURCE` sets the checkout path (defaulting to `../kde-linux`), mounted at `/test-project`. The worker searches `mkosi.output/` and its current directory for the newest ISO, downloading the latest one if neither has an image.
+2. Start the stack:
    ```bash
-   KDE_LINUX_OUTPUT=~/Projects/kde-linux/mkosi.output ./qa-mock up
+   TEST_PROJECT_SOURCE=~/Projects/kde-linux ./qa-mock up
    ```
 3. The web UI is available at http://localhost:1080 once the container is ready. The container sets
    up the worker and test assets but does not submit jobs automatically. You must do this yourself.
 4. Open a shell in the container and submit jobs:
    ```bash
    ./qa-mock enter
-   ./qa flow install
+   ./qa flow install --project-dir /test-project
    # For an encrypted install, add:
    #   --var FDE_INSTALL=1 --flavor-suffix=-encrypted
    ```
    To test an upgrade from a local ISO to a local build, pass the base ISO and
    the mounted `mkosi.output` directory:
    ```bash
-   ./qa flow upgrade \
-     --upgrade-from /casedir/kde-linux_202608010001.iso \
-     --upgrade-to /kde-linux-output
+   ./qa flow upgrade --project-dir /test-project \
+     --upgrade-from /test-project/mkosi.output/kde-linux_202608010001.iso \
+     --upgrade-to /test-project/mkosi.output
    ```
    The newest complete build in that directory is exposed to the VM as a
    temporary sysupdate source. It must be newer than the base ISO.
@@ -284,7 +292,7 @@ Then run the desired test:
 ```bash
 PYTHONPATH=. TEST_WITH_CLEAN_HOME=0 TEST_WITH_VIDEO_RECORDER=0 \
   KWIN_PID=$(pgrep -n kwin_wayland) \
-  selenium-webdriver-at-spi-run python3 tests/<path>/<name>.py
+  selenium-webdriver-at-spi-run python3 ../kde-linux/openqa/tests/<path>/<name>.py
 ```
 
 ### Integration with GitLab CI
@@ -321,12 +329,15 @@ after the manifest's `name` value:
 | `<name> Installation` | standard install and sanity test flow |
 | `<name> Upgrade` | upgradeability flow |
 
-The names are derived from `name` in `tests/tests.toml`. If a group doesn't
+The names are derived from `name` in `tests.toml`. If a group doesn't
 exist, openQA will simply leave jobs ungrouped without any errors.
 
 #### Triggering from another project
 
 The pipeline is designed to be triggered from the [kde-linux](https://invent.kde.org/kde-linux/kde-linux) CI after a successful image build. When triggered this way, the REUSE lint job is skipped and both test jobs run automatically.
+
+The worker checks out `TEST_REPOSITORY` at `TEST_REVISION`, using the triggering
+KDE Linux commit or `master` for standalone runs.
 
 This works through a trigger job in KDE Linux's `.gitlab-ci.yml`:
 
@@ -337,6 +348,9 @@ trigger-openqa:
     project: kde-linux/os-autoinst-distri-kdelinux
     branch: master
     strategy: depend
+  variables:
+    TEST_REPOSITORY: ${CI_PROJECT_URL}.git
+    TEST_REVISION: $CI_COMMIT_SHA
 ```
 
 #### Running manually on a merge request

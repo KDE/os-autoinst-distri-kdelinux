@@ -4,7 +4,7 @@
 import os
 import re
 import subprocess
-from contextlib import chdir, nullcontext
+from contextlib import nullcontext
 from dataclasses import dataclass, replace
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -52,11 +52,13 @@ class JobFlow:
         group: str | None,
         worker_class: str | None,
         manifest: Manifest,
+        repo_root: Path,
     ) -> None:
         self.client = client
         self.group = group
         self.worker_class = worker_class
         self.manifest = manifest
+        self.repo_root = repo_root
         self.parent: int | None = None
         self.tests_failed = False
 
@@ -69,9 +71,9 @@ class JobFlow:
         )
 
         with staged_casedir(
-            self.manifest.casedir,
             config.name,
             self.manifest,
+            repo_root=self.repo_root,
         ) as staged:
             if os.environ.get("MOCK_MODE"):
                 _stage_mock_tests(staged.path, self.manifest)
@@ -93,19 +95,20 @@ class JobFlow:
 
 
 def _find_local_iso(
-    casedir: Path,
+    image_dir: Path,
     older_than: str | None = None,
 ) -> Path | None:
     images: dict[str, Path] = {}
 
-    for image in casedir.glob("*.iso"):
-        match = _ISO_VERSION_PATTERN.fullmatch(image.name)
-        if match is None:
-            continue
+    for directory in (Path.cwd(), image_dir):
+        for image in directory.glob("*.iso"):
+            match = _ISO_VERSION_PATTERN.fullmatch(image.name)
+            if match is None:
+                continue
 
-        version = match.group(1)
-        if older_than is None or version < older_than:
-            images[version] = image
+            version = match.group(1)
+            if older_than is None or version < older_than:
+                images[version] = image
 
     if not images:
         return None
@@ -113,13 +116,13 @@ def _find_local_iso(
     return images[max(images)]
 
 
-def _download_image_url(casedir: Path, image_url: str) -> Path:
+def _download_image_url(image_url: str) -> Path:
     image_name = Path(urlsplit(image_url).path).name
 
     if not image_name:
         raise JobFlowError(f"Invalid image URL: {image_url}")
 
-    image_path = casedir / image_name
+    image_path = Path.cwd() / image_name
 
     download_file(
         image_url,
@@ -185,7 +188,7 @@ def _latest_public_version() -> str:
 
 
 def _resolve_build_under_test(
-    casedir: Path,
+    image_dir: Path,
     upgrade: bool,
 ) -> BuildUnderTest:
     image_url = os.environ.get("IMAGE_URL")
@@ -204,21 +207,20 @@ def _resolve_build_under_test(
             build=version,
         )
 
-    image = _find_local_iso(casedir)
+    image = _find_local_iso(image_dir)
 
     if image is None:
         if image_url:
-            image = _download_image_url(casedir, image_url)
+            image = _download_image_url(image_url)
         else:
             logger.info("No .iso image found, downloading latest")
-            with chdir(casedir):
-                image = casedir / download_latest()
+            image = Path(download_latest()).resolve()
 
     return _build_from_image(image.name, image)
 
 
 def _resolve_install_image(
-    casedir: Path,
+    image_dir: Path,
     build: BuildUnderTest,
     upgrade: bool,
     upgrade_from: Path | None = None,
@@ -233,9 +235,6 @@ def _resolve_install_image(
 
     if upgrade_from is not None:
         image = upgrade_from.expanduser()
-        if not image.is_absolute():
-            image = casedir / image
-
         image = image.resolve()
         if not image.is_file():
             raise JobFlowError(f"Upgrade base does not exist: {image}")
@@ -255,13 +254,12 @@ def _resolve_install_image(
         logger.info(
             "Downloading latest published image as the upgrade base"
         )
-        with chdir(casedir):
-            image = casedir / download_latest()
+        image = Path(download_latest()).resolve()
         return _validate_upgrade_base(image, build)
 
     # The build under test is a published image, so use the newest local image
     # that is still older than the target when one is available.
-    local_image = _find_local_iso(casedir, older_than=build.build)
+    local_image = _find_local_iso(image_dir, older_than=build.build)
     if local_image is not None:
         logger.info(
             "Using existing older image %s as the upgrade base",
@@ -270,8 +268,7 @@ def _resolve_install_image(
         return _validate_upgrade_base(local_image, build)
 
     logger.info("Downloading previous image for upgrade test")
-    with chdir(casedir):
-        image = casedir / download_previous(build.build)
+    image = Path(download_previous(build.build)).resolve()
     return _validate_upgrade_base(image, build)
 
 
@@ -336,7 +333,8 @@ def _job_group(name: str, upgrade: bool) -> str | None:
 
 def run_jobs(
     *,
-    casedir: Path,
+    repo_root: Path,
+    image_dir: Path,
     manifest: Manifest,
     flow: Flow,
     worker_class: str | None = None,
@@ -347,7 +345,7 @@ def run_jobs(
 ) -> None:
     """Submit and poll all test jobs for a build."""
 
-    casedir = casedir.expanduser().resolve()
+    image_dir = image_dir.expanduser().resolve()
     mock_mode = bool(os.environ.get("MOCK_MODE"))
     has_upgrade_suite = any(
         suite.action is SuiteAction.UPGRADE for suite in flow.suites
@@ -380,11 +378,6 @@ def run_jobs(
         if upgrade_to is not None and upgrade_from is not None:
             target = upgrade_to.expanduser()
             base = upgrade_from.expanduser()
-            if not target.is_absolute():
-                target = casedir / target
-            if not base.is_absolute():
-                base = casedir / base
-
             target_output = inspect_build_output(target)
             target_build = BuildUnderTest(
                 image=None,
@@ -399,7 +392,7 @@ def run_jobs(
             _validate_upgrade_base(upgrade_from, target_build)
 
         update_context = (
-            serve_local_update(target_output, casedir)
+            serve_local_update(target_output, Path.cwd())
             if target_output is not None
             else nullcontext(None)
         )
@@ -412,21 +405,22 @@ def run_jobs(
                     build=local_update.version,
                 )
                 sysext_image = lib.worker.sysext.build_sysext(
-                    casedir,
+                    repo_root=repo_root,
                     manifest=manifest,
                     channel_url=local_update.url,
                     disable_caibx=local_update.disable_caibx,
                     verify_updates=False,
                 )
             else:
-                build = _resolve_build_under_test(casedir, has_upgrade_suite)
+                build = _resolve_build_under_test(image_dir, has_upgrade_suite)
                 sysext_image = lib.worker.sysext.build_sysext(
-                    casedir,
+                    repo_root=repo_root,
                     manifest=manifest,
                 )
 
             _run_resolved_jobs(
-                casedir=casedir,
+                repo_root=repo_root,
+                image_dir=image_dir,
                 manifest=manifest,
                 flow=flow,
                 variables=variables,
@@ -443,7 +437,8 @@ def run_jobs(
 
 def _run_resolved_jobs(
     *,
-    casedir: Path,
+    repo_root: Path,
+    image_dir: Path,
     manifest: Manifest,
     flow: Flow,
     variables: dict[str, str],
@@ -455,7 +450,7 @@ def _run_resolved_jobs(
     upgrade_from: Path | None,
 ) -> None:
     install_image = _resolve_install_image(
-        casedir,
+        image_dir,
         build,
         upgrade,
         upgrade_from,
@@ -472,6 +467,7 @@ def _run_resolved_jobs(
         group=_job_group(manifest.name, upgrade),
         worker_class=worker_class,
         manifest=manifest,
+        repo_root=repo_root,
     )
 
     # Chain each job onto the previous one, so we get a nice dependency graph.
@@ -502,7 +498,7 @@ def _run_resolved_jobs(
                 sysext=sysext_image,
                 build=build.build,
                 variant=os.environ.get("VARIANT"),
-                casedir=casedir,
+                casedir=manifest.test_root,
                 distri=manifest.distri,
                 variables=variables,
             )

@@ -20,13 +20,16 @@ services:
       - OPENQA_SCHEME=http
       - MOCK_MODE=1
       - VARIANT=testing
+      - TEST_PROJECT_OPENQA_DIR=${TEST_PROJECT_OPENQA_DIR:-openqa}
+      - TEST_PROJECT_OUTPUT_DIR=${TEST_PROJECT_OUTPUT_DIR:-mkosi.output}
       - CASEDIR=/casedir
       - PYTHONPATH=/casedir
       - VIRTUAL_ENV=/var/lib/kde-linux-openqa/worker-venv
       - PATH=/var/lib/kde-linux-openqa/worker-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     volumes:
       - ..:/casedir
-      - ${KDE_LINUX_OUTPUT:-..}:/kde-linux-output:ro
+      # Project checkout containing openqa/ and mkosi.output/ directories.
+      - ${TEST_PROJECT_SOURCE:-../../kde-linux}:/test-project
     entrypoint:
       - /bin/sh
       - -c

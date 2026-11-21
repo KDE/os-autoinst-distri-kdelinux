@@ -16,6 +16,7 @@ from lib.worker.test_layout import staged_casedir
 from lib.worker.test_manifest import Flow, Manifest
 
 log = get_logger(__name__)
+repo_root = Path(__file__).resolve().parent
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -25,10 +26,10 @@ def _parser() -> argparse.ArgumentParser:
     commands.add_parser("clean-pool")
 
     command_parser = commands.add_parser("build-sysext")
-    _add_manifest_path(command_parser)
+    _add_project_dir(command_parser)
 
     command_parser = commands.add_parser("job")
-    _add_manifest_path(command_parser)
+    _add_project_dir(command_parser)
     _add_variables_argument(command_parser)
     job_mode = command_parser.add_mutually_exclusive_group()
     job_mode.add_argument("--live", type=Path, metavar="PATH")
@@ -45,7 +46,7 @@ def _parser() -> argparse.ArgumentParser:
     for command in ("worker", "flow"):
         command_parser = commands.add_parser(command)
         command_parser.add_argument("flow")
-        _add_manifest_path(command_parser)
+        _add_project_dir(command_parser)
         _add_variables_argument(command_parser)
         _add_flavor_suffix_argument(command_parser)
         command_parser.add_argument(
@@ -64,13 +65,13 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _add_manifest_path(parser: argparse.ArgumentParser) -> None:
+def _add_project_dir(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "--manifest-path",
+        "--project-dir",
         type=Path,
-        default=Path.cwd() / "tests" / "tests.toml",
-        metavar="PATH",
-        help="path to tests.toml; test sources are relative to its directory",
+        default=Path.cwd(),
+        metavar="DIR",
+        help="project checkout containing openqa/ and mkosi.output/, defaulting to the current directory",
     )
 
 
@@ -97,7 +98,7 @@ def _load_environment() -> None:
     if os.environ.get("MOCK_MODE"):
         return
 
-    environment = Path(__file__).resolve().parent / ".env"
+    environment = repo_root / ".env"
 
     if not environment.is_file():
         return
@@ -147,7 +148,7 @@ def _parse_vars(
 
 def _run_worker(
     *,
-    casedir: Path,
+    image_dir: Path,
     manifest: Manifest,
     flow: Flow,
     upgrade_from: Path | None,
@@ -163,7 +164,8 @@ def _run_worker(
     worker = bootstrap.start_worker()
     try:
         job_flow.run_jobs(
-            casedir=casedir,
+            repo_root=repo_root,
+            image_dir=image_dir,
             manifest=manifest,
             flow=flow,
             worker_class=bootstrap.get_worker_class(),
@@ -196,16 +198,23 @@ def main() -> None:
         return
 
     # Load and parse the manifest once, here, and dependency-inject throughout.
-    manifest = Manifest.load(args.manifest_path)
-    casedir = manifest.casedir
+    project_dir = args.project_dir.expanduser().resolve()
+    test_root = project_dir / Path(
+        os.environ.get("TEST_PROJECT_OPENQA_DIR") or "openqa"
+    ).expanduser()
+    image_dir = project_dir / Path(
+        os.environ.get("TEST_PROJECT_OUTPUT_DIR") or "mkosi.output"
+    ).expanduser()
+    manifest = Manifest.load(test_root)
 
     if args.command == "build-sysext":
-        sysext.build_sysext(casedir, manifest=manifest)
+        sysext.build_sysext(repo_root=repo_root, manifest=manifest)
         return
 
     if args.command == "flow":
         job_flow.run_jobs(
-            casedir=casedir,
+            repo_root=repo_root,
+            image_dir=image_dir,
             manifest=manifest,
             flow=manifest.flow(args.flow),
             upgrade_from=args.upgrade_from,
@@ -217,9 +226,9 @@ def main() -> None:
 
     if args.command == "job":
         with staged_casedir(
-            casedir,
             args.name,
             manifest,
+            repo_root=repo_root,
         ) as staged:
             job_config = job.JobConfig(
                 live=args.live,
@@ -260,7 +269,7 @@ def main() -> None:
 
     if args.command == "worker":
         _run_worker(
-            casedir=casedir,
+            image_dir=image_dir,
             manifest=manifest,
             flow=manifest.flow(args.flow),
             upgrade_from=args.upgrade_from,

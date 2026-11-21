@@ -69,18 +69,19 @@ class Manifest:
     """Representation of a tests.toml file and its declared test suites."""
     # All TOML-specific parsing and implementation should live in this class.
 
-    manifest_path: Path
+    test_root: Path
     name: str
     distri: str
     suites: Mapping[str, Suite]
     flows: Mapping[str, Flow]
 
     @classmethod  # factory method
-    def load(cls, manifest_path: Path) -> Manifest:
+    def load(cls, test_root: Path) -> Manifest:
         """
-        Creates a Manifest object from a tests.toml manifest file.
+        Load tests.toml and its test sources from a project test root.
         """
-        manifest_path = manifest_path.expanduser().resolve()
+        test_root = test_root.expanduser().resolve()
+        manifest_path = test_root / "tests.toml"
         data = tomllib.loads(manifest_path.read_text())
         raw_suites = data.get("suites")
         raw_flows = data.get("flows")
@@ -104,7 +105,7 @@ class Manifest:
             if not isinstance(settings, dict):
                 raise TypeError(f"Suite {suite_name!r} must be a table")
             suites[suite_name] = _load_suite(
-                manifest_path.parent,
+                test_root / "tests",
                 suite_name,
                 settings,
             )
@@ -117,14 +118,13 @@ class Manifest:
             if not isinstance(settings, dict):
                 raise TypeError(f"Flow {flow_name!r} must be a table")
             flows[flow_name] = _load_flow(
-                manifest_path.parent,
                 flow_name,
                 settings,
                 suites
             )
 
         return cls(
-            manifest_path=manifest_path,
+            test_root=test_root,
             name=name,
             distri=distri,
             suites=MappingProxyType(suites),  # read-only view over a dict
@@ -132,9 +132,9 @@ class Manifest:
         )
 
     @property
-    def casedir(self) -> Path:
-        """Return the repository root containing the manifest's tests directory."""
-        return self.manifest_path.parent.parent
+    def test_dir(self) -> Path:
+        """Return the directory that test and override paths are relative to."""
+        return self.test_root / "tests"
 
     def suite(self, name: str) -> Suite:
         try:
@@ -170,7 +170,6 @@ def _validate_string(
 
 
 def _load_flow(
-    source_dir: Path,
     name: str,
     settings: dict[str, object],
     suites: dict[str, Suite],

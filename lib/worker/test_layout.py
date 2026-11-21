@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+from lib.worker.test_library import stage_libraries
 from lib.worker.test_manifest import Manifest, Test, TestKind
 
 _SYSEXT_TEST_ROOT = Path("usr/lib/kde-linux-openqa/tests")
@@ -37,7 +38,7 @@ def stage_sut_tests(
             continue
         destination = destination_root / test.path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(manifest.manifest_path.parent / test.path, destination)
+        shutil.copy2(manifest.test_dir / test.path, destination)
 
 
 def _render_wrapper(test: Test) -> str:
@@ -128,9 +129,10 @@ def _render_main(tests: list[Test]) -> str:
 
 @contextmanager  # allows using this in a with block
 def staged_casedir(
-    casedir: Path,
     suite: str,
     manifest: Manifest,
+    *,
+    repo_root: Path,
 ) -> Iterator[StagedCaseDir]:
     """
     Transiently generate a CASEDIR with a schedule in main.pm.
@@ -151,8 +153,8 @@ def staged_casedir(
         destination = Path(tmp) / "casedir"
         destination.mkdir()
         (destination / "main.pm").write_text(_render_main(tests))
-        for directory in ("lib", "needles"):
-            shutil.copytree(casedir / directory, destination / directory)
+        stage_libraries(destination / "lib", manifest, repo_root=repo_root)
+        shutil.copytree(manifest.test_root / "needles", destination / "needles")
         Path(tmp).chmod(0o755)
 
         # Generate openQA wrappers that call SUT tests and put them in our new
@@ -161,9 +163,9 @@ def staged_casedir(
             wrapper = destination / test.source
             wrapper.parent.mkdir(parents=True, exist_ok=True)
             if test.override:
-                shutil.copy2(manifest.manifest_path.parent / test.override, wrapper)
+                shutil.copy2(manifest.test_dir / test.override, wrapper)
             elif test.kind is TestKind.OPENQA:
-                shutil.copy2(manifest.manifest_path.parent / test.path, wrapper)
+                shutil.copy2(manifest.test_dir / test.path, wrapper)
             else:
                 wrapper.write_text(_render_wrapper(test))
 

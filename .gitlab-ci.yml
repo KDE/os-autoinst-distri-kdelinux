@@ -29,12 +29,18 @@ reuse:
     OPENQA_HOST_ADDR: openqa.kde.org
     WORKER_FLOW: install
     WORKER_ARGS: ""
+    TEST_REPOSITORY: https://invent.kde.org/kde-linux/kde-linux.git
+    TEST_REVISION: master
   rules:
     - if: $CI_MERGE_REQUEST_IID
       when: manual
     - when: always
   allow_failure: false
   before_script:
+    - git init test-project
+    - git -C test-project remote add origin "$TEST_REPOSITORY"
+    - git -C test-project fetch --depth 1 origin "$TEST_REVISION"
+    - git -C test-project checkout --detach FETCH_HEAD
     - |
       if [ "${ENCRYPTION:-plain}" = encrypted ]; then
         WORKER_ARGS="${WORKER_ARGS:+$WORKER_ARGS }--var FDE_INSTALL=1 --flavor-suffix=-encrypted"
@@ -43,7 +49,7 @@ reuse:
     - rm -rf "$CI_PROJECT_DIR/gitlab-artifacts"
     - mkdir -p "$CI_PROJECT_DIR/gitlab-artifacts"
     - chmod 0777 "$CI_PROJECT_DIR/gitlab-artifacts"
-    - ./setup.sh ./qa worker "$WORKER_FLOW" $WORKER_ARGS
+    - ./setup.sh ./qa worker "$WORKER_FLOW" --project-dir "$CI_PROJECT_DIR/test-project" $WORKER_ARGS
 
   artifacts:
     when: always

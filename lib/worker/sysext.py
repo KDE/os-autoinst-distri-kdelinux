@@ -12,6 +12,7 @@ from pathlib import Path
 from lib.common.log import get_logger
 from lib.common.paths import OPENQA_SSH_PRIVATE_KEY
 from lib.worker.test_layout import stage_sut_tests
+from lib.worker.test_library import stage_libraries
 from lib.worker.test_manifest import Manifest
 
 logger = get_logger(__name__)
@@ -21,7 +22,7 @@ _OPENQA_ROOT_AUTHORIZED_KEY = Path(
 )
 
 
-def _compile_requirements(casedir: Path, sysext_root: Path) -> None:
+def _compile_requirements(repo_root: Path, sysext_root: Path) -> None:
     requirements = (
         sysext_root
         / "usr"
@@ -45,7 +46,7 @@ def _compile_requirements(casedir: Path, sysext_root: Path) -> None:
             "--output-file",
             requirements,
         ],
-        cwd=casedir,
+        cwd=repo_root,
         check=True,
     )
 
@@ -157,21 +158,19 @@ def _configure_sysupdate(
 
 
 def build_sysext(
-    casedir: Path,
     *,
+    repo_root: Path,
     manifest: Manifest,
     channel_url: str | None = None,
     public_key_b64: str | None = None,
     disable_caibx: bool = False,
     verify_updates: bool = True,
 ) -> Path:
-    casedir = casedir.expanduser().resolve()
-
     sysext_image = Path("openqa-sysext.img")
     os.environ["SYSEXT_IMG"] = str(sysext_image)
 
     # Build the openQA sysext for the SUT.
-    static_payload = casedir / "extensions" / "openqa"
+    static_payload = repo_root / "extensions" / "openqa"
     generated_payload = static_payload / "usr" / "lib" / "kde-linux-openqa"
 
     def ignore_generated(directory: str, names: list[str]) -> set[str]:
@@ -198,15 +197,14 @@ def build_sysext(
             ignore=ignore_generated,
         )
 
-        # The top-level files in ./lib are shared between the host and the SUT,
-        # so copy them in at sysext build time. These are in .gitignore.
+        # Use the same helper libraries on the worker and in the SUT.
         sysext_lib = sysext_root / "usr" / "lib" / "kde-linux-openqa" / "lib"
-        shutil.copytree(casedir / "lib", sysext_lib)
+        stage_libraries(sysext_lib, manifest, repo_root=repo_root)
         stage_sut_tests(sysext_root, manifest)
         _generate_ssh_keypair(sysext_root)
 
         # Build the requirements declared in pyproject.toml into the sysext.
-        _compile_requirements(casedir, sysext_root)
+        _compile_requirements(repo_root, sysext_root)
 
         channel_url = channel_url or os.environ.get("STAGING_CHANNEL_URL")
         public_key_b64 = public_key_b64 or os.environ.get("SYSUPDATE_PUBKEY_B64")
