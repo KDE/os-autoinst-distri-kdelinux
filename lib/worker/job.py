@@ -12,6 +12,7 @@ from typing import Any
 from openqa_client.client import OpenQA_Client
 
 from lib.common.log import get_logger
+from lib.worker.image_storage import ImageStorage
 
 logger = get_logger(__name__)
 
@@ -148,6 +149,9 @@ class Job:
             if self.config.live is not None or self.config.upgrade:
                 self._produce_installed_hdd()
                 self._produce_pflash_vars()
+
+            if self.config.live is not None and os.environ.get("CI"):
+                self._upload_install_artifacts()
 
             clean_pool()
 
@@ -437,6 +441,33 @@ class Job:
             check=True,
         )
         shutil.move(_PFLASH_TEMP_PATH, pflash_factory)
+
+    def _upload_install_artifacts(self) -> None:
+        pflash_factory = _OPENQA_SHARE_PATH / _PFLASH_PATH.name
+        installed_hdd = _OPENQA_SHARE_PATH / self.config.hdd.name
+
+        archive_path: str = (
+            f"{self.config.variant}/{self.config.flavor}/{self.config.build}"
+        )
+
+        logger.debug(
+            "Archiving installed assets %s and %s to s3.kde.org",
+            pflash_factory,
+            installed_hdd,
+        )
+
+        storage = ImageStorage()
+        logger.debug("Uploading pflash %s.", pflash_factory)
+        storage.upload_asset(
+            local_file_path=pflash_factory,
+            object_key=f"{archive_path}/{_PFLASH_PATH.name}",
+        )
+        logger.debug("Uploading image %s.", installed_hdd)
+        storage.upload_asset(
+            local_file_path=installed_hdd,
+            object_key=f"{archive_path}/{self.config.hdd.name}",
+        )
+        logger.info("Uploading done")
 
 
 def clean_pool() -> None:

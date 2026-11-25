@@ -15,6 +15,7 @@ dependencies = [
     "asyncio>=4.0.0",
     "websockets>=17.0.1",
     "openqa-client>=4.3.1",
+    "boto3>=1.44.11",
 ]
 
 # This is transformed into requirements.txt on the SUT,

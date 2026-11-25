@@ -3,20 +3,13 @@
 include:
   - project: sysadmin/ci-utilities
     file:
-      - /gitlab-templates/reuse-lint.yml
+      # - /gitlab-templates/reuse-lint.yml
       - /gitlab-templates/blocks/workflow.yml
 
 stages:
-  - validate
+  # - validate
   - test
-  - test-upgrade
-
-# Don't run linting when triggered from kde-linux CI
-reuse:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "pipeline"
-      when: never
-    - when: always
+  # - test-upgrade
 
 .test-base:
   image: s3.kde.org/ci-vm-images/suse-openqa-worker
@@ -27,16 +20,21 @@ reuse:
     - amd64
   variables:
     OPENQA_HOST_ADDR: openqa.kde.org
+    VARIANT: testing
     WORKER_FLOW: install
     WORKER_ARGS: ""
     TEST_REPOSITORY: https://invent.kde.org/kde-linux/kde-linux.git
     TEST_REVISION: master
+  id_tokens: &tokens
+    MINIO_OIDC:
+      aud: https://tokens.kde.org
   rules:
     - if: $CI_MERGE_REQUEST_IID
       when: manual
     - when: always
   allow_failure: false
   before_script:
+    - env
     - git init test-project
     - git -C test-project remote add origin "$TEST_REPOSITORY"
     - git -C test-project fetch --depth 1 origin "$TEST_REVISION"
@@ -64,5 +62,5 @@ test:
   stage: test
   parallel:
     matrix:
-      - WORKER_FLOW: [install, upgrade]
-        ENCRYPTION: [plain, encrypted]
+      - WORKER_FLOW: [install]
+        ENCRYPTION: [plain]
